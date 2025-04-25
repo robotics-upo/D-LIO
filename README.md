@@ -33,7 +33,7 @@ In addition to the basic ROS2 installation, the following packages are needed fo
 
 ### Install External Libraries
 
-Besides the ROS2 packages, this project depends on several external libraries that you may need to install manually. These libraries include **Eigen3** for linear algebra operations, **Ceres Solver** for optimization, **PCL (Point Cloud Library)** for point cloud processing, and **OpenCV** for image and matrix operations.
+Besides the ROS2 packages, this project depends on several external libraries that you may need to install manually. 
 
 - `PCL` (Common, Filters components)
 - `Boost` (Thread, Chrono components)
