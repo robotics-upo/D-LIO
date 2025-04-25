@@ -31,27 +31,18 @@ In addition to the basic ROS2 installation, the following packages are needed fo
 - `nav_msgs`
 - `pcl_ros`
 
-If any of these packages are missing, you can install them using the following command:
-```bash
-sudo apt install ros-humble-tf2-eigen ros-humble-pcl-conversions ros-humble-pcl-ros ros-humble-tf2-ros ros-humble-tf2-geometry-msgs ros-humble-message-filters ros-humble-sensor-msgs ros-humble-geometry-msgs ros-humble-nav-msgs
-```
 ### Install External Libraries
 
 Besides the ROS2 packages, this project depends on several external libraries that you may need to install manually. These libraries include **Eigen3** for linear algebra operations, **Ceres Solver** for optimization, **PCL (Point Cloud Library)** for point cloud processing, and **OpenCV** for image and matrix operations.
 
 - `PCL` (Common, Filters components)
 - `Boost` (Thread, Chrono components)
-- `glog`
 - `Ceres`
 - `OpenMP`
 - `Eigen3`
 - `std_srvs`
 - `ANN_LIB` (Approximate Nearest Neighbor library)
 
-To install these external libraries, simply copy and run the following command in your terminal:
-```bash
-sudo apt install libpcl-dev libboost-thread-dev libboost-chrono-dev libglog-dev libceres-dev libopenmp-dev libeigen3-dev ros-humble-std-srvs libann-dev || true
-```
 **# Install All Dependencies Automatically**
 
 For convenience, you can install all dependencies by running the following command **inside the package folder**:
