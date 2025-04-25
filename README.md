@@ -90,45 +90,45 @@ Along with the node and bag file, RViz visualization will also be launched to di
 
 The dlo3d_node requires a series of configuration parameters to operate correctly, which are related to the dataset and the vehicle being used. These parameters are as follows:
 
-Point Cloud Parameters:
-- **in_cloud_aux**
-- **in_cloud**
-- **hz_cloud**
-- **aux_lidar_en**
-- **min_range**
-- **max_range**
-- **pc_downsampling**
+* Point Cloud Parameters:
+    - **in_cloud_aux**
+    - **in_cloud**
+    - **hz_cloud**
+    - **aux_lidar_en**
+    - **min_range**
+    - **max_range**
+    - **pc_downsampling**
 
-IMU Parameters:
-- **in_imu**
-- **hz_imu**
-- **calibration_time**
-- **gyr_dev**
-- **gyr_rw_dev**
-- **acc_dev**
-- **acc_rw_dev**
+* IMU Parameters:
+    - **in_imu**
+    - **hz_imu**
+    - **calibration_time**
+    - **gyr_dev**
+    - **gyr_rw_dev**
+    - **acc_dev**
+    - **acc_rw_dev**
 
-Frames Id
-- **base_frame_id**
-- **odom_frame_id**
-- **map_frame_id**
+* Frames Id
+    - **base_frame_id**
+    - **odom_frame_id**
+    - **map_frame_id**
 
-KeyFrame Treshold Parameters:
-- **keyframe_dist**
-- **keyframe_rot**
+* KeyFrame Treshold Parameters:
+    - **keyframe_dist**
+    - **keyframe_rot**
 
-Grid and Map Parameters:
-- **tdfGridSizeX_low**
-- **tdfGridSizeX_high**
-- **tdfGridSizeY_low**
-- **tdfGridSizeY_high**
-- **tdfGridSizeZ_low**
-- **tdfGridSizeZ_high**
+* Grid and Map Parameters:
+    - **tdfGridSizeX_low**
+    - **tdfGridSizeX_high**
+    - **tdfGridSizeY_low**
+    - **tdfGridSizeY_high**
+    - **tdfGridSizeZ_low**
+    - **tdfGridSizeZ_high**
 
-Solver and Performance Parameters:
-- **solver_max_iter**
-- **solver_max_threads**
-- **robust_kernel_scale**
+* Solver and Performance Parameters:
+    - **solver_max_iter**
+    - **solver_max_threads**
+    - **robust_kernel_scale**
 
 These parameters allow you to fine-tune the node’s behavior, including settings related to the input cloud topics, IMU data, grid size, calibration, and solver configurations, among others.
 
