@@ -396,7 +396,7 @@ public:
 
     if (!file.is_open())
     {
-        std::cerr << "Error: No se pudo abrir el archivo " << filename << std::endl;
+        std::cerr << "Error: Unable to open file " << filename << std::endl;
         return;
     }
 
@@ -434,7 +434,7 @@ public:
     }
 
     file.close();
-    std::cout << "CSV exportado correctamente: " << filename << std::endl;
+    std::cout << "CSV exported successfully: " << filename << std::endl;
 }
 
 
@@ -453,21 +453,19 @@ void exportGridToPCD(const std::string& filename, int subsampling_factor)
                 float x = m_minX + ix * m_resolution;
 
                 uint64_t index = ix + iy * m_gridStepY + iz * m_gridStepZ;
-                if (!m_isOccupied[index]) continue;  // Solo puntos ocupados
-
+                if (!m_isOccupied[index]) continue; 
                 float dist = m_gridDist[index];
 
-                // Normalizar valores de distancia a una probabilidad [0,100]
-                float maxVal = 100.0f;  // Valor máximo esperado en la escala
+                float maxVal = 100.0f;  
                 float prob = (dist / maxVal) * 100.0f;
 
-                if (prob <= 1.0f) // Solo los de menor probabilidad
+                if (prob <= 1.0f) 
                 {
                     pcl::PointXYZI point;
                     point.x = x;
                     point.y = y;
                     point.z = z;
-                    point.intensity = prob; // Guardar la probabilidad como intensidad
+                    point.intensity = prob;
 
                     cloud->push_back(point);
                 }
@@ -477,23 +475,21 @@ void exportGridToPCD(const std::string& filename, int subsampling_factor)
 
     if (cloud->empty())
     {
-        std::cerr << "No se encontraron puntos que cumplan los criterios." << std::endl;
+        std::cerr << "Empty Cloud." << std::endl;
         return;
     }
 
     pcl::io::savePCDFileBinary(filename, *cloud);
-    std::cout << "PCD exportado correctamente: " << filename << std::endl;
+    std::cout << "PCD exported successfully: " << filename << std::endl;
 }
 
-
-
-	inline bool isOccupied(const float &x, const float &y, const float &z)
-	{
-		if(isIntoGrid(x, y, z))
-			return m_isOccupied[pointToGrid(x, y, z)];
-		else
-			return false;
-	}
+inline bool isOccupied(const float &x, const float &y, const float &z)
+{
+	if(isIntoGrid(x, y, z))
+		return m_isOccupied[pointToGrid(x, y, z)];
+	else
+		return false;
+}
 
 
 protected:
@@ -519,7 +515,6 @@ protected:
 			}
 
 			// Get a copy of the point-cloud
-			std::cout << "Staring map update" << std::endl;
 			cloud = m_cloud;
 			m_newCloud = false;
 			m_updating = true;
@@ -567,9 +562,7 @@ protected:
 					m_isOccupied[j] = 1;
 				}
 			#pragma omp barrier
-			
-			std::cout << "End" << std::endl;
-		
+					
 			m_updating = false;
 		}
 	}

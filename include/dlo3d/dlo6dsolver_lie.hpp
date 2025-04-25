@@ -251,17 +251,15 @@ class DLL6DSolver
         t[0] = 0.0; t[1] = 0.0; t[2] = 0.0; 
         double q[4];		
         q[0] = 1.0; q[1] = 0.0;q[2] = 0.0; q[3] = 0.0; 
-        std::cout<<"inside solver: RPY: "<<roll<<", "<<pitch<<", "<<yaw<<std::endl;
+
         // Build the problem.   
         Problem problem;
         problem.AddParameterBlock(t, 3);
         problem.AddParameterBlock(q, 4);
 
-        // Aplicar el manifold SOLO a la parte del cuaternión
         ceres::Manifold* quaternion_manifold = new ceres::QuaternionManifold();
         problem.SetManifold(q, quaternion_manifold);
 
-        // Set up a cost funtion per point into the cloud
         int n=0;
         double nx, ny, nz;
         tf2::Quaternion q_pre;
@@ -269,14 +267,14 @@ class DLL6DSolver
         tf2::Transform transform;
         transform.setRotation(q_pre);
         transform.setOrigin(tf2::Vector3(tx, ty, tz));
-
+        
+        // Set up a cost funtion per point into the cloud
         for(unsigned int i=0; i<p.size(); i++)
         {
             // Compute position of the point into the grid according to initial transform
             tf2::Vector3 point(p[i].x, p[i].y, p[i].z);
             tf2::Vector3 transformed_point = transform * point;
 
-            // Asignar los valores transformados
             nx = transformed_point.x();
             ny = transformed_point.y();
             nz = transformed_point.z();
@@ -290,12 +288,7 @@ class DLL6DSolver
                 problem.AddResidualBlock(cost_function,  new ceres::CauchyLoss( _robusKernelScale * (0.1+0.1*sqrt(p[i].x*p[i].x + p[i].y*p[i].y + p[i].z*p[i].z)) ) , t,q); 
             }
         }
-
-
-        std::cout << "Total points: " << p.size() << ", Into optimization: " << n  << std::endl;
-
         
-
         // Run the solver!
         Solver::Options options;
         options.minimizer_progress_to_stdout = false;
@@ -304,15 +297,12 @@ class DLL6DSolver
         options.num_threads = _max_threads; 
         Solver::Summary summary;
         Solve(options, &problem, &summary);
-        std::cout << "Número de iteraciones realizadas: " << summary.iterations.size() << std::endl;
 
         if(summary.termination_type == ceres::CONVERGENCE)
             converged = true;
 
-
-        // MODIFICAR ESTO
         if (converged) {
-            // Normalizar el cuaternión
+            
             double d = sqrt(q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]);
             if (d < 1e-7) d = 1e-7;
 
@@ -321,31 +311,20 @@ class DLL6DSolver
             double roll_out = rpy(0);
             double pitch_out = rpy(1);
             double yaw_out = rpy(2);
-
-            std::cout << "RPY incr     : " << roll_out << ", " << pitch_out << ", " << yaw_out << std::endl;
-            std::cout<<  "RPY pre solver     : "<<roll<<", "<<pitch<<", "<<yaw<<std::endl;
-            std::cout<<  "Position pre solver: "<<tx<<", "<<ty<<", "<<tz<<std::endl;
-            // Obtener matriz de transformación inicial y la del solver
             
             tf2::Quaternion q_init;
-            q_init.setRPY(roll, pitch, yaw);  // Inicializa con RPY
+            q_init.setRPY(roll, pitch, yaw);
 
-            // Convertir tf2::Quaternion a Eigen::Quaterniond
             Eigen::Quaterniond q_eigen(q_init.w(), q_init.x(), q_init.y(), q_init.z());
 
             Eigen::Matrix4d T_initial = getTransformMatrix(tx, ty, tz, q_eigen.normalized());
             Eigen::Matrix4d T_solver = getTransformMatrix(t[0], t[1], t[2], q_new.normalized());
 
-            // Multiplicar las transformaciones
             Eigen::Matrix4d T_result = T_solver * T_initial;
             
-            // Extraer nueva traslación
             tx = T_result(0, 3);
             ty = T_result(1, 3);
             tz = T_result(2, 3);
-
-            std::cout<<"Position post solver: "<<tx<<", "<<ty<<", "<<tz<<std::endl;
-           // Eigen::Quaterniond q_final = q_new * q_eigen;
 
             Eigen::Matrix3d R_result = T_result.block<3, 3>(0, 0);
             Eigen::Quaterniond q_final(R_result);
@@ -354,25 +333,18 @@ class DLL6DSolver
             tf2::Quaternion q_final_tf(q_final.x(), q_final.y(), q_final.z(), q_final.w());
             tf2::Matrix3x3 m_final(q_final_tf.normalize());
             m_final.getRPY(roll, pitch, yaw);
-            
-            std::cout<<"RPY post solver     : "<<roll<<", "<<pitch<<", "<<yaw<<std::endl;
-            std::cout<<"---------------------"<<std::endl;
-
 
         }
-
 
         return converged; 
     }
 
 
     Eigen::Matrix4d getTransformMatrix(double x, double y, double z, const Eigen::Quaterniond& q) {
+
         Eigen::Matrix4d T = Eigen::Matrix4d::Identity();
-        
-        // Convertir cuaternión a matriz de rotación usando Eigen
         Eigen::Matrix3d R_eigen = q.toRotationMatrix();
 
-        // Asignar la rotación y traslación
         T.block<3,3>(0,0) = R_eigen;
         T(0, 3) = x;
         T(1, 3) = y;
@@ -383,8 +355,5 @@ class DLL6DSolver
 
 
 };
-
-
-
 
 #endif

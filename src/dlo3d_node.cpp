@@ -30,7 +30,6 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "nav_msgs/msg/occupancy_grid.hpp"
 
-
 #include <dlo3d/tdf3d_64.hpp>
 #include <dlo3d/dlo6dsolver_lie.hpp>
 #include "ElapsedTime.hpp"
@@ -67,65 +66,52 @@ class DLO3DNode : public rclcpp::Node
 {
 public:
 
-//!Default contructord
+//!Default contructor
     DLO3DNode(const std::string &node_name)
-        : Node(node_name), m_solver(&m_grid3d),imuFilter(1.0 / 388.0, 2.0) 
+        : Node(node_name), m_solver(&m_grid3d),imuFilter() 
     {
-        // Read node parameters
-        this->declare_parameter<std::string>("in_cloud", "/cloud");
-        this->declare_parameter<std::string>("in_cloud_aux", "/cloud_aux");
-        this->declare_parameter<std::string>("in_imu", "/imu");
-        this->declare_parameter<std::string>("base_frame_id", "base_link");
-        this->declare_parameter<std::string>("odom_frame_id", "odom");
-        this->declare_parameter<double>("hz_imu", 100.0);
-        this->declare_parameter<double>("hz_cloud", 10.0);
-        this->declare_parameter<bool>("aux_lidar_en", false);
+        // Read DLO3D parameters
+        m_inCloudTopic     = this->declare_parameter<std::string>("in_cloud", "/cloud");
+        m_inCloudAuxTopic  = this->declare_parameter<std::string>("in_cloud_aux", "/cloud_aux");
+        m_inImuTopic       = this->declare_parameter<std::string>("in_imu", "/imu");
+        m_baseFrameId      = this->declare_parameter<std::string>("base_frame_id", "base_link");
+        m_odomFrameId      = this->declare_parameter<std::string>("odom_frame_id", "odom");
 
-        m_inCloudTopic = this->get_parameter("in_cloud").as_string();
-        m_inCloudAuxTopic = this->get_parameter("in_cloud_aux").as_string();
-        m_inImuTopic = this->get_parameter("in_imu").as_string();
-        m_baseFrameId = this->get_parameter("base_frame_id").as_string();
-        m_odomFrameId = this->get_parameter("odom_frame_id").as_string();
-        T_pcl = 1 / this->get_parameter("hz_cloud").as_double();
-        T_imu = 1 / this->get_parameter("hz_imu").as_double();
-        aux_lidar_en = this->get_parameter("aux_lidar_en").as_bool();
+        T_pcl              = 1.0 / this->declare_parameter<double>("hz_cloud", 10.0);
+        T_imu              = 1.0 / this->declare_parameter<double>("hz_imu", 100.0);
+        calibTime          = this->declare_parameter<double>("calibration_time", 1.0);
+        aux_lidar_en       = this->declare_parameter<bool>("aux_lidar_en", false);
 
-
-        //Read DLO parameters
-        this->declare_parameter<double>("keyframe_dist", 1.0);
-        this->declare_parameter<double>("keyframe_rot", 0.1);
-        this->declare_parameter<double>("tdf_grid_size_x", 50.0);
-        this->declare_parameter<double>("tdf_grid_size_y", 50.0);
-        this->declare_parameter<double>("tdf_grid_size_z", 50.0);
-        this->declare_parameter<double>("tdf_grid_res", 0.05);
-        this->declare_parameter<int>("solver_max_iter", 75);
-        this->declare_parameter<int>("solver_max_threads", 20);
-        this->declare_parameter<double>("min_range", 1.0);
-        this->declare_parameter<double>("max_range", 100.0);
-        this->declare_parameter<int>("pc_downsampling", 1);
-        this->declare_parameter<double>("robust_kernel_scale", 1.0);
-        m_keyFrameDist = this->get_parameter("keyframe_dist").as_double();
-        m_keyFrameRot = this->get_parameter("keyframe_rot").as_double();
-        m_tdfGridSizeX = this->get_parameter("tdf_grid_size_x").as_double();
-        m_tdfGridSizeY = this->get_parameter("tdf_grid_size_y").as_double();
-        m_tdfGridSizeZ = this->get_parameter("tdf_grid_size_z").as_double();
-        m_tdfGridRes = this->get_parameter("tdf_grid_res").as_double();
-        m_solverMaxIter = this->get_parameter("solver_max_iter").as_int();
-        m_solverMaxThreads = this->get_parameter("solver_max_threads").as_int();
-        m_minRange = this->get_parameter("min_range").as_double();
-        m_maxRange = this->get_parameter("max_range").as_double();
-        m_PcDownsampling = this->get_parameter("pc_downsampling").as_int();
-        m_robusKernelScale = this->get_parameter("robust_kernel_scale").as_double();
+        m_keyFrameDist      = this->declare_parameter<double>("keyframe_dist", 1.0);
+        m_keyFrameRot       = this->declare_parameter<double>("keyframe_rot", 0.1);
+        m_tdfGridSizeX_low  = this->declare_parameter<double>("tdfGridSizeX_low", 10.0);
+        m_tdfGridSizeX_high = this->declare_parameter<double>("tdfGridSizeX_high", 10.0);
+        m_tdfGridSizeY_low  = this->declare_parameter<double>("tdfGridSizeY_low", 10.0);
+        m_tdfGridSizeY_high = this->declare_parameter<double>("tdfGridSizeY_high", 10.0);
+        m_tdfGridSizeZ_low  = this->declare_parameter<double>("tdfGridSizeZ_low", 10.0);
+        m_tdfGridSizeZ_high = this->declare_parameter<double>("tdfGridSizeZ_high", 10.0);
+        m_tdfGridRes        = this->declare_parameter<double>("tdf_grid_res", 0.05);
+        m_solverMaxIter     = this->declare_parameter<int>("solver_max_iter", 75);
+        m_solverMaxThreads  = this->declare_parameter<int>("solver_max_threads", 20);
+        m_minRange          = this->declare_parameter<double>("min_range", 1.0);
+        m_maxRange          = this->declare_parameter<double>("max_range", 100.0);
+        m_PcDownsampling    = this->declare_parameter<int>("pc_downsampling", 1);
+        m_robusKernelScale  = this->declare_parameter<double>("robust_kernel_scale", 1.0);
 
         // Init internal variables
-        m_tfImuCache = false;
-        m_tfPointCloudCache = false;
-        m_tfPointCloudAuxCache = false;
-        m_tx = m_ty = m_tz = m_trx = m_try = m_trz = 0.0;
-        m_keyFrameInit = converged = false;
-        m_kx = m_ky = m_kz = m_krx = m_kry = m_krz= 0.0;
-        m_rx = m_ry = m_rz = 0.0;
+        m_tfImuCache            = false;
+        m_tfPointCloudCache     = false;
+        m_tfPointCloudAuxCache  = false;
+        m_keyFrameInit          = false;
+        converged               = false;
 
+        // Pose auxiliar variables
+        m_tx = m_ty = m_tz    = 0.0;
+        m_trx = m_try = m_trz = 0.0;
+        m_kx = m_ky = m_kz    = 0.0;
+        m_krx = m_kry = m_krz = 0.0;
+        m_rx = m_ry = m_rz    = 0.0;
+        
         //Init buffers
         m_tfBr = std::make_shared<tf2_ros::TransformBroadcaster>(this);
         m_tfBuffer = std::make_shared<tf2_ros::Buffer>(this->get_clock());
@@ -134,40 +120,7 @@ public:
         // Launch publishers
         m_keyframePub = this->create_publisher<sensor_msgs::msg::PointCloud2>("keyframe", 10);
         m_cloudPub = this->create_publisher<sensor_msgs::msg::PointCloud2>("cloud", 10);
-        m_unwrap = this->create_publisher<sensor_msgs::msg::PointCloud2>("unwraped_cloud", 10);
         m_odomPub = this->create_publisher<nav_msgs::msg::Odometry>("/odometry_pose", 10);
-
-        // Services
-
-        save_service_csv_ = this->create_service<std_srvs::srv::Trigger>(
-            "/save_grid_csv",
-            std::bind(&DLO3DNode::saveGridCSV, this, std::placeholders::_1, std::placeholders::_2)
-        );
-
-        save_service_pcd_ = this->create_service<std_srvs::srv::Trigger>(
-            "/save_grid_pcd",
-            std::bind(&DLO3DNode::saveGridPCD, this, std::placeholders::_1, std::placeholders::_2)
-        );
-
-
-        // // Setup TDF grid
-        m_grid3d.setup(-m_tdfGridSizeX * 0.9, m_tdfGridSizeX * 0.1,
-                    -m_tdfGridSizeY *0.5, m_tdfGridSizeY* 0.5,
-                    -m_tdfGridSizeZ * 0.2, m_tdfGridSizeZ * 0.8,
-                    m_tdfGridRes);
-                      
-        std::cout<<"setup made with "<<m_tdfGridSizeX<<" x "<<m_tdfGridSizeY<<" x "<<m_tdfGridSizeZ<<"."<<std::endl;
-
-        // Solver Setup
-        m_solver.setMaxIterations(m_solverMaxIter);
-        m_solver.setMaxThreads(m_solverMaxThreads);
-        m_solver.setRobustKernelScale(m_robusKernelScale);
-
-        odom_test.open("odom_test.csv", std::ios::out);
-
-        odom_test << "time,field.header.seq,field.header.stamp,field.pose.pose.position.x,field.pose.pose.position.y,field.pose.pose.position.z,field.pose.pose.orientation.x,field.pose.pose.orientation.y,field.pose.pose.orientation.z,field.pose.pose.orientation.w,field.twist.twist.linear.x,field.twist.twist.linear.y,field.twist.twist.linear.z";
-
-  
 
         m_imuSub = this->create_subscription<sensor_msgs::msg::Imu>(
             m_inImuTopic,  5000,
@@ -177,7 +130,7 @@ public:
                 imu_queue_.push(msg);
 
             });
-        
+        // Create subscribers
          m_pcSub = this->create_subscription<sensor_msgs::msg::PointCloud2>(
             m_inCloudTopic,  5000,
             [this](sensor_msgs::msg::PointCloud2::ConstSharedPtr msg) {
@@ -189,56 +142,77 @@ public:
          m_pcSub_aux = this->create_subscription<sensor_msgs::msg::PointCloud2>(
             m_inCloudAuxTopic,  5000,
             [this](sensor_msgs::msg::PointCloud2::ConstSharedPtr msg) {
-                
-                std::lock_guard<std::mutex> lock(queue_mutex_);
-                pcl_aux_queue_.push(msg);
+                if(aux_lidar_en){
+                    std::lock_guard<std::mutex> lock(queue_mutex_);
+                    pcl_aux_queue_.push(msg);}
             });
+        
+        // Create Services
+        save_service_csv_ = this->create_service<std_srvs::srv::Trigger>(
+            "/save_grid_csv",
+            std::bind(&DLO3DNode::saveGridCSV, this, std::placeholders::_1, std::placeholders::_2)
+        );
 
-        // Lanzar el hilo de procesamiento
+        save_service_pcd_ = this->create_service<std_srvs::srv::Trigger>(
+            "/save_grid_pcd",
+            std::bind(&DLO3DNode::saveGridPCD, this, std::placeholders::_1, std::placeholders::_2)
+        );
+
+        // Kalman Filter Setup
+        imuFilter.setup(T_imu,calibTime,
+                this->declare_parameter<double>("gyr_dev", 1.0),
+                this->declare_parameter<double>("gyr_rw_dev", 1.0),
+                this->declare_parameter<double>("acc_dev", 1.0),
+                this->declare_parameter<double>("acc_rw_dev", 1.0)
+
+        );
+
+        // TDF grid Setup
+        m_grid3d.setup(m_tdfGridSizeX_low, m_tdfGridSizeX_high,
+                    m_tdfGridSizeY_low, m_tdfGridSizeY_high,
+                    m_tdfGridSizeZ_low, m_tdfGridSizeZ_high,
+                    m_tdfGridRes);
+                      
+        std::cout << "DLO3D is ready to execute! " << std::endl;
+        std::cout << "Grid Created. Size: " 
+                << fabs(m_tdfGridSizeX_low) + fabs(m_tdfGridSizeX_high) << " x " 
+                << fabs(m_tdfGridSizeY_low) + fabs(m_tdfGridSizeY_high) << " x " 
+                << fabs(m_tdfGridSizeZ_low) + fabs(m_tdfGridSizeZ_high) << "." 
+                << std::endl;
+        
+        // Solver Setup
+        m_solver.setMaxIterations(m_solverMaxIter);
+        m_solver.setMaxThreads(m_solverMaxThreads);
+        m_solver.setRobustKernelScale(m_robusKernelScale);
+
+        // Runtime File for time analysis
+        times_dlo.open("dlo3d_runtime.csv", std::ios::out);
+        times_dlo << "total_time, optimized,opt_time,updated,update_time";
+
+        // Launch the processing thread
         processing_thread_ = std::thread(&DLO3DNode::processQueues, this);
-        std::cout<<"Prueba"<<std::endl;
     }
 
     // Default Destructor
     ~DLO3DNode(){
+
         stop_processing_ = true;
         queue_condition_.notify_all();
+
         if (processing_thread_.joinable()) {
             processing_thread_.join();
         }
-        if (odom_test.is_open()) {
-            odom_test.close();
+
+        if (times_dlo.is_open()) {
+            times_dlo.close();
         }
 
-
-        RCLCPP_INFO(this->get_logger(), "Nodo cerrado correctamente.");
-
-        
+        RCLCPP_INFO(this->get_logger(), "Node closed successfully.");   
     }
 
 private:
-    //! Indicates that the local transfrom of the sensors is cached
-    bool m_tfPointCloudCache, m_tfImuCache, m_tfPointCloudAuxCache;
-    geometry_msgs::msg::TransformStamped m_staticTfImu, m_staticTfPointCloud, m_staticTfPointCloudAux;
 
-    //! Key frame thresholds
-    double m_keyFrameDist, m_keyFrameRot;
-
-    //! Transform into current key-frame
-    bool m_keyFrameInit, aux_lidar_en, converged;
-    double T_pcl,T_imu;
-
-    double m_tx, m_ty, m_tz, m_trx,m_try,m_trz;
-    double m_kx, m_ky, m_kz, m_krx,m_kry,m_krz;
-    double m_lx, m_ly, m_lz, m_lrx,m_lry,m_lrz;
-    double m_x, m_y, m_z, a, vx, vy, vz;
-    double m_x_last, m_y_last, m_z_last;
-
-    //! IMU data
-    double m_rx, m_ry, m_rz, roll_imu, pitch_imu, yaw_imu;
-   	std::ofstream odom_test;
-
-    //! Node parameters
+    // ROS2 parameters
     std::string m_inCloudTopic;
     std::string m_inCloudAuxTopic;
     std::string m_inImuTopic;
@@ -247,21 +221,60 @@ private:
     double m_minRange, m_maxRange;
     ImuFilter imuFilter;
 
-    //! ROS2 msgs and data
+    // 3D distance grid
+    TDF3D64 m_grid3d;
+    double m_tdfGridSizeX_low, m_tdfGridSizeX_high, m_tdfGridSizeY_low, m_tdfGridSizeY_high, m_tdfGridSizeZ_low, m_tdfGridSizeZ_high, m_tdfGridRes;
+
+    // Non-linear optimization solver
+    DLL6DSolver m_solver;
+    int m_solverMaxIter, m_solverMaxThreads;
+    int m_PcDownsampling;
+    double m_robusKernelScale;
+
+    // Odometry variables
+    double m_rx, m_ry, m_rz;
+    double m_tx, m_ty, m_tz, m_trx, m_try, m_trz;
+    double m_kx, m_ky, m_kz, m_krx, m_kry, m_krz;
+    double m_lx, m_ly, m_lz, m_lrx, m_lry, m_lrz;
+    double m_x, m_y, m_z, a, vx, vy, vz;
+    double m_x_last, m_y_last, m_z_last;
+
+    // Key frame thresholds
+    double m_keyFrameDist, m_keyFrameRot;
+    bool m_keyFrameInit, aux_lidar_en, converged;
+
+    // Time parameters
+    double T_pcl, T_imu, calibTime;
+    
+    // Transformations
+    bool m_tfPointCloudCache, m_tfImuCache, m_tfPointCloudAuxCache;
+    geometry_msgs::msg::TransformStamped m_staticTfImu, m_staticTfPointCloud, m_staticTfPointCloudAux;
+    
+    // Lidar Unwrap data
+    std::deque<Filter_Data> Filter_filtered_queue_;
+    std::mutex Filter_queue_mutex_;
+    
+    // File management
+    std::ofstream times_dlo;
+
+    // ROS2 subscribers and publishers
+    rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr m_imuSub;
+    rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr m_pcSub;
+    rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr m_pcSub_aux;
+    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr m_keyframePub;
+    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr m_cloudPub;
+    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr m_odomPub;
+
+    // ROS2 transform management
     std::shared_ptr<tf2_ros::TransformBroadcaster> m_tfBr;
     std::shared_ptr<tf2_ros::Buffer> m_tfBuffer;
     std::shared_ptr<tf2_ros::TransformListener> m_tfListener;
-    
-    rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr m_imuSub;   
-    rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr m_pcSub; 
-    rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr m_pcSub_aux; 
-    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr m_keyframePub;
-    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr m_cloudPub;
-    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr m_unwrap;
-    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr m_odomPub;
 
+    // Services
+    rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr save_service_csv_;
+    rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr save_service_pcd_;
 
-    // Gestion de colas
+    // Queue management for processing
     std::mutex queue_mutex_;
     std::condition_variable queue_condition_;
     bool stop_processing_;
@@ -271,46 +284,19 @@ private:
     std::queue<sensor_msgs::msg::Imu::ConstSharedPtr> imu_queue_;
     std::thread processing_thread_;
 
-    // Services
-    rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr save_service_csv_;
-    rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr save_service_pcd_;
-
-    //! 3D distance grid
-    TDF3D64 m_grid3d;
-    double m_tdfGridSizeX, m_tdfGridSizeY, m_tdfGridSizeZ, m_tdfGridRes;
-
-    //! Non-linear optimization solver
-    DLL6DSolver m_solver;
-    int m_solverMaxIter, m_solverMaxThreads;
-    int m_PcDownsampling;
-    double m_robusKernelScale;
-    std::vector<double> refresh_id;
-    std::vector<double> refresh_time;
-    std::vector<double> conv_id;
-    std::vector<double> conv_time;
-
-    // Lidar Unwrap
-    std::deque<Filter_Data> Filter_filtered_queue_;
-    std::mutex Filter_queue_mutex_;
-
-    // Variables provisionales
-    double cnt_refresh = 0.0;
-    double max_pcl_queue = 0.0;
-
-    // Declaracion de funciones
+    // Function declarations
     void processQueues();
+    void pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr& cloud, 
+                            const sensor_msgs::msg::PointCloud2::ConstSharedPtr& cloud_aux, 
+                            bool is_aux_avaliable);
 
-    void pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr& cloud, const sensor_msgs::msg::PointCloud2::ConstSharedPtr& cloud_aux, bool is_aux_avaliable);
     void imuCallback(const sensor_msgs::msg::Imu::ConstSharedPtr& msg);
-    void downsamplePointCloud(std::vector<pcl::PointXYZ>& points, float leaf_size);
     bool PointCloud2_to_PointXYZ_unwrap(sensor_msgs::msg::PointCloud2 &in, std::vector<pcl::PointXYZ> &out, double scan_start_time);
     Closest_Filter_Result findClosestFilterData(const std::deque<Filter_Data>& Filter_queue, double target_timestamp);
 
     Eigen::Matrix4f getTransformMatrix(const geometry_msgs::msg::TransformStamped& transform_stamped);
     
     double adjustYaw(double angle, double reference);
-    double Pi2PiRange(double angle);
-    double Floor_absolute( double value );
 
     void saveGridCSV(const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
                           std::shared_ptr<std_srvs::srv::Trigger::Response> response);
@@ -322,32 +308,32 @@ private:
 
 void DLO3DNode::saveGridCSV(const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
                                  std::shared_ptr<std_srvs::srv::Trigger::Response> response) {
-    RCLCPP_INFO(this->get_logger(), "Recibida solicitud para guardar CSV. Iniciando en hilo separado...");
 
-    // Ejecutar la exportación en un hilo separado
+    RCLCPP_INFO(this->get_logger(), "Received request to save CSV. Starting in a separate thread...");
+    
     std::thread([this]() {
-        RCLCPP_INFO(this->get_logger(), "Generando CSV...");
-        m_grid3d.exportGridToCSV("grid_data.csv",-2.0, m_tdfGridSizeX -2.0,
-                      -m_tdfGridSizeY *0.5, m_tdfGridSizeY* 0.5,
-                      -5.0, m_tdfGridSizeZ-5.0,
-                      1);  // Usa el miembro de la clase
-        RCLCPP_INFO(this->get_logger(), "CSV guardado correctamente.");
-    }).detach();  // Desacoplar el hilo para que no bloquee
+        RCLCPP_INFO(this->get_logger(), "Generating CSV...");
+        m_grid3d.exportGridToCSV("grid_data.csv",m_tdfGridSizeX_low, m_tdfGridSizeX_high,
+                    m_tdfGridSizeY_low, m_tdfGridSizeY_high,
+                    m_tdfGridSizeZ_low, m_tdfGridSizeZ_high,
+                      1);
+        RCLCPP_INFO(this->get_logger(), "CSV saved successfully..");
+    }).detach();
 
     response->success = true;
-    response->message = "Exportación del CSV iniciada en segundo plano.";
+    response->message = "CSV export started in the background.";
+
 }
 
 void DLO3DNode::saveGridPCD(const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
                                  std::shared_ptr<std_srvs::srv::Trigger::Response> response) {
-    RCLCPP_INFO(this->get_logger(), "Recibida solicitud para guardar PCD. Iniciando en hilo separado...");
+    RCLCPP_INFO(this->get_logger(), "Received request to save PCD. Starting in a separate thread...");
 
-    // Ejecutar la exportación en un hilo separado
     std::thread([this]() {
-        RCLCPP_INFO(this->get_logger(), "Generando PCD...");
-        m_grid3d.exportGridToPCD("grid_data.pcd",1);  // Usa el miembro de la clase
-        RCLCPP_INFO(this->get_logger(), "PCD guardado correctamente.");
-    }).detach();  // Desacoplar el hilo para que no bloquee
+        RCLCPP_INFO(this->get_logger(), "Generating PCD...");
+        m_grid3d.exportGridToPCD("grid_data.pcd",1); 
+        RCLCPP_INFO(this->get_logger(), "PCD saved successfully.");
+    }).detach();
 
     response->success = true;
     response->message = "Exportación del PCD iniciada en segundo plano.";
@@ -358,34 +344,31 @@ void DLO3DNode::processQueues() {
     while (!stop_processing_) {
         std::unique_lock<std::mutex> lock(queue_mutex_);
 
+        // Check if processing should stop
         if (stop_processing_) {
             break;
         }
-
+        // Process if there are messages in both queues
         if (!imu_queue_.empty() && !pcl_queue_.empty()) {
             auto imu_msg = imu_queue_.front();
             auto pcl_msg = pcl_queue_.front();
 
-            if (pcl_queue_.size() > max_pcl_queue) {
-                max_pcl_queue = pcl_queue_.size();
-            }
-
-            // Comparar timestamps
+            // Compare timestamps of IMU and point cloud messages
             if (imu_msg->header.stamp.sec < pcl_msg->header.stamp.sec || 
                 (imu_msg->header.stamp.sec == pcl_msg->header.stamp.sec && imu_msg->header.stamp.nanosec < pcl_msg->header.stamp.nanosec)) {
 
                 imu_queue_.pop();
                 lock.unlock();
-                imuCallback(imu_msg);
+                imuCallback(imu_msg); // Call IMU processing function
                 lock.lock();
 
             } else {
-                // Guardamos el mensaje actual antes de liberar el lock
                 auto pcl_msg_safe = pcl_msg;
                 
                 pcl_queue_.pop();
                 lock.unlock();
 
+                // Check if an auxiliary point cloud is available
                 bool is_aux_available = false;
                 sensor_msgs::msg::PointCloud2::ConstSharedPtr pcl_msg_aux_safe;
                 
@@ -393,9 +376,8 @@ void DLO3DNode::processQueues() {
                 double min_diff = std::numeric_limits<double>::max();
                 sensor_msgs::msg::PointCloud2::ConstSharedPtr best_match = nullptr;
 
-                // Copia local de la cola auxiliar para evitar modificaciones concurrentes
+                // Find the closest auxiliary point cloud in time if enable
                 std::queue<sensor_msgs::msg::PointCloud2::ConstSharedPtr> pcl_aux_queue_copy = pcl_aux_queue_;
-
                 while (aux_lidar_en && !pcl_aux_queue_copy.empty()) {
                     auto pcl_aux_candidate = pcl_aux_queue_copy.front();
                     double aux_timestamp = pcl_aux_candidate->header.stamp.sec + pcl_aux_candidate->header.stamp.nanosec * 1e-9;
@@ -413,20 +395,18 @@ void DLO3DNode::processQueues() {
                     pcl_aux_queue_copy.pop();
                 }
 
+                // Use the best auxiliary match if found
                 if (best_match) {
-                    //std::cout << "[DEBUG] Best match encontrado con timestamp: " << best_match->header.stamp.sec << std::endl;
                     is_aux_available = true;
                     pcl_msg_aux_safe = best_match;
                 } else {
-                    //std::cout << "[DEBUG] No se encontró best match, usando pcl_msg" << std::endl;
                     pcl_msg_aux_safe = pcl_msg_safe;
+                    is_aux_available = false;
                 }
 
-                // Llamada segura a pointcloudCallback
+                // Call point cloud processing function
                 pointcloudCallback(pcl_msg_safe, pcl_msg_aux_safe, is_aux_available);
-
                 lock.lock();
-                std::cout << "Tamaño de cola: " <<pcl_queue_.size() <<"/"<< max_pcl_queue<<"."<<std::endl;
             }
         }
     }
@@ -461,8 +441,6 @@ void DLO3DNode::imuCallback(const sensor_msgs::msg::Imu::ConstSharedPtr& msg)
     double dt = current_stamp - prev_stamp;
     prev_stamp = current_stamp;
 
-   //std::cout<<"dt: "<<1.0/dt<<std::endl;
-
     // Adapt IMU velocity and aceleration to base system reference
     tf2::Quaternion q_static = tf2::Quaternion(
         m_staticTfImu.transform.rotation.x,
@@ -476,19 +454,12 @@ void DLO3DNode::imuCallback(const sensor_msgs::msg::Imu::ConstSharedPtr& msg)
     tf2::Matrix3x3 rot_matrix(q_static);
     tf2::Vector3 v_base = rot_matrix * v;
 
-    // PROVISIONAL -----------------------------------------
-    tf2::Quaternion q;
-    tf2::fromMsg(msg->orientation, q);
-    tf2::Matrix3x3(q).getRPY(roll_imu, pitch_imu, yaw_imu);
-    pitch_imu = - pitch_imu;
-    // -----------------------------------------------------
-
     // Rotate and compense for accelerations produced by off-centering the IMU (base frame must be in the center)
     tf2::Vector3 a(msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z);
     static tf2::Vector3 v_base_prev = v_base;
     tf2::Vector3 a_base = rot_matrix * a;
-    /*
-    a_base += ((v_base - v_base_prev) / dt).cross(tf2::Vector3(
+    
+    a_base += ((v_base - v_base_prev) / T_imu).cross(tf2::Vector3(
         m_staticTfImu.transform.translation.x,
         m_staticTfImu.transform.translation.y,
         m_staticTfImu.transform.translation.z
@@ -497,9 +468,9 @@ void DLO3DNode::imuCallback(const sensor_msgs::msg::Imu::ConstSharedPtr& msg)
         m_staticTfImu.transform.translation.y,
         m_staticTfImu.transform.translation.z
     )));
-    v_base_prev = v_base;*/
+    v_base_prev = v_base;
 
-    // Modified msg
+    // Modified msg for imuFilter -> v (rad/s) -- a (m/s2)
     sensor_msgs::msg::Imu modified_msg = *msg;
     modified_msg.angular_velocity.x = v_base.x();
     modified_msg.angular_velocity.y = v_base.y();
@@ -508,23 +479,22 @@ void DLO3DNode::imuCallback(const sensor_msgs::msg::Imu::ConstSharedPtr& msg)
     modified_msg.linear_acceleration.y = a_base.y();
     modified_msg.linear_acceleration.z = a_base.z();
 
-    // Prediction
+    // Prediction Step
     if (!imuFilter.isInit()) {
-        imuFilter.initialize(modified_msg); // v (rad/s) - a (m/s2)
+
+        imuFilter.initialize(modified_msg); 
+
     } else {
         
         imuFilter.predict(
             v_base.x(),v_base.y(),v_base.z(),
             a_base.x(),a_base.y(), a_base.z(),current_stamp);
 
-        if(true){//a_mod>0.9 && a_mod<1.1
-          //imuFilter.update_imu(roll_imu,pitch_imu,0.0025*0.0025);
-        }
-
         imuFilter.getAngles(m_rx, m_ry, m_rz);
 
     }
 
+    // EKF Data Storage for LiDAR Deeskewing
     Filter_Data data;
     data.timestamp = current_stamp;
     imuFilter.getposition(data.x, data.y, data.z);
@@ -543,19 +513,26 @@ void DLO3DNode::imuCallback(const sensor_msgs::msg::Imu::ConstSharedPtr& msg)
 //! 3D point-cloud callback
 void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr& cloud, const sensor_msgs::msg::PointCloud2::ConstSharedPtr& cloud_aux, bool is_aux_avaliable)
 {
+    // Time analysis variables
+    ElapsedTime total_timer,opt_timer,update_timer;
+    total_timer.tick();
 
+    int updated = 0;
+    int optimized = 0;
+    double opt_time = 0.0;
+    double update_time = 0.0;
 
-     // Compute r difference between measurements
+    // Compute time difference between measurements
     static double prev_stamp = cloud->header.stamp.sec + cloud->header.stamp.nanosec * 1e-9;
     double current_stamp = cloud->header.stamp.sec + cloud->header.stamp.nanosec * 1e-9;
     double dt = current_stamp - prev_stamp;
     prev_stamp = current_stamp;
 
-    ElapsedTime t;
+    // Current pose to optimize from EKF Filter
     imuFilter.getposition(m_x, m_y, m_z);
     imuFilter.getAngles(m_rx, m_ry, m_rz);
 
-    // Pre-cache transform for point-cloud to base frame and transform the pc 
+    // Pre-cache transform for point-clouds to base frame and transform the pc 
     if (!m_tfPointCloudCache)
     {	
         try
@@ -576,13 +553,13 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
         }
     }
 
-    if (!m_tfPointCloudAuxCache && aux_lidar_en)
+    if (!m_tfPointCloudAuxCache && is_aux_avaliable)
     {	
         try
         {
             m_staticTfPointCloudAux = m_tfBuffer->lookupTransform(
                 m_baseFrameId, 
-                cloud_aux->header.frame_id, 
+                cloud_aux->header.frame_id,
                 tf2::TimePointZero, 
                 tf2::durationFromSec(2.0)); 
             
@@ -596,6 +573,7 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
         }
     }
 
+    // Cloud Preproccessing
     pcl::PointCloud<PointXYZT> pcl_cloud;
     pcl::fromROSMsg(*cloud, pcl_cloud);
 
@@ -604,10 +582,8 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
     pcl::transformPointCloud(pcl_cloud, transformed_cloud, transform_matrix);
     pcl::PointCloud<PointXYZT> final_cloud = transformed_cloud; 
 
-
-
+    // Fuse auxiliar cloud if avaliable
     if (is_aux_avaliable) {
-        std::cout<<"AUX ENABLE"<<std::endl;
 
         Eigen::Matrix4f transform_aux_matrix = getTransformMatrix(m_staticTfPointCloudAux);
         pcl::PointCloud<PointXYZT> pcl_cloud_aux;
@@ -618,30 +594,27 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
         final_cloud += transformed_cloud_aux;  
     }
 
-    sensor_msgs::msg::PointCloud2 transformed_msg;
-    pcl::toROSMsg(final_cloud, transformed_msg);
-
+    sensor_msgs::msg::PointCloud2 final_cloud_msg;
+    pcl::toROSMsg(final_cloud, final_cloud_msg);
     double scan_end_time = cloud->header.stamp.sec + cloud->header.stamp.nanosec * 1e-9;
     std::vector<pcl::PointXYZ> c;
-    bool unwrap_success = PointCloud2_to_PointXYZ_unwrap(transformed_msg, c, scan_end_time);
-    if (!unwrap_success) {
-        std::cout<<"UNWARP NOT SUCCEDDED"<<std::endl;
-        c.clear();
 
+    bool unwrap_success = PointCloud2_to_PointXYZ_unwrap(final_cloud_msg, c, scan_end_time);
+
+    // If unwarp not succedded, use raw cloud
+    if (!unwrap_success) {
+
+        c.clear();
         c.reserve(final_cloud.size());
         for (const auto& point : final_cloud) {
             c.emplace_back(point.x, point.y, point.z);
         }
     }
 
-   // downsamplePointCloud(c, 0.2);
-
-    // Pcl Proccesing
+    // Cloud Processing
     converged = false;
 
     if(imuFilter.isInit()){
-
-        bool translation_ok,rotation_ok = true;
 
         if(!m_keyFrameInit)
         {
@@ -688,68 +661,35 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
 
             tf2::Vector3 point_local = grid_base.inverse() * point_global;
 
-            // Extraer valores locales
+            // Grid local Variables
             double x_local = point_local.x();
             double y_local = point_local.y();
             double z_local = point_local.z();
             double roll_local = m_rx - m_trx;
             double pitch_local = m_ry - m_try;
             double yaw_local = m_rz - m_trz;
+            double yaw_local_prev;
 
-            double roll_local_prev, pitch_local_prev,yaw_local_prev,x_local_prev,y_local_prev,z_local_prev;
-
-            roll_local_prev = roll_local;
-            pitch_local_prev = pitch_local;
             yaw_local_prev = yaw_local;
-            x_local_prev = x_local;
-            y_local_prev = y_local;
-            z_local_prev = z_local;
-
+           
+            // Optimization
+            optimized = 1;
+            opt_timer.tick();
             converged = m_solver.solve(c, x_local, y_local, z_local, roll_local, pitch_local, yaw_local);
-            converged = true;
+            opt_time = opt_timer.tock();
+
+            // Adjust yaw to maintain continuity after solver, which constrains yaw within [-π, π].
             yaw_local = adjustYaw(yaw_local_prev, yaw_local);
 
-            const double translation_threshold = 0.2;
-            const double rotation_threshold = 2.0 * M_PI / 180.0;
-
-            // Calcular diferencias
-            double d_x = std::abs(x_local - x_local_prev);
-            double d_y = std::abs(y_local - y_local_prev);
-            double d_z = std::abs(z_local - z_local_prev);
-
-            double droll = std::abs(roll_local - roll_local_prev);
-            double dpitch = std::abs(pitch_local - pitch_local_prev);
-            double dyaw = std::abs(yaw_local - yaw_local_prev);
-
-            // Comprobar si el cambio está por debajo del umbral
-            translation_ok = (d_x < translation_threshold) && (d_y < translation_threshold) && (d_z < translation_threshold);
-            rotation_ok = (droll < rotation_threshold) && (dpitch < rotation_threshold) && (dyaw < rotation_threshold);
-
-            std::cout << "Δx: " << d_x << ", Δy: " << d_y << ", Δz: " << d_z 
-                << " | ΔRoll: " << droll * 180.0 / M_PI << "°, ΔPitch: " << dpitch * 180.0 / M_PI 
-                << "°, ΔYaw: " << dyaw * 180.0 / M_PI << "°" << std::endl;
-
-            if ( rotation_ok && translation_ok) {
-                std::cout << "El cambio está dentro de los límites aceptables." << std::endl;
-            } else {
-                std::cout << "Se ha detectado un cambio significativo en la transformación." << std::endl;
-            }
-
+            // Update EKF if converged
             if(converged){
 
                 point_local = tf2::Vector3(x_local, y_local, z_local);
-
-                // Aplicar transformación para obtener coordenadas globales
                 point_global = grid_base * point_local;
 
-                // Extraer valores transformados
                 m_x = point_global.x();
                 m_y = point_global.y();
                 m_z = point_global.z();
-                //std::cout<<"Position vel    : "<<m_x<<", "<<m_y<<", "<<m_z<<std::endl;
-                //std::cout<<"Position vel pre: "<<m_x_last<<", "<<m_y_last<<", "<<m_z_last<<std::endl;
-
-                // Ajuste de los ángulos
                 m_rx = m_trx + roll_local;
                 m_ry = m_try + pitch_local;
                 m_rz = m_trz + yaw_local;
@@ -757,24 +697,6 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
                 vx = (m_x - m_x_last)/(T_pcl);
                 vy = (m_y - m_y_last)/(T_pcl);
                 vz = (m_z - m_z_last)/(T_pcl);
-                //std::cout<<"Velocidades estimadas: "<<vx <<" "<<vy<<" "<<vz<<std::endl;
-                tf2::Quaternion q_ori;
-   		        q_ori.setRPY(m_rx, m_ry, m_rz);
-                odom_test << std::fixed << std::setprecision(0)
-                  << scan_end_time * 1000000000ULL << ","  // %time
-                  << 0.0 << ","
-                  << scan_end_time * 1000000000ULL<< ","       // field.header.stamp (poniéndolo a 0)
-				  << std::fixed << std::setprecision(9)
-                  << m_x << ","
-                  << m_y << ","
-                  << m_z << ","
-                  << q_ori.x() << ","  // field.pose.pose.orientation.x (por ejemplo, 0 si no se tiene valor)
-                  << q_ori.y() << ","  // field.pose.pose.orientation.y
-                  << q_ori.z() << ","  // field.pose.pose.orientation.z
-                  << q_ori.w() << "," 
-                  << vx << "," 
-                  << vy << "," 
-                  << vz << "\n";
 
                 imuFilter.update_opt_full(  m_x, m_y, m_z, 
                                             m_rx, m_ry, m_rz,
@@ -790,9 +712,7 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
                 m_y_last = m_y;
                 m_z_last = m_z; 
              
-                // Aplicar transformación inversa para obtener coordenadas locales
                 point_global = tf2::Vector3(m_x, m_y, m_z);
-
                 point_local = grid_base.inverse() * point_global;
 
                 m_kx = point_local.x();
@@ -805,79 +725,38 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
             }
 
         }
-/*
-        std::cout<< "m_tx: "<<m_tx <<
-                    "m_ty: "<<m_ty <<
-                    "m_tz: "<<m_tz<<
-                    "m_trx: "<<m_trx/(M_PI/180)<<
-                    "m_try: "<<m_try/(M_PI/180)<<
-                    "m_trz: "<<m_trz/(M_PI/180)<<std::endl;
 
-        std::cout<<"m_kx: "<<m_kx <<
-                    "m_ky: "<< m_ky<<
-                    "m_kz: "<<m_kz<<
-                    "m_krx: "<<m_krx/(M_PI/180)<<
-                    "m_kry: "<<m_kry/(M_PI/180)<<
-                    "m_krz: "<<m_krz/(M_PI/180)<<std::endl;*/
-         std::cout<< "m_x: "<<m_x<<
-                    "m_y: "<<m_y<<
-                    "m_z: "<<m_z<<
-                   "m_rx: "<<m_rx/(M_PI/180)<<
-                    "m_ry: "<<m_ry/(M_PI/180)<<
-                    "m_rz: "<<m_rz/(M_PI/180)<<std::endl;
-
-
-                   
-        // Update key-frame
-        if(fabs(m_kx) > m_tdfGridSizeX * (2.0/3.0) || fabs(m_ky) > m_tdfGridSizeY* (2.0/3.0) ||fabs(m_kz) > m_tdfGridSizeZ* (2.0/3.0)|| !converged)
+        // Create a new map if the limit is reached or if the solver does not converge.
+        if( m_kx > m_tdfGridSizeX_high || m_kx < m_tdfGridSizeX_low || 
+            m_ky > m_tdfGridSizeY_high || m_ky < m_tdfGridSizeY_low ||
+            m_kz > m_tdfGridSizeZ_high || m_kz < m_tdfGridSizeZ_low || !converged)
         {     
             if(!converged){
-                std::cout<<"***** NO CONVERGE EL SOLVER ······················································"<<std::endl;
+                std::cout<<" NOT CONVERGED. CREATING A NEW MAP!  ····························································"<<std::endl;
             }else{
-                std::cout<<"***** CREANDO NUEVO MAPA ························································"<<std::endl;
+                std::cout<<" MAP LIMIT REACHED. CREATING A NEW MAP!  ························································"<<std::endl;
             }
 
             // Add keyframe transform into odom
             m_tx  = m_x;
             m_ty  = m_y;
             m_tz  = m_z;
-            m_trx = (m_rx);
-            m_try = (m_ry);
+            m_trx = m_rx;
+            m_try = m_ry;
             m_trz = m_rz;
 
-            // Reset key-frame variables 
+            // Reset Grid and key-frame variables 
             m_kx = m_ky = m_kz = m_krx = m_kry = m_krz = 0.0;
             m_lx = m_ly = m_lz = m_lrx = m_lry = m_lrz = 0.0;
 
             m_grid3d.clear();
 
-
             // Load current point-cloud as new key-frame
             m_grid3d.loadCloud(c);
-
-            // Publish current point cloud
-           // m_keyframePub->publish(*cloud);
-
-            // PROVISIONAL ---------------------------------------------------------------------
-            
-            cnt_refresh ++;
-            if(!converged){
-                conv_id.push_back(imuFilter.get_sec());
-                conv_time.push_back(t.tock());
-            }else{
-           
-                refresh_id.push_back(imuFilter.get_sec());
-                refresh_time.push_back(t.tock());
-            }
-
-            // --------------------------------------------------------------------------------
-
-           
+  
         }
-        else if( (m_kx-m_lx)*(m_kx-m_lx) + (m_ky-m_ly)*(m_ky-m_ly) + (m_kz-m_lz)*(m_kz-m_lz) > m_keyFrameDist*m_keyFrameDist)
+        else if( (m_kx-m_lx)*(m_kx-m_lx) + (m_ky-m_ly)*(m_ky-m_ly) + (m_kz-m_lz)*(m_kz-m_lz) > m_keyFrameDist*m_keyFrameDist) // Update drid if threshold reached
         {
-
-            std::cout << "Updated Map·················································································\n";
 
             m_lx = m_kx;
             m_ly = m_ky;
@@ -887,38 +766,12 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
             m_lry = m_kry;
             m_lrz = m_krz;
 
-            tf2::Quaternion q;
-            q.setRPY(m_lrx, m_lry, m_lrz);
-            
-            // Normalizar el cuaternión
-            q.normalize();
-
-            // Convertir de vuelta a RPY
-            tf2::Matrix3x3 m(q);
-            m.getRPY(m_lrx, m_lry, m_lrz);
-
-
+            updated = 1;
+            update_timer.tick();
             m_grid3d.loadCloud(c, m_kx, m_ky, m_kz, m_krx,m_kry,m_krz);
-
-            std::cout << "Map updated ·················································································\n";
-
-            // Publish current point cloud
+            update_time = update_timer.tock();
             
         }
-
-        // PROVISIONAL ---------------------------------------------------------------------
-        std::cout<< "Mapa borrado " <<cnt_refresh<< " veces."<<std::endl;
-        for (size_t i = 0; i < refresh_id.size(); ++i) {
-            std::cout << "Refresh ID: " << refresh_id[i] << " - Tiempo: " << refresh_time[i] << "\n";
-        }
-
-        for (size_t i = 0; i < conv_id.size(); ++i) {
-            std::cout << "Conv ID: " << conv_id[i] << " - Tiempo: " << conv_time[i] << "\n";
-        }
-        
-        std::cout << "Optimization time: " << t.tock() << "Sec: " << imuFilter.get_sec()<<std::endl;
-        std::cout<<"*******************************************************************************************+"<<std::endl;
-        // ----------------------------------------------------------------------------------
 
         // Create and publish odom transform
         geometry_msgs::msg::TransformStamped odomTf;
@@ -938,92 +791,39 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
         odomTf.transform.rotation = tf2::toMsg(q.normalize());
         m_tfBr->sendTransform(odomTf);
 
+        // Create and publish odom message
         nav_msgs::msg::Odometry odomMsg;
         odomMsg.header.stamp = cloud->header.stamp;
-        odomMsg.header.frame_id = m_odomFrameId;  // Marco de referencia de la odometría
-        odomMsg.child_frame_id = m_baseFrameId;   // Marco del robot
+        odomMsg.header.frame_id = m_odomFrameId;
+        odomMsg.child_frame_id = m_baseFrameId;
 
-        // Asignar la posición
         odomMsg.pose.pose.position.x = m_x;
         odomMsg.pose.pose.position.y = m_y;
         odomMsg.pose.pose.position.z = m_z;
 
-        // Asignar la orientación
         odomMsg.pose.pose.orientation = tf2::toMsg(q.normalize());
         m_odomPub->publish(odomMsg);
 
-        // PROVISIONAL ------------------------------------------------------------------------------------------------
+        // Publish LiDAR Cloud
         std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ>> pcl_points_from_vector(c.begin(), c.end());
         pcl::PointCloud<pcl::PointXYZ> pcl_cloud_from_vector;
         pcl_cloud_from_vector.points = pcl_points_from_vector;
         pcl_cloud_from_vector.width = pcl_points_from_vector.size();  
         pcl_cloud_from_vector.height = 1; 
-        sensor_msgs::msg::PointCloud2 unwrap_msg;
-        pcl::toROSMsg(pcl_cloud_from_vector, unwrap_msg);
-        unwrap_msg.header.frame_id = "base_link"; 
-        m_unwrap->publish(unwrap_msg);
-        // -----------------------------------------------------------------------------------------------------------
-    }
-}
-
-double DLO3DNode::Floor_absolute( double value )
-	{
-	  if (value < 0.0)
-		return ceil( value );
-	  else
-		return floor( value );
-	}
-
-
-double DLO3DNode::Pi2PiRange(double cont_angle)
-	{
-		double bound_angle = 0.0;
-		if(fabs(cont_angle)<=M_PI)
-			bound_angle= cont_angle;
-		else
-		{
-			if(cont_angle > M_PI)
-				bound_angle = (cont_angle-2*M_PI) - 2*M_PI*Floor_absolute((cont_angle-M_PI)/(2*M_PI));
-			
-			if(cont_angle < - M_PI)
-				bound_angle = (cont_angle+2*M_PI) - 2*M_PI*Floor_absolute((cont_angle+M_PI)/(2*M_PI));
-		}
-		
-		return bound_angle;
-	}
-void DLO3DNode::downsamplePointCloud(std::vector<pcl::PointXYZ>& points, float leaf_size) {
-    if (points.empty()) {
-        std::cerr << "[WARNING] La nube de puntos está vacía. No se aplicará downsampling." << std::endl;
-        return;
+        sensor_msgs::msg::PointCloud2 cloud_msg;
+        pcl::toROSMsg(pcl_cloud_from_vector, cloud_msg);
+        cloud_msg.header.frame_id = "base_link"; 
+        m_cloudPub->publish(cloud_msg);
     }
 
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
-    cloud->points.assign(points.begin(), points.end());
-    cloud->width = points.size();
-    cloud->height = 1;
-    cloud->is_dense = true;
+    double total_time = total_timer.tock();
+    times_dlo << std::fixed << std::setprecision(9)<<
+            total_time << ","<<
+            optimized <<","<<
+            opt_time << ","<<
+            updated <<","<<
+            update_time <<"\n";
 
-    pcl::PCLPointCloud2::Ptr cloud_pcl2(new pcl::PCLPointCloud2());
-    pcl::PCLPointCloud2::Ptr cloud_filtered_pcl2(new pcl::PCLPointCloud2());
-    pcl::toPCLPointCloud2(*cloud, *cloud_pcl2);
-
-    pcl::VoxelGrid<pcl::PCLPointCloud2> sor;
-    sor.setInputCloud(cloud_pcl2);
-    sor.setLeafSize(leaf_size, leaf_size, leaf_size);
-    sor.filter(*cloud_filtered_pcl2);
-
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::fromPCLPointCloud2(*cloud_filtered_pcl2, *cloud_filtered);
-
-    std::cout << "[DEBUG] VoxelGrid aplicado, tamaño original: " 
-              << points.size() << ", tamaño resultante: " << cloud_filtered->points.size() << std::endl;
-
-    if (cloud_filtered->empty()) {
-        std::cerr << "[ERROR] La nube de puntos filtrada está vacía tras aplicar VoxelGrid." << std::endl;
-        return;
-    }
-
-    points.assign(cloud_filtered->points.begin(), cloud_filtered->points.end());
 }
 
 Closest_Filter_Result DLO3DNode::findClosestFilterData(const std::deque<Filter_Data>& Filter_queue, double target_timestamp) {
@@ -1031,11 +831,11 @@ Closest_Filter_Result DLO3DNode::findClosestFilterData(const std::deque<Filter_D
     Closest_Filter_Result result;
     result.found = false;
     
-    // Inicializar la búsqueda con el ultimo
+    // Initialize the search with the most recent filter data (last entry in the queue)
     result.Filter_data = Filter_queue.back();
     double min_time_diff = std::abs(target_timestamp - result.Filter_data.timestamp);
 
-    // Recorrer la cola
+    // Iterate over the filter queue to find the closest match based on timestamp
     for (const auto& Filter_data : Filter_queue) {
         double time_diff = std::abs(target_timestamp - Filter_data.timestamp);
         if (time_diff < min_time_diff) {
@@ -1044,9 +844,11 @@ Closest_Filter_Result DLO3DNode::findClosestFilterData(const std::deque<Filter_D
         }
     }
 
-    if(min_time_diff < 5 * T_imu){
+    // Check if the closest filter data is within an acceptable time range (e.g., 5 times the IMU time step)
+    if (min_time_diff < 5 * T_imu) {
         result.found = true;   
     }
+
     return result;
 }
 
@@ -1058,42 +860,41 @@ bool DLO3DNode::PointCloud2_to_PointXYZ_unwrap(
     out.clear();
     int points = 0;
 
-    // Verificar si hay datos de IMU disponibles
+    // Check if IMU data is available
     if (Filter_filtered_queue_.empty())
     {
-        RCLCPP_WARN(this->get_logger(), "La cola de IMU está vacía. No se puede realizar unwrap.");
+        RCLCPP_WARN(this->get_logger(), "IMU queue is empty. Unwrap cannot be performed.");
         return false;
     }
 
     double error_cnt = 0.0;
-    // Filtrar los datos dentro del intervalo de tiempo deseado
+
+    // Define the time window for filtering the data
     double search_start_time = scan_end_time - 0.2;
     double search_end_time = scan_end_time + 0.2;
-    
-    // Filtrar los datos dentro del intervalo de tiempo deseado utilizando std::queue
-    std::deque<Filter_Data> filtered_deque;
 
-    // Filtrar los datos de la cola de IMU dentro del intervalo
+    // Filter the IMU data within the desired time window
+    std::deque<Filter_Data> filtered_deque;
     for (const auto& Filter_data : Filter_filtered_queue_) {
         if (Filter_data.timestamp >= search_start_time && Filter_data.timestamp <= search_end_time) {
             filtered_deque.push_back(Filter_data);  // Añadir al std::deque
         }
     }
 
-    // Verificación si la cola está vacía
+    // Check if filtered data is available within the time window
     if (filtered_deque.empty()) {
-        RCLCPP_WARN(this->get_logger(), "No se encontraron datos en el intervalo de tiempo especificado.");
+        RCLCPP_WARN(this->get_logger(), "No data found in the specified time range.");
         return false;
     }
 
-    // Definir iteradores para x, y, z, t
+    // Define iterators for point cloud data (x, y, z, t)
     sensor_msgs::PointCloud2Iterator<float> iterX(in, "x");
     sensor_msgs::PointCloud2Iterator<float> iterY(in, "y");
     sensor_msgs::PointCloud2Iterator<float> iterZ(in, "z");
     sensor_msgs::PointCloud2Iterator<uint32_t> iterT(in, "t");
     tf2::Transform T_base;
     
-    // Encontrar el stamp relativo del ultimo punto del scan
+    // Find the timestamp of the last point in the scan
     uint32_t last_stamp = 0;
     auto iterT_start = iterT;
     for (; iterT != iterT.end(); ++iterT) {
@@ -1101,7 +902,7 @@ bool DLO3DNode::PointCloud2_to_PointXYZ_unwrap(
     }
     iterT = iterT_start;
 
-    // Encontrar transformada del Filter asociada al momento en el que se obtiene el ultimo punto del scan
+    // Find the Filter transform corresponding to the time of the last point
     Closest_Filter_Result Filter_f = findClosestFilterData(filtered_deque, scan_end_time);
     
     tf2::Quaternion q_base;
@@ -1112,7 +913,7 @@ bool DLO3DNode::PointCloud2_to_PointXYZ_unwrap(
 
     double total_points = static_cast<double>(in.width) * static_cast<double>(in.height);
    
-    // Iterar sobre cada punto de la nube 
+    // Iterate over each point in the point cloud
     for (; iterX != iterX.end(); ++iterX, ++iterY, ++iterZ, ++iterT)
     {
         
@@ -1123,21 +924,18 @@ bool DLO3DNode::PointCloud2_to_PointXYZ_unwrap(
         if(!closest_Filter_data.found){
             error_cnt++;  
         }
-    
-        // Transformada T_i del Filter 
+
+        // Transform corresponding to the closest Filter data
         tf2::Quaternion closest_Filter_q;
         closest_Filter_q.setRPY(closest_Filter_data.Filter_data.roll, closest_Filter_data.Filter_data.pitch, closest_Filter_data.Filter_data.yaw);
         tf2::Vector3 closest_Filter_pos(closest_Filter_data.Filter_data.x, closest_Filter_data.Filter_data.y, closest_Filter_data.Filter_data.z);
         tf2::Transform T_i(closest_Filter_q,closest_Filter_pos);
-        
-        // Punto corregido
+
+        // Apply transformation to the point
         tf2::Transform T = T_base.inverse() * T_i;
         point_pcl = T * point_pcl;
 
-       
-        // ---------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-        // Filtrar por rango y downsampling
+        // Range filtering and downsampling
         double min_sq = m_minRange * m_minRange;
         double max_sq = m_maxRange * m_maxRange;
         double d2 = point_pcl.x() * point_pcl.x() + point_pcl.y()  * point_pcl.y()  + point_pcl.z()  * point_pcl.z() ;
@@ -1147,36 +945,25 @@ bool DLO3DNode::PointCloud2_to_PointXYZ_unwrap(
         compensated_p.y = point_pcl.y();
         compensated_p.z = point_pcl.z();
        
-
+        // Add point to output if within range and if downsampling condition is met
         if (d2 > min_sq && d2 < max_sq && (points % m_PcDownsampling == 0))
         {
-            
             out.push_back(compensated_p);
         }
         points++;
 
     }
 
-    if((total_points - error_cnt)/total_points < 0.9){
-
-        std::cout<< " ************************** unwrapping error ********************************************************************************"<<std::endl;
-        return false;
-    }
-
-    
-     
-
-    return true;
+    // Return true if less than 10% of points had errors
+    return (total_points - error_cnt)/total_points < 0.9;
 
 }
 
 //! Auxiliar Functions
-
 Eigen::Matrix4f DLO3DNode::getTransformMatrix(const geometry_msgs::msg::TransformStamped& transform_stamped)
     {
         Eigen::Matrix4f transform = Eigen::Matrix4f::Identity();
 
-        // Rotación
         Eigen::Quaternionf q(
             transform_stamped.transform.rotation.w,
             transform_stamped.transform.rotation.x,
@@ -1185,14 +972,12 @@ Eigen::Matrix4f DLO3DNode::getTransformMatrix(const geometry_msgs::msg::Transfor
         );
         Eigen::Matrix3f rotation = q.toRotationMatrix();
 
-        // Traslación
         Eigen::Vector3f translation(
             transform_stamped.transform.translation.x,
             transform_stamped.transform.translation.y,
             transform_stamped.transform.translation.z
         );
 
-        // Construir la matriz de transformación 4x4
         transform.block<3,3>(0,0) = rotation;
         transform.block<3,1>(0,3) = translation;
 
@@ -1200,29 +985,29 @@ Eigen::Matrix4f DLO3DNode::getTransformMatrix(const geometry_msgs::msg::Transfor
     }
 
 double DLO3DNode::adjustYaw(double yaw_prev, double yaw_solved) {
+    
     double delta_yaw = yaw_solved - yaw_prev;
-
-    // Ajustar el delta para que esté en el rango [-π, π]
     while (delta_yaw > M_PI) delta_yaw -= 2 * M_PI;
     while (delta_yaw < -M_PI) delta_yaw += 2 * M_PI;
 
-    // Devolver el yaw ajustado con acumulación
     return yaw_prev + delta_yaw;
 }
   
 
-//
 
 int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
 
-    // Crear una instancia de tu nodo
-    auto node = std::make_shared<DLO3DNode>("dll3d_node");
+    try {
+        auto node = std::make_shared<DLO3DNode>("dll3d_node");
+        rclcpp::spin(node);
 
-    // Ejecutar el nodo
-    rclcpp::spin(node);
+    } catch (const std::exception &e) {
+        std::cerr << "Error creating or running the node: " << e.what() << std::endl;
+    }
 
     rclcpp::shutdown();
+
     return 0;
 }

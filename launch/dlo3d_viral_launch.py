@@ -1,25 +1,38 @@
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, ExecuteProcess
+from launch.conditions import IfCondition
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
-from launch.actions import ExecuteProcess, RegisterEventHandler
-from launch.event_handlers import OnProcessExit
 
 def generate_launch_description():
-    map = ExecuteProcess(
+
+    # Declare LaunchConfiguration for bag_path
+    bag_path = LaunchConfiguration('bag_path')
+
+    # Play the bag if bag_path is provided (evaluates to true if bag_path is non-empty)
+    play_bag = ExecuteProcess(
         cmd=[
-            'gnome-terminal', '--', 
-            'ros2', 'bag', 'play', '/home/upo/Datasets/eee_01/eee_01.db3', '--rate', '0.000001'
+            'gnome-terminal', '--',
+            'ros2', 'bag', 'play', bag_path, '--rate', '0.00001'
         ],
         output='screen',
-        name='bag_play_process'
+        condition=IfCondition(PythonExpression(['"', bag_path, '" != ""']))
     )
-    
+
     return LaunchDescription([
-    
-        # Tf 
+        DeclareLaunchArgument(
+            'bag_path',
+            default_value='',
+            description='Full path to the .db3 file to play with ros2 bag. If not provided, the launch will wait for external IMU and LiDAR data to arrive on the corresponding topics.'
+        ),
+
+        play_bag,
+
+        # Static Tf
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            name='static_tf_base_link_to_base_laser_link',
+            name='static_tf_base_link_to_base_laser_link_1',
             arguments=['-0.050', '0.0', '-0.055', '0', '0', '3.1412', 'base_link', 'sensor1/os_sensor'],
             output='screen'
         ),
@@ -27,7 +40,7 @@ def generate_launch_description():
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            name='static_tf_base_link_to_base_laser_link',
+            name='static_tf_base_link_to_base_laser_link_2',
             arguments=['-0.55', '-0.03', '-0.05', '3.1412', '0.0', '-1.570', 'base_link', 'sensor2/os_sensor'],
             output='screen'
         ),
@@ -40,15 +53,14 @@ def generate_launch_description():
             output='screen'
         ),
 
-
-        # DLO3D
+        # DLO3D node
         Node(
             package='dlo3d',
             executable='dlo3d_node',
-            name='dlo3d_node',
+            name='dll3d_node',
             output='screen',
             remappings=[
-                ('/dlo3d_node/initial_pose', '/initialpose')
+                ('/dll3d_node/initial_pose', '/initialpose')
             ],
             parameters=[
                 {'in_cloud_aux': '/os1_cloud_node2/points'},
@@ -56,24 +68,29 @@ def generate_launch_description():
                 {'hz_cloud': 10.0},
                 {'in_imu': '/imu/imu'},
                 {'hz_imu': 388.0},
+                {'calibration_time': 2.0},
                 {'aux_lidar_en': False},
+                {'gyr_dev': 0.00367396706572},
+                {'gyr_rw_dev': 2.66e-07},
+                {'acc_dev': 0.0365432018302},
+                {'acc_rw_dev': 0.000433},
                 {'base_frame_id': 'base_link'},
                 {'odom_frame_id': 'odom'},
                 {'map_frame_id': 'map'},
                 {'keyframe_dist': 2.0},
                 {'keyframe_rot': 25.0},
-                {'tdf_grid_size_x': 80.0},
-                {'tdf_grid_size_y': 60.0},
-                {'tdf_grid_size_z': 40.0},
+                {'tdfGridSizeX_low': -20.0},
+                {'tdfGridSizeX_high': 40.0},
+                {'tdfGridSizeY_low': -30.0},
+                {'tdfGridSizeY_high': 30.0},
+                {'tdfGridSizeZ_low': -5.0},
+                {'tdfGridSizeZ_high': 20.0},
                 {'solver_max_iter': 200},
                 {'solver_max_threads': 20},
-                {'min_range': 1.0},
+                {'min_range': 2.0},
                 {'max_range': 100.0},
                 {'pc_downsampling': 1},
-                {'robust_kernel_scale': 1.0}   
+                {'robust_kernel_scale': 1.0}
             ]
-        ),
-
-        map
-
+        )
     ])
