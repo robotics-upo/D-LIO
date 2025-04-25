@@ -54,15 +54,17 @@ To install and build the project, simply clone the repository as follows:
 ```
 
 ## 3. Running the Code
-The code can be launched automatically using one of the available launch files. There is a generic launch file that serves as a template for adapting the configuration to the specific dataset, as well as two predefined launch files tailored for the VIRAL and College datasets.
-To launch the code, use the following command:
+The code can be launched automatically using one of the available launch files. There is a generic launch file, **dlo3d_launch.py**, which serves as a template for adapting the configuration to the specific dataset. Additionally, there are two predefined launch files tailored for the VIRAL and College datasets.
+
+To launch the code, use the following example command:
   ```bash
-ros2 launch dlo3d dlo3d_viral_launch.py
+ros2 launch dlo3d dlo3d_launch.py
 ```
 This command will start the node and prepare it to receive information via the topics. The node will remain in a waiting state until data is published. If you wish to additionally launch a pre-recorded bag file, you can specify the bag_path parameter as shown below:
 
+
   ```bash
-ros2 launch dlo3d dlo3d_viral_launch.py bag_path:='bag_path1/bag.db3
+ros2 launch dlo3d dlo3d_launch.py bag_path:='bag_path1/bag.db3
 ```
 Along with the node and bag file, RViz visualization will also be launched to display a 3D representation of the environmen
 
