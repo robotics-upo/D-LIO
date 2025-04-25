@@ -82,7 +82,7 @@ This command will start the node and prepare it to receive information via the t
 
 
   ```bash
-ros2 launch dlo3d dlo3d_launch.py bag_path:='bag_path1/bag.db3
+ros2 launch dlo3d dlo3d_launch.py bag_path:='bag_path/bag.db3
 ```
 Along with the node and bag file, RViz visualization will also be launched to display a 3D representation of the environmen
 
@@ -113,7 +113,7 @@ Frames Id
 - **odom_frame_id**
 - **map_frame_id**
 
-KeyFrame Parameters:
+KeyFrame Treshold Parameters:
 - **keyframe_dist**
 - **keyframe_rot**
 
@@ -131,3 +131,28 @@ Solver and Performance Parameters:
 - **robust_kernel_scale**
 
 These parameters allow you to fine-tune the node’s behavior, including settings related to the input cloud topics, IMU data, grid size, calibration, and solver configurations, among others.
+
+## 3. Output Data and Services
+When the code is launched, it automatically stores a CSV file containing the odometric pose information every time an optimization occurs, synchronized to the LiDAR frequency. 
+
+ **[timestap, x, y, z, q_x, q_y, q_z, q_w, vx, vy, vz, gxf, gyf, gzf, gbx, gby, gbz, abx, aby, abz]**
+
+Additionally, a file named times_dlo.csv is generated, which records the runtime information for the code.
+
+ **[total_time, optimized, opt_time, updated, update_time]**
+
+
+The node also provides two services for saving the grid data to a file. These services execute the process in a parallel thread:
+
+- **save_grid_csv**: Saves the grid in CSV format.
+
+- **save_grid_pcd**: Saves the grid in PCD format.
+
+You can call these services directly using the following commands in ROS 2:
+
+
+  ```bash
+ros2 service call /save_grid_csv std_srvs/srv/Empty
+
+ros2 service call /save_grid_pcd std_srvs/srv/Empty
+```
