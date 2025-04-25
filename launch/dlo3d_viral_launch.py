@@ -41,9 +41,6 @@ def generate_launch_description():
             output='screen'
         ),
 
-
-       
-
         # Static Tf
         Node(
             package='tf2_ros',
