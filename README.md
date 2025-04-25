@@ -13,20 +13,32 @@ A Direct LIDAR Odometry (DLO) able to deal with raw 3D LIDAR data online, avoidi
 
 ## 1. Prerequisites
 
+Before you begin, make sure you have ROS 2 Humble and Ubuntu 24.04 (or higher) installed on your system. These are the core requirements for the project to run smoothly. If you haven't installed ROS 2 Humble yet, follow the official [installation guide](https://docs.ros.org/en/humble/Installation.html) for your platform. This guide will walk you through all the necessary steps to set up the core ROS 2 environment on your system. 
 
-The program runs on **ROS 2 Humble** and **Ubuntu 24.04** or higher, in addition to the following dependencies required to build and run the project:
 
-- `ament_cmake`
-- `rclcpp`
-- `message_filters`
-- `tf2`
+### Required ROS2 Packages
+
+In addition to the basic ROS2 installation, the following packages are needed for this project. These are typically included in a standard ROS2 setup, but it's always good to check if they are present on your system:
+
+- `tf2_eigen`
+- `pcl_conversions`
+- `pcl_ros`
 - `tf2_ros`
 - `tf2_geometry_msgs`
+- `message_filters`
 - `sensor_msgs`
 - `geometry_msgs`
 - `nav_msgs`
 - `pcl_ros`
-- `pcl_conversions`
+
+If any of these packages are missing, you can install them using the following command:
+```bash
+sudo apt install ros-humble-tf2-eigen ros-humble-pcl-conversions ros-humble-pcl-ros ros-humble-tf2-ros ros-humble-tf2-geometry-msgs ros-humble-message-filters ros-humble-sensor-msgs ros-humble-geometry-msgs ros-humble-nav-msgs
+```
+### Install External Libraries
+
+Besides the ROS2 packages, this project depends on several external libraries that you may need to install manually. These libraries include **Eigen3** for linear algebra operations, **Ceres Solver** for optimization, **PCL (Point Cloud Library)** for point cloud processing, and **OpenCV** for image and matrix operations.
+
 - `PCL` (Common, Filters components)
 - `Boost` (Thread, Chrono components)
 - `glog`
@@ -35,6 +47,12 @@ The program runs on **ROS 2 Humble** and **Ubuntu 24.04** or higher, in addition
 - `Eigen3`
 - `std_srvs`
 - `ANN_LIB` (Approximate Nearest Neighbor library)
+
+To install these external libraries, simply copy and run the following command in your terminal:
+```bash
+sudo apt install libpcl-dev libboost-thread-dev libboost-chrono-dev libglog-dev libceres-dev libopenmp-dev libeigen3-dev ros-humble-std-srvs libann-dev || true
+```
+**# Install All Dependencies Automatically**
 
 For convenience, you can install all dependencies by running the following command **inside the package folder**:
 ```bash
@@ -71,33 +89,45 @@ Along with the node and bag file, RViz visualization will also be launched to di
 **3.1 Node Configuration Parameters**
 
 The dlo3d_node requires a series of configuration parameters to operate correctly, which are related to the dataset and the vehicle being used. These parameters are as follows:
+
+Point Cloud Parameters:
 - **in_cloud_aux**
 - **in_cloud**
 - **hz_cloud**
+- **aux_lidar_en**
+- **min_range**
+- **max_range**
+- **pc_downsampling**
+
+IMU Parameters:
 - **in_imu**
 - **hz_imu**
 - **calibration_time**
-- **aux_lidar_en**
 - **gyr_dev**
 - **gyr_rw_dev**
 - **acc_dev**
 - **acc_rw_dev**
+
+Frames Id
 - **base_frame_id**
 - **odom_frame_id**
 - **map_frame_id**
+
+KeyFrame Parameters:
 - **keyframe_dist**
 - **keyframe_rot**
+
+Grid and Map Parameters:
 - **tdfGridSizeX_low**
 - **tdfGridSizeX_high**
 - **tdfGridSizeY_low**
 - **tdfGridSizeY_high**
 - **tdfGridSizeZ_low**
 - **tdfGridSizeZ_high**
+
+Solver and Performance Parameters:
 - **solver_max_iter**
 - **solver_max_threads**
-- **min_range**
-- **max_range**
-- **pc_downsampling**
 - **robust_kernel_scale**
 
 These parameters allow you to fine-tune the node’s behavior, including settings related to the input cloud topics, IMU data, grid size, calibration, and solver configurations, among others.
