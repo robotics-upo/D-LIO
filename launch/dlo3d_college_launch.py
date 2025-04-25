@@ -16,6 +16,9 @@ def generate_launch_description():
         output='screen',
         condition=IfCondition(bag_path)
     )
+    launch_file_dir = os.path.dirname(os.path.abspath(__file__))
+    rviz_config_file = os.path.join(launch_file_dir, 'default.rviz')
+
 
     return LaunchDescription([
 
@@ -24,7 +27,17 @@ def generate_launch_description():
             default_value='',
             description='Full path to the .db3 file to play with ros2 bag. If not provided, the launch will wait for external IMU and LiDAR data to arrive on the corresponding topics.'
         ),
+        DeclareLaunchArgument(
+            'rviz_config_file',
+            default_value=rviz_config_file,
+            description='Full path to the RViz config file.'
+        ),
 
+        # Iniciar RViz con el archivo de configuración
+        ExecuteProcess(
+            cmd=['ros2', 'run', 'rviz2', 'rviz2', '-d', LaunchConfiguration('rviz_config_file')],
+            output='screen'
+        ),
         # Static Tf
         Node(
             package='tf2_ros',
