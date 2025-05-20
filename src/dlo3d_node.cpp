@@ -603,13 +603,13 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
 
     // If unwarp not succedded, use raw cloud
     if (!unwrap_success) {
-
+        std::cout<<"Unwarp not successfull"<<std::endl;
         c.clear();
         c.reserve(final_cloud.size());
         for (const auto& point : final_cloud) {
             c.emplace_back(point.x, point.y, point.z);
-        }
-    }
+        }}
+
 
     // Cloud Processing
     converged = false;
@@ -770,6 +770,20 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
             update_timer.tick();
             m_grid3d.loadCloud(c, m_kx, m_ky, m_kz, m_krx,m_kry,m_krz);
             update_time = update_timer.tock();
+
+                    // Publish LiDAR Cloud
+            std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ>> pcl_points_from_vector(c.begin(), c.end());
+            pcl::PointCloud<pcl::PointXYZ> pcl_cloud_from_vector;
+            pcl_cloud_from_vector.points = pcl_points_from_vector;
+            pcl_cloud_from_vector.width = pcl_points_from_vector.size();  
+            pcl_cloud_from_vector.height = 1; 
+            sensor_msgs::msg::PointCloud2 cloud_msg;
+            pcl::toROSMsg(pcl_cloud_from_vector, cloud_msg);
+            cloud_msg.header.frame_id = "base_link"; 
+            m_keyframePub->publish(cloud_msg);
+
+
+            
             
         }
 
@@ -814,6 +828,8 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
         pcl::toROSMsg(pcl_cloud_from_vector, cloud_msg);
         cloud_msg.header.frame_id = "base_link"; 
         m_cloudPub->publish(cloud_msg);
+
+        
     }
 
     double total_time = total_timer.tock();
@@ -953,9 +969,8 @@ bool DLO3DNode::PointCloud2_to_PointXYZ_unwrap(
         points++;
 
     }
-
     // Return true if less than 10% of points had errors
-    return (total_points - error_cnt)/total_points < 0.9;
+    return (total_points - error_cnt)/total_points > 0.9;
 
 }
 

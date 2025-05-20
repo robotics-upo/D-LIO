@@ -143,7 +143,7 @@ You can call these services directly using the following commands in ROS 2:
 
 
   ```bash
-ros2 service call /save_grid_csv std_srvs/srv/Empty
+ros2 service call /save_grid_csv std_srvs/srv/Trigger
 
-ros2 service call /save_grid_pcd std_srvs/srv/Empty
+ros2 service call /save_grid_pcd std_srvs/srv/Trigger
 ```

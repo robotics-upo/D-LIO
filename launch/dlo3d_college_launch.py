@@ -1,8 +1,9 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, ExecuteProcess
 from launch.conditions import IfCondition
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
+import os
 
 def generate_launch_description():
 
@@ -14,7 +15,7 @@ def generate_launch_description():
             'ros2', 'bag', 'play', bag_path, '--rate', '0.00001'
         ],
         output='screen',
-        condition=IfCondition(bag_path)
+        condition=IfCondition(PythonExpression(['"', bag_path, '" != ""']))
     )
     launch_file_dir = os.path.dirname(os.path.abspath(__file__))
     rviz_config_file = os.path.join(launch_file_dir, 'default.rviz')
@@ -57,7 +58,7 @@ def generate_launch_description():
 
         # DLO3D Node
         Node(
-            package='dll3d',
+            package='dlo3d',
             executable='dlo3d_node',
             name='dll3d_node',
             output='screen',
