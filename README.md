@@ -22,7 +22,6 @@ A Direct LIDAR Odometry (DLO) able to deal with raw 3D LIDAR data online, avoidi
 - [3. Running the Code](#3-running-the-code)
   - [3.1 Node Configuration Parameters](#31-node-configuration-parameters)
 - [4. Output Data and Services](#4-output-data-and-services)
-- [⬆ Back to top](#readme-top)
 </details>
 
 
