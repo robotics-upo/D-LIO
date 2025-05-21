@@ -11,6 +11,21 @@ A Direct LIDAR Odometry (DLO) able to deal with raw 3D LIDAR data online, avoidi
   <img src="media/map_eee02.png" width="45%" />
 </p>
 
+
+<details>
+  <summary>Index</summary>
+
+- [1. Prerequisites](#1-prerequisites)
+- [2. Installation](#2-installation)
+  - [2.1 Install Locally](#21-install-locally)
+  - [2.2 Install Using Docker](#22-install-using-docker)
+- [3. Running the Code](#3-running-the-code)
+  - [3.1 Node Configuration Parameters](#31-node-configuration-parameters)
+- [4. Output Data and Services](#4-output-data-and-services)
+- [⬆ Back to top](#readme-top)
+</details>
+
+
 ## 1. Prerequisites
 
 Before you begin, make sure you have ROS 2 Humble and Ubuntu 24.04 (or higher) installed on your system. These are the core requirements for the project to run smoothly. If you haven't installed ROS 2 Humble yet, follow the official [installation guide](https://docs.ros.org/en/humble/Installation.html) for your platform. This guide will walk you through all the necessary steps to set up the core ROS 2 environment on your system. 
@@ -20,28 +35,30 @@ Before you begin, make sure you have ROS 2 Humble and Ubuntu 24.04 (or higher) i
 
 In addition to the basic ROS2 installation, the following packages are needed for this project. These are typically included in a standard ROS2 setup, but it's always good to check if they are present on your system:
 
-- `tf2_eigen`
-- `pcl_conversions`
-- `pcl_ros`
-- `tf2_ros`
-- `tf2_geometry_msgs`
-- `message_filters`
-- `sensor_msgs`
-- `geometry_msgs`
-- `nav_msgs`
-- `pcl_ros`
+- `ros-humble-tf2-ros`
+- `ros-humble-tf2-eigen`
+- `ros-humble-pcl-conversions`
+- `ros-humble-pcl-ros`
+- `ros-humble-message-filters`
+- `ros-humble-geometry-msgs`
+- `ros-humble-nav-msgs`
+- `ros-humble-sensor-msgs`
+- `ros-humble-std-srvs`
 
 ### Install External Libraries
 
 Besides the ROS2 packages, this project depends on several external libraries that you may need to install manually. 
 
-- `PCL` (Common, Filters components)
-- `Boost` (Thread, Chrono components)
-- `Ceres`
-- `OpenMP`
-- `Eigen3`
-- `std_srvs`
-- `ANN_LIB` (Approximate Nearest Neighbor library)
+- **PCL** (`libpcl-dev`)
+- **Boost** (`libboost-all-dev`)
+- **OpenMP** (`libomp-dev`)
+- **Eigen3** (`libeigen3-dev`)
+- **Ceres Solver** ≥ 2.1.0 (built from source to support `QuaternionManifold`)
+- **ANN** (Approximate Nearest Neighbor library from `dials/annlib`)
+- **YAML-CPP** (`libyaml-cpp-dev`)
+- **GFlags / GLog / SuiteSparse / ATLAS** (dependencies for Ceres)
+
+> If installing locally, make sure to build **Ceres Solver from source** with version `>= 2.1.0`, as required by the D-LIO solver implementation.
 
 **# Install All Dependencies Automatically**
 
@@ -52,7 +69,7 @@ rosdep install --from-paths src --ignore-src -r -y
 
 ## 2. Installation
 
-
+### Install localy
 To install and build the project, simply clone the repository as follows:
 
    ```bash
@@ -61,6 +78,35 @@ To install and build the project, simply clone the repository as follows:
    colcon build
    source install/setup.bash
 ```
+
+### Install using Docker
+Follow these steps to build and run D-LIO inside a Docker container:
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/robotics-upo/dlo3d.git
+    cd dlo3d
+    ```
+
+2. Build the Docker image:
+    ```bash
+    docker build -t dlio_ros2:humble .
+    ```
+
+3. Allow Docker to access the X server (for GUI like RViz):
+    ```bash
+    xhost +local:docker
+    ```
+
+4. Run the container
+    ```bash
+    docker run -it --rm \
+      --env="DISPLAY" \
+      --env="QT_X11_NO_MITSHM=1" \
+      --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+      --name dlio_container \
+      dlio_ros2:humble
+    ```
+The Dockerfile sets up the entire environment and downloads the D-LIO code automatically.
 
 ## 3. Running the Code
 The code can be launched automatically using one of the available launch files. There is a generic launch file, **dlo3d_launch.py**, which serves as a template for adapting the configuration to the specific dataset. Additionally, there are two predefined launch files tailored for the VIRAL and College datasets.
@@ -147,3 +193,5 @@ ros2 service call /save_grid_csv std_srvs/srv/Trigger
 
 ros2 service call /save_grid_pcd std_srvs/srv/Trigger
 ```
+
+<p align="right"><a href="#readme-top">⬆ Back to top</a></p> 
