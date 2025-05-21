@@ -59,13 +59,6 @@ Besides the ROS2 packages, this project depends on several external libraries th
 
 > If installing locally, make sure to build **Ceres Solver from source** with version `>= 2.1.0`, as required by the D-LIO solver implementation.
 
-**# Install All Dependencies Automatically**
-
-For convenience, you can install all dependencies by running the following command **inside the package folder**:
-```bash
-rosdep install --from-paths src --ignore-src -r -y
-```
-
 ## 2. Installation
 
 ### Install localy
