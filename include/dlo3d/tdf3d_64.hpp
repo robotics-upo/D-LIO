@@ -178,7 +178,7 @@ public:
 			   !isIntoGrid(cloud[i].x+step, cloud[i].y+step, cloud[i].z+step))
 				continue;
 			
-			// Provisional
+			// -------------------------------------------------------------------
 			uint64_t index = pointToGrid(cloud[i].x,cloud[i].y,cloud[i].z);
 			if(m_gridMask64[index] == 0)
 				continue;
