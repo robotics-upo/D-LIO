@@ -185,5 +185,12 @@ ros2 service call /save_grid_csv std_srvs/srv/Trigger
 
 ros2 service call /save_grid_pcd std_srvs/srv/Trigger
 ```
+## 4. Acknowledgments
+This work is partially supported by the grants INSERTION (PID2021- 127648OB-C31) and NORDIC (TED2021-132476B-I00), both funded by the “Agencia Estatal de Investigación – Ministerio de Ciencia, Innovación y Universidades” and the “European Union NextGenerationEU/PRTR.
+
+<p align="center">
+  <img src="media/logo_ministerio.png"  />
+</p>
+
 
 <p align="right"><a href="#readme-top">⬆ Back to top</a></p> 
