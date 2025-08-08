@@ -89,7 +89,7 @@ def generate_launch_description():
                 {'tdfGridSizeZ_low': -5.0},
                 {'tdfGridSizeZ_high': 30.0},
                 {'solver_max_iter': 500},
-                {'solver_max_threads': 20},
+                {'solver_max_threads': 16},
                 {'min_range': 2.0},
                 {'max_range': 100.0},
                 {'pc_downsampling': 4},

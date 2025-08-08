@@ -16,7 +16,6 @@ public:
 
 	TDF3D64(void) 
 	{
-		m_isUpdated = NULL;
 		m_isOccupied = NULL;
 		m_gridMask64 = NULL;
 		m_gridDist = NULL;
@@ -30,9 +29,6 @@ public:
 
 	~TDF3D64(void)
 	{
-		if(m_isUpdated != NULL)
-			free(m_isUpdated);
-		m_isUpdated = NULL;
 		if(m_isOccupied != NULL)
 			free(m_isOccupied);
 		m_isOccupied = NULL;
@@ -58,10 +54,8 @@ public:
 		// Free memory if needed
 		if(m_gridDist != NULL)
 			free(m_gridDist);
-		if(m_isUpdated != NULL)
-			free(m_isUpdated);
 		if(m_isOccupied != NULL)
-			free(m_isUpdated);
+			free(m_isOccupied);
 		if(m_gridMask64 != NULL)
 			free(m_gridMask64);
 		
@@ -75,7 +69,6 @@ public:
 		m_gridSize = m_gridSizeX*m_gridSizeY*m_gridSizeZ;
 		m_gridDist = (float *)malloc(m_gridSize*sizeof(float));
 		m_gridMask64 = (uint64_t *)malloc(m_gridSize*sizeof(uint64_t));
-		m_isUpdated = (uint8_t *)malloc(m_gridSize*sizeof(uint8_t));
 		m_isOccupied = (uint8_t *)malloc(m_gridSize*sizeof(uint8_t));
 
 		// Constants for fast indexing
@@ -154,11 +147,20 @@ public:
 		loadCloud(out);
 	}
 
+	void printSectionTime(const std::string& section_name,
+						const std::chrono::steady_clock::time_point& start,
+						const std::chrono::steady_clock::time_point& end,
+						const std::string& color_code = "")
+	{
+		double ms = std::chrono::duration<double, std::milli>(end - start).count();
+		std::string reset = "\033[0m";
+		RCLCPP_INFO(rclcpp::get_logger("DLO3DNode"), "%s[Time] %s: %.3f ms%s",
+					color_code.c_str(), section_name.c_str(), ms, color_code.empty() ? "" : reset.c_str());
+	}
+	
 	void loadCloud(std::vector<pcl::PointXYZ> &cloud)
 	{
-		// Clear update flag array
-		std::memset(m_isUpdated, 0, m_gridSize*sizeof(uint8_t));
-
+		auto t_start_1 = std::chrono::steady_clock::now();
 		// Creates the manhatan distance mask kernel
 		// The point is centered into 3D kernel
 		int k = 0;
@@ -169,7 +171,13 @@ public:
 					kernel[k++] = ((uint64_t)0xffffffffffffffff) >> (64 - abs(x) - abs(y) - abs(z));
 		// Applies the pre-computed kernel to all grid cells centered in the cloud points 
 		const float step = 20*m_resolution;
-		#pragma omp parallel for num_threads(20) shared(m_gridMask64, m_isUpdated) 
+		
+		auto t_end_1 = std::chrono::steady_clock::now();
+		printSectionTime("kernel", t_start_1, t_end_1);
+
+		auto t_start_2 = std::chrono::steady_clock::now();
+
+		#pragma omp parallel for num_threads(20) shared(m_gridMask64) 
 		for(uint32_t i=0; i<cloud.size(); i++)
 		{
 			
@@ -189,21 +197,19 @@ public:
 				for(yi=0, idy=idz; yi<41; yi++, idy+=m_gridStepY)
 					for(xi=0, idx=idy; xi<41; xi++)
 					{
-						m_gridMask64[idx] &= kernel[k++];  
-						m_isUpdated[idx++] = 1;
+						uint64_t oldMask = m_gridMask64[idx];
+                        uint64_t newMask = oldMask & kernel[k++];
+                        if (newMask != oldMask)
+                        {
+                            m_gridMask64[idx] = newMask;
+                            m_gridDist[idx]   = (float)__builtin_popcountll(newMask);
+                            m_isOccupied[idx++] = 1;
+                        }
 					}
 		}
-		#pragma omp barrier
-		// Computes manhatan distance based on the mask value
-		#pragma omp parallel for num_threads(20) 
-		for(uint64_t j=0; j<m_gridSize; j++)
-			if(m_isUpdated[j])
-			{
-				float d = std::bitset<64>(m_gridMask64[j]).count();
-				m_gridDist[j] = d;	
-				m_isOccupied[j] = 1;
-			}
-		#pragma omp barrier
+
+		auto t_end_2 = std::chrono::steady_clock::now();
+		printSectionTime("Pragma 1", t_start_2, t_end_2);
 	}
 
 	void loadCloudThreaded(std::vector<pcl::PointXYZ> &cloud, float tx, float ty, float tz, float roll, float pitch, float yaw)
@@ -495,7 +501,6 @@ inline bool isOccupied(const float &x, const float &y, const float &z)
 protected:
 
 	uint64_t *m_gridMask64;				// Binary mask for Manhatan distance (64 bit mask)
-	uint8_t *m_isUpdated;				// 1 if corresponding cell was updated, 0 otherwise
 	uint8_t *m_isOccupied;				// 1 if the corresponding cell is occupied, 0 otherwise
 	boost::thread *m_thread;			// Cloud loading thread
 	
@@ -519,9 +524,6 @@ protected:
 			m_newCloud = false;
 			m_updating = true;
 
-			// Clear update flag array
-			std::memset(m_isUpdated, 0, m_gridSize*sizeof(uint8_t));
-
 			// Creates the manhatan distance mask kernel
 			// The point is centered into 3D kernel
 			int k = 0;
@@ -533,7 +535,7 @@ protected:
 	
 			// Applies the pre-computed kernel to all grid cells centered in the cloud points 
 			const float step = 20*m_resolution;
-			#pragma omp parallel for num_threads(20) shared(m_gridMask64, m_isUpdated) 
+			#pragma omp parallel for num_threads(20) shared(m_gridMask64) 
 			for(uint32_t i=0; i<cloud.size(); i++)
 			{
 				if(!isIntoGrid(cloud[i].x-step, cloud[i].y-step, cloud[i].z-step) || 
@@ -546,21 +548,16 @@ protected:
 					for(yi=0, idy=idz; yi<41; yi++, idy+=m_gridStepY)
 						for(xi=0, idx=idy; xi<41; xi++)
 						{
-							m_gridMask64[idx] &= kernel[k++];  
-							m_isUpdated[idx++] = 1;
+							uint64_t oldMask = m_gridMask64[idx];
+							uint64_t newMask = oldMask & kernel[k++];
+							if (newMask != oldMask)
+							{
+								m_gridMask64[idx] = newMask;
+								m_gridDist[idx]   = (float)__builtin_popcountll(newMask);
+								m_isOccupied[idx++] = 1;
+							}
 						}
 			}
-			#pragma omp barrier
-
-			// Computes manhatan distance based on the mask value
-			#pragma omp parallel for num_threads(20) 
-			for(uint64_t j=0; j<m_gridSize; j++)
-				if(m_isUpdated[j])
-				{
-					float d = std::bitset<64>(m_gridMask64[j]).count();
-					m_gridDist[j] = d;	
-					m_isOccupied[j] = 1;
-				}
 			#pragma omp barrier
 					
 			m_updating = false;
