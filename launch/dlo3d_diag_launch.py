@@ -43,16 +43,30 @@ def generate_launch_description():
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            name='static_tf_base_link_to_base_laser_link',
-            arguments=['-0.0', '-0.00', '0.0','0.0', '0.0', '0.0', 'base_link', 'os_sensor'],
+            name='static_tf_base_link_to_L',
+            # x y z qx qy qz qw  parent child
+            arguments=['0.0', '0.0', '0.0',
+                    '0.0', '0.0', '0.0', '1.0',
+                    'base_link', 'os_sensor'],
             output='screen'
         ),
 
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            name='static_tf_base_link_to_base_imu_link',
-            arguments=['-0.0', '-0.00', '0.0', '0.0', '0.0', '0.0', 'base_link', 'os_imu'],
+            name='static_tf_base_link_to_I',
+            arguments=['-0.04563025', '-0.00784853', '-0.60841501',
+                    '0.00445442', '-0.00342322', '-0.01598836', '0.99985640',
+                    'base_link', 'imu_link_ned'],
+            output='screen'
+        ),
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='static_tf_base_link_to_I',
+            arguments=['0.006253', '-0.011775', '0.007645',
+                    '0.00445442', '-0.00342322', '-0.01598836', '0.99985637',
+                    'base_link', 'os_imu'],
             output='screen'
         ),
 
@@ -67,37 +81,38 @@ def generate_launch_description():
             ],
             parameters=[
                 {'in_cloud_aux': '/nada'},
-                {'in_cloud': '/os_cloud_node/points'},
+                {'in_cloud': '/ouster/points'},
                 {'hz_cloud': 10.0},
-                {'in_imu': '/os_cloud_node/imu'},
+                {'in_imu': '/imu/data'},
                 {'hz_imu': 100.0},
-                {'calibration_time': 0.0},
+                {'calibration_time': 5.0},
                 {'aux_lidar_en': False},
-                {'gyr_dev':  0.0517396706572},
-                {'gyr_rw_dev': 2.66e-07},
-                {'acc_dev': 0.05115432018302},
-                {'acc_rw_dev': 0.000000333},
+                {'gyr_dev':  0.014929939543128923},
+                {'gyr_rw_dev': 1.0106430876706567e-05},
+                {'acc_dev': 0.031800668934690885},
+                {'acc_rw_dev': 1.4361954439703917e-05},
                 {'base_frame_id': 'base_link'},
                 {'odom_frame_id': 'odom'},
                 {'map_frame_id': 'map'},
-                {'keyframe_dist': 2.0},
-                {'keyframe_rot': 45.0},
-                {'tdfGridSizeX_low': -10.0},
-                {'tdfGridSizeX_high': 70.0},
-                {'tdfGridSizeY_low': -35.0},
-                {'tdfGridSizeY_high': 35.0},
-                {'tdfGridSizeZ_low': -5.0},
-                {'tdfGridSizeZ_high': 30.0},
-                {'solver_max_iter': 500},
+                {'keyframe_dist': 1.0},
+                {'keyframe_rot': 1.7708},
+                {'tdfGridSizeX_low': -300.0},
+                {'tdfGridSizeX_high': 300.0},
+                {'tdfGridSizeY_low': -300.0},
+                {'tdfGridSizeY_high': 300.0},
+                {'tdfGridSizeZ_low': -40.0},
+                {'tdfGridSizeZ_high': 40.0},
+                {'solver_max_iter': 1000},
                 {'solver_max_threads': 20},
                 {'min_range': 1.0},
                 {'max_range': 100.0},
                 {'pc_downsampling': 1},
                 {'robust_kernel_scale': 1.0},
-                {'kGridMarginFactor': 0.8},
-                {'maxload': 100.0},
-                {'maxCells': 100000}
-            ]
+                {'tdf_grid_res': 0.05},
+                {'maxload': 50.0},
+                {'maxCells': 300000}
+            ],
+            arguments=['--ros-args', '--log-level', 'INFO'] #DEBUG o INFO
         ),
 
         bag_play

@@ -7,7 +7,6 @@
 #include <chrono>
 #include "rclcpp/rclcpp.hpp"
 #include "std_srvs/srv/trigger.hpp"
-#include <rclcpp/qos.hpp>
 
 
 #include "tf2_ros/transform_broadcaster.h"
@@ -37,7 +36,6 @@
 #include <filter/imufilter.hpp>
 
 using std::isnan;
-using namespace std;
 struct Filter_Data {
     double timestamp;
     double x, y, z;
@@ -54,7 +52,6 @@ struct PointXYZT
     PCL_ADD_POINT4D;
     uint32_t t;
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
 } EIGEN_ALIGN16;
 
 POINT_CLOUD_REGISTER_POINT_STRUCT(PointXYZT,
@@ -62,7 +59,8 @@ POINT_CLOUD_REGISTER_POINT_STRUCT(PointXYZT,
                                   (float, y, y)
                                   (float, z, z)
                                   (uint32_t, t, t))
- 
+
+   
 //Class Definition
 class DLO3DNode : public rclcpp::Node
 {
@@ -99,9 +97,6 @@ public:
         m_maxRange          = this->declare_parameter<double>("max_range", 100.0);
         m_PcDownsampling    = this->declare_parameter<int>("pc_downsampling", 1);
         m_robusKernelScale  = this->declare_parameter<double>("robust_kernel_scale", 1.0);
-        m_kGridMarginFactor  = this->declare_parameter<double>("kGridMarginFactor", 0.8);
-        m_maxload  = this->declare_parameter<double>("maxload", 100.0);
-        m_maxCells  = this->declare_parameter<int>("maxCells", 10000.0);
 
         // Init internal variables
         m_tfImuCache            = false;
@@ -117,6 +112,7 @@ public:
         m_krx = m_kry = m_krz = 0.0;
         m_rx = m_ry = m_rz    = 0.0;
         
+     
         //Init buffers
         m_tfBr = std::make_shared<tf2_ros::TransformBroadcaster>(this);
         m_tfBuffer = std::make_shared<tf2_ros::Buffer>(this->get_clock());
@@ -126,9 +122,7 @@ public:
         m_keyframePub = this->create_publisher<sensor_msgs::msg::PointCloud2>("keyframe", 10);
         m_cloudPub = this->create_publisher<sensor_msgs::msg::PointCloud2>("cloud", 10);
         m_odomPub = this->create_publisher<nav_msgs::msg::Odometry>("/odometry_pose", 10);
-           
 
-        // Create subscribers
         m_imuSub = this->create_subscription<sensor_msgs::msg::Imu>(
             m_inImuTopic,  5000,
             [this](sensor_msgs::msg::Imu::ConstSharedPtr msg) {
@@ -136,32 +130,33 @@ public:
                 std::lock_guard<std::mutex> lock(queue_mutex_);
                 imu_queue_.push(msg);
 
-
             });
-
-        m_pcSub = this->create_subscription<sensor_msgs::msg::PointCloud2>(
-            m_inCloudTopic,  1000,
+        // Create subscribers
+         m_pcSub = this->create_subscription<sensor_msgs::msg::PointCloud2>(
+            m_inCloudTopic,  5000,
             [this](sensor_msgs::msg::PointCloud2::ConstSharedPtr msg) {
                 
                 std::lock_guard<std::mutex> lock(queue_mutex_);
                 pcl_queue_.push(msg);
-                message_count_++;
             });
 
-        m_pcSub_aux = this->create_subscription<sensor_msgs::msg::PointCloud2>(
-            m_inCloudAuxTopic,  1000,
+         m_pcSub_aux = this->create_subscription<sensor_msgs::msg::PointCloud2>(
+            m_inCloudAuxTopic,  5000,
             [this](sensor_msgs::msg::PointCloud2::ConstSharedPtr msg) {
                 if(aux_lidar_en){
                     std::lock_guard<std::mutex> lock(queue_mutex_);
                     pcl_aux_queue_.push(msg);}
-        });
+            });
         
         // Create Services
+
+
         save_service_pcd_ = this->create_service<std_srvs::srv::Trigger>(
             "/save_grid_pcd",
             std::bind(&DLO3DNode::saveGridPCD, this, std::placeholders::_1, std::placeholders::_2)
         );
         save_pcd_client_ = this->create_client<std_srvs::srv::Trigger>("/save_grid_pcd");
+
 
         // Kalman Filter Setup
         imuFilter.setup(T_imu,calibTime,
@@ -169,20 +164,21 @@ public:
                 this->declare_parameter<double>("gyr_rw_dev", 1.0),
                 this->declare_parameter<double>("acc_dev", 1.0),
                 this->declare_parameter<double>("acc_rw_dev", 1.0)
+
         );
 
         // TDF grid Setup
         m_grid3d.setup(m_tdfGridSizeX_low, m_tdfGridSizeX_high,
                     m_tdfGridSizeY_low, m_tdfGridSizeY_high,
                     m_tdfGridSizeZ_low, m_tdfGridSizeZ_high,
-                    m_tdfGridRes,m_maxCells);
+                    m_tdfGridRes);
                       
-        cout << "DLO3D is ready to execute! " << std::endl;
-        cout << "Grid Created. Size: " 
+        std::cout << "DLO3D is ready to execute! " << std::endl;
+        std::cout << "Grid Created. Size: " 
                 << fabs(m_tdfGridSizeX_low) + fabs(m_tdfGridSizeX_high) << " x " 
                 << fabs(m_tdfGridSizeY_low) + fabs(m_tdfGridSizeY_high) << " x " 
                 << fabs(m_tdfGridSizeZ_low) + fabs(m_tdfGridSizeZ_high) << "." 
-                << endl;
+                << std::endl;
         
         // Solver Setup
         m_solver.setMaxIterations(m_solverMaxIter);
@@ -191,7 +187,7 @@ public:
 
         // Runtime File for time analysis
         times_dlo.open("dlo3d_runtime.csv", std::ios::out);
-        times_dlo << "total_time, optimized,opt_time,updated,update_time" << std::endl;
+        times_dlo << "total_time, optimized,opt_time,updated,update_time";
 
         // Launch the processing thread
         processing_thread_ = std::thread(&DLO3DNode::processQueues, this);
@@ -211,53 +207,30 @@ public:
             times_dlo.close();
         }
 
-        try {
+        RCLCPP_INFO(this->get_logger(), "Node closed successfully.");   
+
+
+        {
             size_t idx = pcd_save_counter_++;
             std::string filename = "grid_data_" + std::to_string(idx) + ".pcd";
-            RCLCPP_INFO(this->get_logger(), "Exporting PCD before closing: %s", filename.c_str());
-            m_grid3d.exportGridToPCD(filename, 1);
-        } catch (const std::exception& e) {
-            RCLCPP_ERROR(this->get_logger(), "Error exporting PCD: %s", e.what());
+            RCLCPP_INFO(this->get_logger(), "Exportando PCD antes de limpiar: %s", filename.c_str());
+            m_grid3d.exportGridToPCD(filename, 1,
+                                    m_tx, m_ty, m_tz,
+                                    m_trx, m_try, m_trz);
+            RCLCPP_INFO(this->get_logger(), "Exportación completada.");
         }
-
-        RCLCPP_INFO(this->get_logger(), "Node closed successfully.");   
     }
 
 private:
- int message_count_ = 0; 
- int message_processed_ = 0; 
-
-    // ROS2 subscribers and publishers
-    rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr m_imuSub;
-    rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr m_pcSub;
-    rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr m_pcSub_aux;
-    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr m_keyframePub;
-    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr m_cloudPub;
-    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr m_odomPub;
-
-    // Services
-    rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr save_service_pcd_;
-    rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr save_pcd_client_;
 
     // ROS2 parameters
     std::string m_inCloudTopic;
     std::string m_inCloudAuxTopic;
     std::string m_inImuTopic;
-
     std::string m_baseFrameId;
     std::string m_odomFrameId;
-    double T_pcl, T_imu;
-
-    // ROS2 transform management
-    bool m_tfPointCloudCache, m_tfImuCache, m_tfPointCloudAuxCache;
-    geometry_msgs::msg::TransformStamped m_staticTfImu, m_staticTfPointCloud, m_staticTfPointCloudAux;
-    std::shared_ptr<tf2_ros::TransformBroadcaster> m_tfBr;
-    std::shared_ptr<tf2_ros::Buffer> m_tfBuffer;
-    std::shared_ptr<tf2_ros::TransformListener> m_tfListener;
-
-    // IMU Filter
+    double m_minRange, m_maxRange;
     ImuFilter imuFilter;
-    double calibTime;
 
     // 3D distance grid
     TDF3D64 m_grid3d;
@@ -266,6 +239,7 @@ private:
     // Non-linear optimization solver
     DLL6DSolver m_solver;
     int m_solverMaxIter, m_solverMaxThreads;
+    int m_PcDownsampling;
     double m_robusKernelScale;
 
     // Odometry variables
@@ -276,40 +250,78 @@ private:
     double m_x, m_y, m_z, a, vx, vy, vz;
     double m_x_last, m_y_last, m_z_last;
 
-    double m_keyFrameDist, m_keyFrameRot, m_kGridMarginFactor;
-    double m_maxload;
-    int m_maxCells;
+    // Key frame thresholds
+    double m_keyFrameDist, m_keyFrameRot;
     bool m_keyFrameInit, aux_lidar_en, converged;
-    double m_minRange, m_maxRange;
+
+    // Time parameters
+    double T_pcl, T_imu, calibTime;
     
-    // Lidar Unwrap
+    // Transformations
+    bool m_tfPointCloudCache, m_tfImuCache, m_tfPointCloudAuxCache;
+    geometry_msgs::msg::TransformStamped m_staticTfImu, m_staticTfPointCloud, m_staticTfPointCloudAux;
+    
+    // Lidar Unwrap data
     std::deque<Filter_Data> Filter_filtered_queue_;
     std::mutex Filter_queue_mutex_;
-    int m_PcDownsampling;
-
+    
     // File management
     std::ofstream times_dlo;
+
+    // ROS2 subscribers and publishers
+    rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr m_imuSub;
+    rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr m_pcSub;
+    rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr m_pcSub_aux;
+    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr m_keyframePub;
+    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr m_cloudPub;
+    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr m_odomPub;
+
+    // ROS2 transform management
+    std::shared_ptr<tf2_ros::TransformBroadcaster> m_tfBr;
+    std::shared_ptr<tf2_ros::Buffer> m_tfBuffer;
+    std::shared_ptr<tf2_ros::TransformListener> m_tfListener;
+
+    // Services
+    rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr save_service_pcd_;
 
     // Queue management for processing
     std::mutex queue_mutex_;
     std::condition_variable queue_condition_;
     bool stop_processing_;
     size_t pcd_save_counter_ = 0;
+
     std::queue<sensor_msgs::msg::PointCloud2::ConstSharedPtr> pcl_queue_;
     std::queue<sensor_msgs::msg::PointCloud2::ConstSharedPtr> pcl_aux_queue_;
     std::queue<sensor_msgs::msg::Imu::ConstSharedPtr> imu_queue_;
     std::thread processing_thread_;
-    
+    rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr save_pcd_client_;
+
+    //Pcl queue for map reconstruction
+     struct CloudWithPose {
+        std::vector<pcl::PointXYZ> points;
+        tf2::Transform             pose;
+        double                     timestamp;
+    };
+
+    std::deque<CloudWithPose> keyframes_;
+    size_t   RECENT_MAX     = 3; 
+
     // Function declarations
     void processQueues();
     void pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr& cloud, 
                             const sensor_msgs::msg::PointCloud2::ConstSharedPtr& cloud_aux, 
                             bool is_aux_avaliable);
+
     void imuCallback(const sensor_msgs::msg::Imu::ConstSharedPtr& msg);
-    bool PointCloud2_to_PointXYZ_unwrap(pcl::PointCloud<PointXYZT> &in, std::vector<pcl::PointXYZ> &out, double scan_start_time);
+    bool PointCloud2_to_PointXYZ_unwrap(sensor_msgs::msg::PointCloud2 &in, std::vector<pcl::PointXYZ> &out, double scan_start_time);
     Closest_Filter_Result findClosestFilterData(const std::deque<Filter_Data>& Filter_queue, double target_timestamp);
+
     Eigen::Matrix4f getTransformMatrix(const geometry_msgs::msg::TransformStamped& transform_stamped);
+    
     double adjustYaw(double angle, double reference);
+
+   
+
     void saveGridPCD(const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
                           std::shared_ptr<std_srvs::srv::Trigger::Response> response);
 
@@ -319,19 +331,22 @@ void DLO3DNode::saveGridPCD(
     const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
     std::shared_ptr<std_srvs::srv::Trigger::Response> response)
     {
-        RCLCPP_INFO(this->get_logger(), "[saveGridPCD] Service invoked!");
+    RCLCPP_INFO(this->get_logger(), "[saveGridPCD] ¡Servicio invocado!");
+    size_t idx = pcd_save_counter_++;
+    std::string filename = "grid_data_" + std::to_string(idx) + ".pcd";
+    RCLCPP_INFO(this->get_logger(), "[saveGridPCD] Nombre fichero: %s", filename.c_str());
 
-        size_t idx = pcd_save_counter_++;
-        std::string filename = "grid_data_" + std::to_string(idx) + ".pcd";
-        RCLCPP_INFO(this->get_logger(), "[saveGridPCD] File Name: %s", filename.c_str());
+    std::thread([this, filename]() {
+    // <-- Aquí: invocar sobre m_grid3d, no exportGridToPCD global
+    m_grid3d.exportGridToPCD(filename, 1,
+                             m_tx, m_ty, m_tz,
+                             m_trx, m_try, m_trz);
+  }).detach();
 
-        std::thread([this, filename]() {
-            m_grid3d.exportGridToPCD(filename, 1);
-        }).detach();
-    response->success = true;
-    response->message = "PCD export initiated: " + filename;
-    RCLCPP_INFO(this->get_logger(), "PCD saved correctly!");
-    }
+  response->success = true;
+  response->message = "Exportación del PCD iniciada: " + filename;
+  RCLCPP_INFO(this->get_logger(), "PCD guardado correctamente!");
+}
 
 
 void DLO3DNode::processQueues() {
@@ -353,7 +368,7 @@ void DLO3DNode::processQueues() {
 
                 imu_queue_.pop();
                 lock.unlock();
-                imuCallback(imu_msg);
+                imuCallback(imu_msg); // Call IMU processing function
                 lock.lock();
 
             } else {
@@ -377,12 +392,12 @@ void DLO3DNode::processQueues() {
                     double aux_timestamp = pcl_aux_candidate->header.stamp.sec + pcl_aux_candidate->header.stamp.nanosec * 1e-9;
                     double diff = std::abs(aux_timestamp - pcl_timestamp);
 
-                    if (diff <= T_pcl/2.0) {  
+                    if (diff <= 0.1) {  
                         if (diff < min_diff) {
                             min_diff = diff;
                             best_match = pcl_aux_candidate;
                         }
-                    } else if (aux_timestamp > pcl_timestamp + T_pcl/2.0) {
+                    } else if (aux_timestamp > pcl_timestamp + 0.1) {
                         break;
                     }
 
@@ -400,9 +415,6 @@ void DLO3DNode::processQueues() {
 
                 // Call point cloud processing function
                 pointcloudCallback(pcl_msg_safe, pcl_msg_aux_safe, is_aux_available);
-                message_processed_ ++; 
-
-                RCLCPP_DEBUG(this->get_logger(), "Frames processed:  %d / %d- - queue size: %ld ", message_processed_,message_count_,pcl_queue_.size());
                 lock.lock();
             }
         }
@@ -456,7 +468,7 @@ void DLO3DNode::imuCallback(const sensor_msgs::msg::Imu::ConstSharedPtr& msg)
     static tf2::Vector3 v_base_prev = v_base;
     tf2::Vector3 a_base = rot_matrix * a;
     /*
-    a_base -= ((v_base - v_base_prev) / T_imu).cross(tf2::Vector3(
+    a_base += ((v_base - v_base_prev) / T_imu).cross(tf2::Vector3(
         m_staticTfImu.transform.translation.x,
         m_staticTfImu.transform.translation.y,
         m_staticTfImu.transform.translation.z
@@ -464,8 +476,8 @@ void DLO3DNode::imuCallback(const sensor_msgs::msg::Imu::ConstSharedPtr& msg)
         m_staticTfImu.transform.translation.x,
         m_staticTfImu.transform.translation.y,
         m_staticTfImu.transform.translation.z
-    )));*/
-    v_base_prev = v_base;
+    )));
+    v_base_prev = v_base;*/
 
     // Modified msg for imuFilter -> v (rad/s) -- a (m/s2)
     sensor_msgs::msg::Imu modified_msg = *msg;
@@ -486,6 +498,9 @@ void DLO3DNode::imuCallback(const sensor_msgs::msg::Imu::ConstSharedPtr& msg)
         imuFilter.predict(
             v_base.x(),v_base.y(),v_base.z(),
             a_base.x(),a_base.y(), a_base.z(),current_stamp);
+
+        imuFilter.getAngles(m_rx, m_ry, m_rz);
+
     }
 
     // EKF Data Storage for LiDAR Deeskewing
@@ -494,17 +509,13 @@ void DLO3DNode::imuCallback(const sensor_msgs::msg::Imu::ConstSharedPtr& msg)
     imuFilter.getposition(data.x, data.y, data.z);
     imuFilter.getAngles(data.roll, data.pitch, data.yaw);
 
-    
-    std::lock_guard<std::mutex> lock(Filter_queue_mutex_);
-    Filter_filtered_queue_.emplace_back(data);
-    // Límite de tamaño (configurable)
-    constexpr std::size_t kMaxQueueSize = 1000;  // <-- tu "x"
-
-    // Si se pasa del límite, borra los más antiguos
-    while (Filter_filtered_queue_.size() > kMaxQueueSize) {
-        Filter_filtered_queue_.pop_front();
+    {
+        std::lock_guard<std::mutex> lock(Filter_queue_mutex_);
+        Filter_filtered_queue_.emplace_back(data);
+        while(current_stamp - Filter_filtered_queue_.front().timestamp > 5.0 ){
+            Filter_filtered_queue_.pop_front();
+        }
     }
-    
     
 }
 
@@ -530,8 +541,6 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
     // Current pose to optimize from EKF Filter
     imuFilter.getposition(m_x, m_y, m_z);
     imuFilter.getAngles(m_rx, m_ry, m_rz);
-    imuFilter.getVelocities(vx,vy,vz);
-
 
     // Pre-cache transform for point-clouds to base frame and transform the pc 
     if (!m_tfPointCloudCache)
@@ -578,16 +587,6 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
     pcl::PointCloud<PointXYZT> pcl_cloud;
     pcl::fromROSMsg(*cloud, pcl_cloud);
 
-    static bool printed_fields = false;
-    if (!printed_fields) {
-        printed_fields = true;
-        RCLCPP_INFO(this->get_logger(), " ☁️ PointCloud fields ☁️");
-        for (const auto& field : cloud->fields) {
-            RCLCPP_INFO(this->get_logger(), "Field: %s (type: %d), offset: %u", 
-                        field.name.c_str(), field.datatype, field.offset);
-        }
-    }
-    
     Eigen::Matrix4f transform_matrix = getTransformMatrix(m_staticTfPointCloud);
     pcl::PointCloud<PointXYZT> transformed_cloud;
     pcl::transformPointCloud(pcl_cloud, transformed_cloud, transform_matrix);
@@ -605,17 +604,19 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
         final_cloud += transformed_cloud_aux;  
     }
 
-
+    sensor_msgs::msg::PointCloud2 final_cloud_msg;
+    pcl::toROSMsg(final_cloud, final_cloud_msg);
     double scan_end_time = cloud->header.stamp.sec + cloud->header.stamp.nanosec * 1e-9;
     std::vector<pcl::PointXYZ> c;
 
-    bool unwrap_success = PointCloud2_to_PointXYZ_unwrap(final_cloud, c, scan_end_time);
+    bool unwrap_success = PointCloud2_to_PointXYZ_unwrap(final_cloud_msg, c, scan_end_time);
+    
     // If unwarp not succedded, use raw cloud
     if (!unwrap_success) {
-
         int points = 0;
         double down_size = 0;
-       // RCLCPP_INFO(this->get_logger(), "Unwarp not successful");
+
+        std::cout<<"Unwarp not successfull"<<std::endl;
         c.clear();
         c.reserve(final_cloud.size());
         
@@ -625,14 +626,15 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
             down_size++;
             }
             points++;
-        }
-       // RCLCPP_INFO(this->get_logger(), "Downsampled raw cloud: %.0f / %d points", down_size, points);
-    }
+            
+
+    }}
     
 
     // Cloud Processing
-    converged = true;
+    converged = false;
     static double yaw_local_prev;
+
 
     if(imuFilter.isInit()){
 
@@ -653,14 +655,15 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
             m_y_last = m_y;
             m_z_last = m_z;
 
+            vx = vy = vz = 0.0;
 
             m_grid3d.clear();
 
             // Load current point-cloud as new key-frame
-            m_grid3d.loadCloudFiltered(c, m_kx, m_ky, m_kz, m_krx,m_kry,m_krz,m_maxload);
+            m_grid3d.loadCloud(c, m_kx, m_ky, m_kz, m_krx,m_kry,m_krz);
 
             // Set flag
-            m_keyFrameInit = true;
+            m_keyFrameInit = converged = true;
 
             // Publish current point cloud
             m_keyframePub->publish(*cloud);
@@ -668,35 +671,51 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
         }
         else
         {
-            
-            // Grid local Variables
-            double x_solver = m_x;
-            double y_solver = m_y;
-            double z_solver = m_z;
-            double roll_solver = m_rx;
-            double pitch_solver = m_ry;
-            double yaw_solver = m_rz;
+            // Map Frame -> Grid Frame
+            tf2::Transform grid_base;
 
+            tf2::Quaternion grid_q;
+            grid_q.setRPY(m_trx, m_try, m_trz);
+            
+            grid_base.setRotation(grid_q.normalize());
+            grid_base.setOrigin(tf2::Vector3(m_tx, m_ty, m_tz));
+            tf2::Vector3 point_global(m_x, m_y, m_z);
+
+            tf2::Vector3 point_local = grid_base.inverse() * point_global;
+
+            // Grid local Variables
+            double x_local = point_local.x();
+            double y_local = point_local.y();
+            double z_local = point_local.z();
+            double roll_local = m_rx - m_trx;
+            double pitch_local = m_ry - m_try;
+            double raw_delta = m_rz - m_trz;          // puede ser > π
+            double yaw_local = adjustYaw(yaw_local_prev, raw_delta);
+
+            
+           
             // Optimization
             optimized = 1;
             opt_timer.tick();
-            converged = m_solver.solve(c, x_solver, y_solver, z_solver,roll_solver,pitch_solver,yaw_solver);
+            converged = m_solver.solve(c, x_local, y_local, z_local, roll_local, pitch_local, yaw_local);
             opt_time = opt_timer.tock();
 
             // Adjust yaw to maintain continuity after solver, which constrains yaw within [-π, π].
-            yaw_solver = adjustYaw(yaw_local_prev, yaw_solver);
-            yaw_local_prev = yaw_solver;    
+            yaw_local = adjustYaw(yaw_local_prev, yaw_local);
+            yaw_local_prev = yaw_local;    
 
             // Update EKF if converged
             if(converged){
 
+                point_local = tf2::Vector3(x_local, y_local, z_local);
+                point_global = grid_base * point_local;
 
-                m_x = x_solver;
-                m_y = y_solver;
-                m_z = z_solver;
-                m_rx =  roll_solver;
-                m_ry =  pitch_solver;
-                m_rz =  yaw_solver;
+                m_x = point_global.x();
+                m_y = point_global.y();
+                m_z = point_global.z();
+                m_rx = m_trx + roll_local;
+                m_ry = m_try + pitch_local;
+                m_rz = m_trz + yaw_local;
 
                 vx = (m_x - m_x_last)/(T_pcl);
                 vy = (m_y - m_y_last)/(T_pcl);
@@ -716,63 +735,91 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
                 m_y_last = m_y;
                 m_z_last = m_z; 
              
-               
-                m_kx = m_x ;
-                m_ky =  m_y ;
-                m_kz =  m_z ;
-                m_krx = m_rx;
-                m_kry = m_ry;
-                m_krz = m_rz;
+                point_global = tf2::Vector3(m_x, m_y, m_z);
+                point_local = grid_base.inverse() * point_global;
+
+                m_kx = point_local.x();
+                m_ky = point_local.y();
+                m_kz = point_local.z();
+                m_krx = m_rx - m_trx;
+                m_kry = m_ry - m_try;
+                double rz = m_rz - m_trz;
+                m_krz = adjustYaw(0.0, rz);
                 
             }
+
         }
 
         // Create a new map if the limit is reached or if the solver does not converge.
-        if( m_kx > m_tdfGridSizeX_high * m_kGridMarginFactor || m_kx < m_tdfGridSizeX_low * m_kGridMarginFactor || 
-            m_ky > m_tdfGridSizeY_high * m_kGridMarginFactor|| m_ky < m_tdfGridSizeY_low * m_kGridMarginFactor||
-            m_kz > m_tdfGridSizeZ_high * m_kGridMarginFactor|| m_kz < m_tdfGridSizeZ_low * m_kGridMarginFactor||!converged)
+        if( m_kx > m_tdfGridSizeX_high * 5/6 || m_kx < m_tdfGridSizeX_low * 5/6|| 
+            m_ky > m_tdfGridSizeY_high * 5/6|| m_ky < m_tdfGridSizeY_low * 5/6||
+            m_kz > m_tdfGridSizeZ_high * 5/6|| m_kz < m_tdfGridSizeZ_low * 5/6|| !converged)
         {     
             if(!converged){
-                cout<<" NOT CONVERGED. CREATING A NEW MAP!  ····························································"<<std::endl;
+                std::cout<<" NOT CONVERGED. CREATING A NEW MAP!  ····························································"<<std::endl;
             }else{
-                cout<<" MAP LIMIT REACHED. CREATING A NEW MAP!  ························································"<<std::endl;
+                std::cout<<" MAP LIMIT REACHED. CREATING A NEW MAP!  ························································"<<std::endl;
             }
-            RCLCPP_INFO(this->get_logger(), "LIMITE ALCANZADO O NO CONVERGE");
 
 
             {
                 size_t idx = pcd_save_counter_++;
                 std::string filename = "grid_data_" + std::to_string(idx) + ".pcd";
                 RCLCPP_INFO(this->get_logger(), "Exportando PCD antes de limpiar: %s", filename.c_str());
-                m_grid3d.exportGridToPCD(filename, 1);
+                m_grid3d.exportGridToPCD(filename, 1,
+                                        m_tx, m_ty, m_tz,
+                                        m_trx, m_try, m_trz);
                 RCLCPP_INFO(this->get_logger(), "Exportación completada.");
             }
-
-            m_lx = m_kx;
-            m_ly = m_ky;
-            m_lz = m_kz;
-
-            m_lrx = m_krx;
-            m_lry = m_kry;
-            m_lrz = m_krz;
-
+             // Add keyframe transform into odom
+            m_tx  = m_x;
+            m_ty  = m_y;
+            m_tz  = m_z;
+            m_trx = m_rx;
+            m_try = m_ry;
+            m_trz = m_rz;
             // Reset Grid and key-frame variables 
-            m_kx = m_x ;
-            m_ky =  m_y ;
-            m_kz =  m_z ;
-            m_krx = m_rx;
-            m_kry = m_ry;
-            m_krz = m_rz;
-            yaw_local_prev =m_rz;
+            m_kx = m_ky = m_kz = m_krx = m_kry = m_krz = 0.0;
+            m_lx = m_ly = m_lz = m_lrx = m_lry = m_lrz = 0.0;
+            yaw_local_prev = 0.0;
 
             m_grid3d.clear();
 
+            // Last keyframes clouds
+            tf2::Transform map_center;
+            {
+                tf2::Quaternion q_center;
+                q_center.setRPY(m_trx, m_try, m_trz);
+                map_center.setRotation(q_center.normalize());
+                map_center.setOrigin(tf2::Vector3(m_tx, m_ty, m_tz));
+            }
+            for (auto &kf : keyframes_) {
+                // transformación del keyframe al frame local del grid
+                tf2::Transform rel = map_center.inverse() * kf.pose;
+
+                // extraigo traslación
+                double dx = rel.getOrigin().x();
+                double dy = rel.getOrigin().y();
+                double dz = rel.getOrigin().z();
+
+                // extraigo rotación en RPY
+                double roll, pitch, yaw;
+                tf2::Matrix3x3(rel.getRotation()).getRPY(roll, pitch, yaw);
+
+                // 4) Cargo esa nube en la posición relativa  
+                m_grid3d.loadCloud(kf.points,
+                                    dx, dy, dz,
+                                    roll, pitch, yaw);
+            }
+
             // Load current point-cloud as new key-frame
-            m_grid3d.loadCloudFiltered(c, m_kx, m_ky, m_kz, m_krx,m_kry,m_krz,m_maxload);
+            m_grid3d.loadCloud(c);
   
         }
-        else if( ((m_kx-m_lx)*(m_kx-m_lx) + (m_ky-m_ly)*(m_ky-m_ly) + (m_kz-m_lz)*(m_kz-m_lz) > m_keyFrameDist*m_keyFrameDist)||(std::fabs(m_krz - m_lrz)>m_keyFrameRot)) // Update drid if threshold reached
-        {
+        else if( ((m_kx - m_lx) * (m_kx - m_lx) + 
+          (m_ky - m_ly) * (m_ky - m_ly) + 
+          (m_kz - m_lz) * (m_kz - m_lz) > m_keyFrameDist * m_keyFrameDist) ||
+         (std::fabs(m_krz - m_lrz) > m_keyFrameRot) ){
 
             m_lx = m_kx;
             m_ly = m_ky;
@@ -787,6 +834,19 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
             m_grid3d.loadCloud(c, m_kx, m_ky, m_kz, m_krx,m_kry,m_krz);
             update_time = update_timer.tock();
 
+
+            tf2::Quaternion q_last;
+            q_last.setRPY(m_rx, m_ry, m_rz);
+            q_last.normalize();
+            tf2::Transform last_pose;
+            last_pose.setRotation(q_last);
+            last_pose.setOrigin(tf2::Vector3(m_x, m_y, m_z));
+
+            CloudWithPose last_keyframe{c, last_pose, current_stamp};
+            keyframes_.push_back(last_keyframe);
+            if (keyframes_.size() > RECENT_MAX)
+                keyframes_.pop_front();
+
             // Publish LiDAR Cloud
             std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ>> pcl_points_from_vector(c.begin(), c.end());
             pcl::PointCloud<pcl::PointXYZ> pcl_cloud_from_vector;
@@ -798,6 +858,9 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
             cloud_msg.header.frame_id = "base_link"; 
             m_keyframePub->publish(cloud_msg);
 
+
+            
+            
         }
 
         // Create and publish odom transform
@@ -805,6 +868,10 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
         odomTf.header.stamp = cloud->header.stamp;
         odomTf.header.frame_id = m_odomFrameId;
         odomTf.child_frame_id = m_baseFrameId;
+
+        imuFilter.getposition(m_x, m_y, m_z);
+        imuFilter.getAngles(m_rx, m_ry, m_rz);
+
         odomTf.transform.translation.x = m_x;
         odomTf.transform.translation.y = m_y;
         odomTf.transform.translation.z = m_z;
@@ -842,10 +909,12 @@ void DLO3DNode::pointcloudCallback(const sensor_msgs::msg::PointCloud2::ConstSha
     }
 
     double total_time = total_timer.tock();
-    times_dlo << std::fixed << std::setprecision(9)
-          << total_time << "," << optimized << "," << opt_time << ","
-          << updated << "," << update_time << "\n";
-    times_dlo.flush();
+    times_dlo << std::fixed << std::setprecision(9)<<
+            total_time << ","<<
+            optimized <<","<<
+            opt_time << ","<<
+            updated <<","<<
+            update_time <<"\n";
 
 }
 
@@ -876,7 +945,7 @@ Closest_Filter_Result DLO3DNode::findClosestFilterData(const std::deque<Filter_D
 }
 
 bool DLO3DNode::PointCloud2_to_PointXYZ_unwrap(
-    pcl::PointCloud<PointXYZT> &in, 
+    sensor_msgs::msg::PointCloud2 &in, 
     std::vector<pcl::PointXYZ> &out,
     double scan_end_time)
 {
@@ -910,15 +979,20 @@ bool DLO3DNode::PointCloud2_to_PointXYZ_unwrap(
         return false;
     }
    
+    // Define iterators for point cloud data (x, y, z, t)
+    sensor_msgs::PointCloud2Iterator<float> iterX(in, "x");
+    sensor_msgs::PointCloud2Iterator<float> iterY(in, "y");
+    sensor_msgs::PointCloud2Iterator<float> iterZ(in, "z");
+    sensor_msgs::PointCloud2Iterator<uint32_t> iterT(in, "t");
     tf2::Transform T_base;
     
     // Find the timestamp of the last point in the scan
-    int32_t last_stamp = 0;
-    for (const auto& pt : in.points) {
-        if (pt.t > last_stamp) {
-            last_stamp = pt.t;
-        }
+    uint32_t last_stamp = 0;
+    auto iterT_start = iterT;
+    for (; iterT != iterT.end(); ++iterT) {
+        last_stamp = *iterT;
     }
+    iterT = iterT_start;
 
     // Find the Filter transform corresponding to the time of the last point
     Closest_Filter_Result Filter_f = findClosestFilterData(filtered_deque, scan_end_time);
@@ -929,14 +1003,14 @@ bool DLO3DNode::PointCloud2_to_PointXYZ_unwrap(
     T_base.setRotation(q_base);
     T_base.setOrigin(base_position);
 
-    double total_points = static_cast<double>(in.points.size());
+    double total_points = static_cast<double>(in.width) * static_cast<double>(in.height);
     double down_points = 0.0;
     // Iterate over each point in the point cloud
-    for (const auto& pt : in.points)
+    for (; iterX != iterX.end(); ++iterX, ++iterY, ++iterZ, ++iterT)
     {
         
-        tf2::Vector3 point_pcl(pt.x, pt.y, pt.z);
-        double point_time = scan_end_time - static_cast<double>(last_stamp)*1e-9 + static_cast<double>(pt.t)*1e-9;
+        tf2::Vector3 point_pcl(*iterX, *iterY, *iterZ);
+        double point_time = scan_end_time - static_cast<double>(last_stamp)*1e-9 + static_cast<double>(*iterT)* 1e-9;
         Closest_Filter_Result closest_Filter_data = findClosestFilterData(filtered_deque, point_time);
 
         if(!closest_Filter_data.found){
@@ -975,6 +1049,7 @@ bool DLO3DNode::PointCloud2_to_PointXYZ_unwrap(
 
     }
 
+   
     // Return true if less than 10% of points had errors
     return (total_points - error_cnt)/total_points > 0.9;
 

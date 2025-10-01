@@ -46,7 +46,7 @@ def generate_launch_description():
             package='tf2_ros',
             executable='static_transform_publisher',
             name='static_tf_base_link_to_base_laser_link_1',
-            arguments=['-0.050', '0.0', '-0.055', '0', '0', '3.1412', 'base_link', 'sensor1/os_sensor'],
+            arguments=['-0.050', '0.0', '0.055', '0', '0', '3.1412', 'base_link', 'sensor1/os_sensor'],
             output='screen'
         ),
 
@@ -68,9 +68,9 @@ def generate_launch_description():
 
         # DLO3D node
         Node(
-            package='dlo3d',
+            package='dlio',
             executable='dlo3d_node',
-            name='dll3d_node',
+            name='dlio_node',
             output='screen',
             remappings=[
                 ('/dll3d_node/initial_pose', '/initialpose')
@@ -81,29 +81,39 @@ def generate_launch_description():
                 {'hz_cloud': 10.0},
                 {'in_imu': '/imu/imu'},
                 {'hz_imu': 388.0},
-                {'calibration_time': 1.0},
+                {'calibration_time':5.0},
                 {'aux_lidar_en': True},
-                {'gyr_dev': 0.00367396706572},
+                {'gyr_dev': 0.057396706572}, #00367396706572
                 {'gyr_rw_dev': 2.66e-07},
-                {'acc_dev': 0.0365432018302},
+                {'acc_dev': 0.0565432018302}, #0365432018302
                 {'acc_rw_dev': 0.000433},
                 {'base_frame_id': 'base_link'},
                 {'odom_frame_id': 'odom'},
                 {'map_frame_id': 'map'},
                 {'keyframe_dist':2.0},
-                {'keyframe_rot': 25.0},
-                {'tdfGridSizeX_low': -25.0},
-                {'tdfGridSizeX_high': 25.0},
-                {'tdfGridSizeY_low': -25.0},
-                {'tdfGridSizeY_high': 25.0},
-                {'tdfGridSizeZ_low': -5.0},
-                {'tdfGridSizeZ_high': 20.0},
+                {'keyframe_rot': 1.5708},
+                {'tdfGridSizeX_low': -200.0},
+                {'tdfGridSizeX_high': 200.0},
+                {'tdfGridSizeY_low': -200.0},
+                {'tdfGridSizeY_high': 200.0},
+                {'tdfGridSizeZ_low': -10.0},
+                {'tdfGridSizeZ_high': 100.0},
                 {'solver_max_iter': 200},
-                {'solver_max_threads': 16},
+                {'solver_max_threads': 20},
                 {'min_range': 1.0},
                 {'max_range': 100.0},
                 {'pc_downsampling': 1},
-                {'robust_kernel_scale': 1.0}
+                {'robust_kernel_scale': 10.0},
+                {'m_kGridMarginFactor': 0.8},
+                {'maxload': 100.0}, #60
+                {'maxCells': 300000}
+
+            ],
+            arguments=[
+                '--ros-args',
+                '--log-level', 'DEBUG',
+                '--log-level', 'rcl:=WARN',
+                '--log-level', 'rmw_fastrtps_cpp:=WARN',
             ]
         ),
 

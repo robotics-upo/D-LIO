@@ -1,10 +1,24 @@
+set(CMAKE_CXX_STANDARD 20)
 cmake_minimum_required(VERSION 3.8)
-project(dlo3d)
 
-add_compile_options(-O3 -march=native -mtune=native -mavx -mavx2 -mfma -fopenmp-simd)
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
-endif()
+project(dlio)
+
+add_executable(dlo3d_node src/dlo3d_node.cpp)
+
+target_compile_options(dlo3d_node PRIVATE 
+  -O3 
+  -march=native 
+  -mtune=native
+  -mavx
+  -mavx2
+  -mfma 
+  -fopenmp-simd
+  -lpthread
+)
+target_compile_definitions(dlo3d_node PRIVATE
+  NDEBUG
+  EIGEN_NO_DEBUG
+)
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
@@ -26,23 +40,20 @@ find_package(Eigen3 REQUIRED)
 find_package(std_srvs REQUIRED)
 find_library(ANN_LIB ANN PATHS /usr/lib /usr/local/lib)
 
-add_executable(dlo3d_node src/dlo3d_node.cpp)
-
-
 ament_target_dependencies(dlo3d_node
   rclcpp
   message_filters
   tf2
   tf2_ros
-  tf2_geometry_msgs  # Asegurado
+  tf2_geometry_msgs
   sensor_msgs
   geometry_msgs
   nav_msgs
   pcl_ros
   pcl_conversions
   std_srvs
+  OpenMP
 )
-
 
 target_link_libraries(dlo3d_node
   ${PCL_LIBRARIES}
@@ -50,8 +61,8 @@ target_link_libraries(dlo3d_node
   ${glog_LIBRARIES}
   ${CERES_LIBRARIES}
   ${ANN_LIB}
+  OpenMP::OpenMP_CXX
 )
-
 
 target_include_directories(dlo3d_node PRIVATE
   include
@@ -60,9 +71,10 @@ target_include_directories(dlo3d_node PRIVATE
 )
 
 
+#########################################3
+
 install(TARGETS
   dlo3d_node
-
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -72,3 +84,6 @@ install(
 )
 
 ament_package()
+
+
+

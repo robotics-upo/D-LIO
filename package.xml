@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>dlo3d</name>
+  <name>dlio</name>
   <version>0.0.0</version>
-  <description>dlo3d (Direct LiDAR Odometry package based on Fast Truncated Distance
+  <description>DLIO (Direct LiDAR Odometry package based on Fast Truncated Distance
 Field (FTDF) </description>
   <maintainer email="lcotele@upo.es">upo</maintainer>
   <license>TODO: License declaration</license>

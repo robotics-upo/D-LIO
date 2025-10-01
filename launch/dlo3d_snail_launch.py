@@ -7,22 +7,23 @@ import os
 
 def generate_launch_description():
 
+    # Declare LaunchConfiguration for bag_path
     bag_path = LaunchConfiguration('bag_path')
 
-    bag_play = ExecuteProcess(
+    # Play the bag if bag_path is provided (evaluates to true if bag_path is non-empty)
+    play_bag = ExecuteProcess(
         cmd=[
-            'gnome-terminal', '--', 
+            'gnome-terminal', '--',
             'ros2', 'bag', 'play', bag_path, '--rate', '0.00001'
         ],
         output='screen',
         condition=IfCondition(PythonExpression(['"', bag_path, '" != ""']))
     )
+
     launch_file_dir = os.path.dirname(os.path.abspath(__file__))
     rviz_config_file = os.path.join(launch_file_dir, 'default.rviz')
 
-
     return LaunchDescription([
-
         DeclareLaunchArgument(
             'bag_path',
             default_value='',
@@ -39,66 +40,73 @@ def generate_launch_description():
             cmd=['ros2', 'run', 'rviz2', 'rviz2', '-d', LaunchConfiguration('rviz_config_file')],
             output='screen'
         ),
+
         # Static Tf
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            name='static_tf_base_link_to_base_laser_link',
-            arguments=['-0.0', '-0.00', '0.0','0.0', '0.0', '0.0', 'base_link', 'os_sensor'],
+            name='static_tf_base_link_to_base_laser_link_1',
+            arguments=['0.0', '0.0', '0.0', '1.5708','0.0', '0.0', 'base_link', 'PandarXT-32'],
             output='screen'
         ),
 
-        Node(
+       
+       Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            name='static_tf_base_link_to_base_imu_link',
-            arguments=['-0.0', '-0.00', '0.0', '0.0', '0.0', '0.0', 'base_link', 'os_imu'],
-            output='screen'
+            name='imu_tf',
+            arguments=['0.00173',      # x
+                '0.00799',     # y
+                '0.197481',     # z
+                '0.18476',
+                '-0.0947',     # pitch 
+                '0.0421',    # roll
+                'base_link',
+                'mti3dk'
+            ],
+            output='screen' 
         ),
 
-        # DLO3D Node
+        # DLO3D node
         Node(
-            package='dlio',
+            package='dlo3d',
             executable='dlo3d_node',
-            name='dll3d_node',
+            name='dlo3d_node',
             output='screen',
             remappings=[
                 ('/dll3d_node/initial_pose', '/initialpose')
             ],
             parameters=[
-                {'in_cloud_aux': '/nada'},
-                {'in_cloud': '/os_cloud_node/points'},
+                {'in_cloud_aux': '/os1_cloud_node2/points'},
+                {'in_cloud': '/hesai/pandar'},
                 {'hz_cloud': 10.0},
-                {'in_imu': '/os_cloud_node/imu'},
-                {'hz_imu': 100.0},
-                {'calibration_time': 0.0},
+                {'in_imu': '/mti3dk/imu'},
+                {'hz_imu': 90.0},
+                {'calibration_time': 1.0},
                 {'aux_lidar_en': False},
-                {'gyr_dev':  0.0517396706572},
-                {'gyr_rw_dev': 2.66e-07},
-                {'acc_dev': 0.05115432018302},
-                {'acc_rw_dev': 0.000000333},
+                {'gyr_dev': 5.236e-5},
+                {'gyr_rw_dev': 3.4e-05},
+                {'acc_dev': 7e-4},
+                {'acc_rw_dev': 2.5e-9},
                 {'base_frame_id': 'base_link'},
                 {'odom_frame_id': 'odom'},
                 {'map_frame_id': 'map'},
-                {'keyframe_dist': 2.0},
-                {'keyframe_rot': 45.0},
-                {'tdfGridSizeX_low': -10.0},
-                {'tdfGridSizeX_high': 70.0},
-                {'tdfGridSizeY_low': -35.0},
-                {'tdfGridSizeY_high': 35.0},
-                {'tdfGridSizeZ_low': -5.0},
-                {'tdfGridSizeZ_high': 30.0},
-                {'solver_max_iter': 500},
-                {'solver_max_threads': 20},
+                {'keyframe_dist':2.0},
+                {'keyframe_rot': 30.0},
+                {'tdfGridSizeX_low': -5.0},
+                {'tdfGridSizeX_high': 90.0},
+                {'tdfGridSizeY_low': -50.0},
+                {'tdfGridSizeY_high': 20.0},
+                {'tdfGridSizeZ_low': -15.0},
+                {'tdfGridSizeZ_high': 15.0},
+                {'solver_max_iter': 200},
+                {'solver_max_threads': 16},
                 {'min_range': 1.0},
                 {'max_range': 100.0},
-                {'pc_downsampling': 1},
-                {'robust_kernel_scale': 1.0},
-                {'kGridMarginFactor': 0.8},
-                {'maxload': 100.0},
-                {'maxCells': 100000}
+                {'pc_downsampling': 4},
+                {'robust_kernel_scale': 1.0}
             ]
         ),
 
-        bag_play
+        play_bag
     ])

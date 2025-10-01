@@ -8,7 +8,7 @@
 #include "ceres/cost_function_to_functor.h"
 #include "ceres/autodiff_cost_function.h"
 #include "glog/logging.h"
-#include <dlo3d/df3d.hpp>
+#include <dlo3d/tdf3d_64.hpp>
 #include <pcl/point_cloud.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Matrix3x3.h>
@@ -26,7 +26,7 @@ class DistanceFunction : public ceres::SizedCostFunction<1, 3>
 {
  public:
 
-    DistanceFunction(DF3D &grid)
+    DistanceFunction(TDF3D64 &grid)
       : _grid(grid)
     {
     }
@@ -70,13 +70,13 @@ class DistanceFunction : public ceres::SizedCostFunction<1, 3>
 
   private:
 
-    DF3D &_grid;
+    TDF3D64 &_grid;
 };
 
 class DLL6DCostFunctor
 {
  public:
-    DLL6DCostFunctor(double px, double py, double pz, DF3D &grid, double w = 1.0)
+    DLL6DCostFunctor(double px, double py, double pz, TDF3D64 &grid, double w = 1.0)
       : _px(px), _py(py), _pz(pz), _grid(grid), _w(w), _distanceFunctor(new DistanceFunction(grid))
     {
     }
@@ -126,7 +126,7 @@ class DLL6DCostFunctor
     double _w;
 
     // Distance grid
-    DF3D &_grid;
+    TDF3D64 &_grid;
 
     // Distance funtion diferenciation
     ceres::CostFunctionToFunctor<1, 3> _distanceFunctor;
@@ -184,7 +184,7 @@ class DLL6DSolver
   private:
 
     // Distance grid
-    DF3D &_grid;
+    TDF3D64 &_grid;
 
     // Optimizer parameters
     int _max_num_iterations;
@@ -193,7 +193,7 @@ class DLL6DSolver
 
   public:
 
-    DLL6DSolver(DF3D *grid) : _grid(*grid)
+    DLL6DSolver(TDF3D64 *grid) : _grid(*grid)
     {
         //google::InitGoogleLogging("DLL6DSolver");
         _max_num_iterations = 50;
@@ -357,3 +357,4 @@ class DLL6DSolver
 };
 
 #endif
+
