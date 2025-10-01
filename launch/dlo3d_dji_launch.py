@@ -82,7 +82,7 @@ def generate_launch_description():
 
         # Nodo principal DLO3D
         Node(
-            package='dlo3d',
+            package='D-LIO',
             executable='dlo3d_node',
             name='dlo3d_node',
             output='screen',
