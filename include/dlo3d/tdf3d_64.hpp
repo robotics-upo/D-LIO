@@ -93,6 +93,59 @@ public:
 		}
 		loadCloud(out);
 	}
+	void loadCloudFiltered(std::vector<pcl::PointXYZ> &cloud, 
+						float tx, float ty, float tz,
+						float roll, float pitch, float yaw,
+						float max_dist_xy)
+		{
+		std::vector<pcl::PointXYZ> out;
+		out.reserve(cloud.size()); // reservar para eficiencia
+
+		float max_dist_sq = max_dist_xy * max_dist_xy; // comparar al cuadrado
+
+		// Filtrar primero en coordenadas locales
+		for(size_t i = 0; i < cloud.size(); ++i)
+		{
+			float x = cloud[i].x;
+			float y = cloud[i].y;
+
+			if(x*x + y*y <= max_dist_sq)
+			{
+				out.push_back(cloud[i]);
+			}
+		}
+
+		// Si no quedan puntos tras el filtrado, salir
+		if(out.empty()) return;
+
+		// Precompute rotation matrix
+		float cr, sr, cp, sp, cy, sy;
+		float r00, r01, r02, r10, r11, r12, r20, r21, r22;
+		sr = sin(roll);
+		cr = cos(roll);
+		sp = sin(pitch);
+		cp = cos(pitch);
+		sy = sin(yaw);
+		cy = cos(yaw);
+		r00 = cy*cp; 	r01 = cy*sp*sr - sy*cr; 	r02 = cy*sp*cr + sy*sr;
+		r10 = sy*cp; 	r11 = sy*sp*sr + cy*cr; 	r12 = sy*sp*cr - cy*sr;
+		r20 = -sp; 	r21 = cp*sr; 			r22 = cp*cr;
+
+		// Transformar los puntos filtrados al marco global
+		for(size_t i = 0; i < out.size(); ++i)
+		{
+			float x = out[i].x;
+			float y = out[i].y;
+			float z = out[i].z;
+
+			out[i].x = x*r00 + y*r01 + z*r02 + tx;
+			out[i].y = x*r10 + y*r11 + z*r12 + ty;
+			out[i].z = x*r20 + y*r21 + z*r22 + tz;
+		}
+
+		// Llamar al loadCloud normal
+		loadCloud(out);
+	}
 
 	void loadCloud(std::vector<pcl::PointXYZ> &cloud, float tx, float ty, float tz, float roll, float pitch, float yaw)
 	{

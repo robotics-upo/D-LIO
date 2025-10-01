@@ -103,10 +103,10 @@ def generate_launch_description():
                 {'min_range': 1.0},
                 {'max_range': 100.0},
                 {'pc_downsampling': 1},
-                {'robust_kernel_scale': 10.0},
-                {'m_kGridMarginFactor': 0.8},
-                {'maxload': 100.0}, #60
-                {'maxCells': 300000}
+                {'robust_kernel_scale': 1.0},
+                {'kGridMarginFactor': 0.8},
+                {'maxload': 100.0},
+                {'maxCells': 100000}
 
             ],
             arguments=[

@@ -108,9 +108,9 @@ def generate_launch_description():
                 {'max_range': 100.0},
                 {'pc_downsampling': 1},
                 {'robust_kernel_scale': 1.0},
-                {'tdf_grid_res': 0.05},
-                {'maxload': 50.0},
-                {'maxCells': 300000}
+                {'kGridMarginFactor': 0.8},
+                {'maxload': 100.0},
+                {'maxCells': 100000}
             ],
             arguments=['--ros-args', '--log-level', 'INFO'] #DEBUG o INFO
         ),

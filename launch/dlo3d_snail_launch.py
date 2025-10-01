@@ -103,8 +103,11 @@ def generate_launch_description():
                 {'solver_max_threads': 16},
                 {'min_range': 1.0},
                 {'max_range': 100.0},
-                {'pc_downsampling': 4},
-                {'robust_kernel_scale': 1.0}
+                {'pc_downsampling': 1},
+                {'robust_kernel_scale': 1.0},
+                {'kGridMarginFactor': 0.8},
+                {'maxload': 100.0},
+                {'maxCells': 100000}
             ]
         ),
 

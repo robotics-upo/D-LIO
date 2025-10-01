@@ -89,10 +89,13 @@ def generate_launch_description():
                 {'tdfGridSizeZ_high': 30.0},
                 {'solver_max_iter': 500},               
                 {'solver_max_threads': 20},
-                {'min_range': 2.0},
+                {'min_range': 1.0},
                 {'max_range': 100.0},
-                {'pc_downsampling': 4},                # If needed (For dense LiDAR PointClouds)
-                {'robust_kernel_scale': 1.0}
+                {'pc_downsampling': 1},
+                {'robust_kernel_scale': 1.0},
+                {'kGridMarginFactor': 0.8},
+                {'maxload': 100.0},
+                {'maxCells': 100000}
             ]
         ),
 

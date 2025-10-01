@@ -117,7 +117,10 @@ def generate_launch_description():
                 {'min_range': 1.0},
                 {'max_range': 100.0},
                 {'pc_downsampling': 1},
-                {'robust_kernel_scale': 1.0}
+                {'robust_kernel_scale': 1.0},
+                {'kGridMarginFactor': 0.8},
+                {'maxload': 100.0},
+                {'maxCells': 100000}
             ]
         ),
 

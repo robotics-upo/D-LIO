@@ -105,12 +105,12 @@ def generate_launch_description():
                 {'solver_max_iter': 1000},
                 {'solver_max_threads': 20},
                 {'min_range': 1.0},
-                {'max_range': 1000.0},
+                {'max_range': 100.0},
                 {'pc_downsampling': 1},
-                {'robust_kernel_scale': 0.3},
-                {'tdf_grid_res': 0.05},
-                {'maxload': 50.0}, #60
-                {'maxCells': 80000}
+                {'robust_kernel_scale': 1.0},
+                {'kGridMarginFactor': 0.8},
+                {'maxload': 100.0},
+                {'maxCells': 100000}
             ],
             arguments=['--ros-args', '--log-level', 'INFO'] #DEBUG o INFO
         ),
