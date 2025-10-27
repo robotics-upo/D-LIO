@@ -5,6 +5,9 @@
 
 # D-LIO: 6DoF Direct LiDAR-Inertial Odometry based on Simultaneous Truncated Distance Field Mapping
 
+<p align="center">
+<strong> 🤖 <a href="https://robotics-upo.github.io/D-LIO/">Visit the project website</a> 🤖 </strong>
+</p>
 
 <div align="center">
   <a href="https://youtu.be/HmrA9YOCZ9w"><img src="https://img.shields.io/badge/YouTube-Video-red?logo=youtube" alt="YouTube Video"></a>
