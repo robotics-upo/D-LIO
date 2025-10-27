@@ -21,6 +21,11 @@ A Direct LIDAR Inertial Odometry (D-LIO) able to deal with raw 3D LIDAR data onl
   <img src="docs/media/map_eee02.png" width="45%" />
 </p>
 
+> [!NOTE]🎉 **D-LIO** has been accepted to **IEEE Robotics and Automation Letters (RA-L)**! 🎉!
+
+<div align="center">
+  <h3>🎉 D-LIO has been accepted to IEEE Robotics and Automation Letters (RA-L)! 🎉</h3>
+</div>
 
 <details>
   <summary>Index</summary>
