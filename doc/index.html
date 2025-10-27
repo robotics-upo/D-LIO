@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>D-LIO · 6DoF Direct LiDAR-Inertial Odometry</title>
+
+<meta name="description" content="D-LIO: A Direct LIDAR Inertial Odometry (D-LIO) able to deal with raw 3D LIDAR data online, avoiding the need of LIDAR feature selection and tracking." />
+<meta property="og:title" content="D-LIO: 6DoF Direct LiDAR-Inertial Odometry based on Simultaneous Truncated Distance Field Mapping" />
+<meta property="og:description" content="A Direct LIDAR Inertial Odometry (D-LIO) able to deal with raw 3D LIDAR data online, avoiding the need of LIDAR feature selection and tracking." />
+<meta property="og:type" content="website" />
+<meta name="color-scheme" content="light dark" />
+
+<style>
+/* ===== Brand palette (Universidad Pablo de Olavide) ===== */
+:root{
+  --bg:#ffffff; --fg:#141a20; --muted:#6b7280;
+  --brand:#003771;           /* blue */
+  --accent:#faba13;          /* yellow */
+  --ruler:#faba13;           /* light mode: ruler = yellow */
+  --ruler-dark:#77b1ff;      /* dark mode: ruler = light blue */
+  --authors-dark:#ffe58a;    /* dark mode: lighter yellow for authors */
+  --border:#e9edf2; --shadow:0 6px 18px rgba(0,0,0,.06);
+  --link:var(--brand); --link-hover:var(--accent);
+  --content-max: 1040px;
+}
+
+/* Auto dark if no manual override */
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme]){
+    --bg:#0b0f14; --fg:#e6edf3; --muted:#9aa4b2;
+    --border:#263142; --shadow:0 6px 18px rgba(0,0,0,.35);
+    --link:#77b1ff; --link-hover:var(--accent);
+    --ruler: var(--ruler-dark); /* invert: ruler becomes blue */
+  }
+  :root:not([data-theme]) .hero h1,
+  :root:not([data-theme]) .hero .subtitle,
+  :root:not([data-theme]) .section h2{ color: var(--accent); } /* titles yellow */
+  :root:not([data-theme]) .authors{ color: var(--authors-dark); } /* authors lighter yellow */
+}
+
+/* Manual overrides force dark */
+:root[data-theme="dark"]{
+  --bg:#0b0f14; --fg:#e6edf3; --muted:#9aa4b2;
+  --border:#263142; --shadow:0 6px 18px rgba(0,0,0,.35);
+  --link:#77b1ff; --link-hover:var(--accent);
+  --ruler: var(--ruler-dark);
+}
+:root[data-theme="dark"] .hero h1,
+:root[data-theme="dark"] .hero .subtitle,
+:root[data-theme="dark"] .section h2{ color: var(--accent); } /* titles yellow */
+:root[data-theme="dark"] .authors{ color: var(--authors-dark); } /* authors lighter yellow */
+
+html,body,.site-header,.btn,.footer,.nav a{
+  transition: background-color .28s ease, color .28s ease, border-color .28s ease, box-shadow .28s ease;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font:16px/1.7 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,"Helvetica Neue",Arial,"Noto Sans";
+  background:var(--bg); color:var(--fg);
+}
+
+/* ===== Header / Nav ===== */
+.site-header{
+  position:sticky; top:0; z-index:50;
+  background:color-mix(in oklab, var(--bg) 85%, transparent);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:saturate(150%) blur(6px);
+}
+.nav{
+  max-width:var(--content-max); margin:0 auto; padding:14px 20px;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.brand.toggle{
+  display:flex; align-items:center; gap:10px;
+  color:var(--fg); cursor:pointer; user-select:none;
+  padding:6px 10px; border-radius:12px;
+  background:#fff; border:2px solid var(--brand);
+}
+.brand.toggle .logo{ width:18px; height:18px; border-radius:50%; background:var(--brand); }
+.brand.toggle .title{ font-weight:700; letter-spacing:.2px; }
+:root[data-theme="dark"] .brand.toggle{ background:#000; border-color:var(--accent); color:#fff; }
+:root[data-theme="dark"] .brand.toggle .logo{ background:var(--accent); }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme]) .brand.toggle{ background:#000; border-color:var(--accent); color:#fff; }
+  :root:not([data-theme]) .brand.toggle .logo{ background:var(--accent); }
+}
+.nav a{
+  color:var(--link); text-decoration:none; padding:8px 10px; border-radius:10px;
+  text-underline-offset:3px;
+}
+.nav a:hover{ background:rgba(0,55,113,.06); color:var(--link-hover); }
+
+/* ===== Hero ===== */
+.hero{
+  max-width:var(--content-max); margin:48px auto 8px; padding:0 20px; text-align:center;
+}
+.hero h1{
+  margin:6px 0 6px; font-size:clamp(28px,3.4vw,44px);
+  line-height:1.12; letter-spacing:.2px; color:var(--brand);
+}
+.authors{
+  margin:0 auto 10px; color:var(--muted); font-size:0.98rem;
+  display:flex; gap:10px; justify-content:center; flex-wrap:wrap;
+}
+.authors a {
+  color: var(--link);
+  text-decoration: none;
+}
+/* Ensure authors go yellow in dark (even as links) */
+:root[data-theme="dark"] .authors a { color: var(--authors-dark) !important; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .authors a { color: var(--authors-dark) !important; }
+}
+.authors a:hover{ color:var(--link-hover); text-decoration:underline; }
+
+.hero .lead{ color:var(--muted); margin:10px auto 0; max-width:820px; }
+
+.hero .subtitle {
+  font-size: clamp(1.1rem, 2.2vw, 1.5rem); 
+  line-height: 1.3;
+  color: var(--brand); /* <-- CAMBIADO: Ahora usa el color --brand */
+  font-weight: 400;    
+  margin: -4px auto 14px; 
+  max-width: 820px;
+}
+
+/* Quick external links */
+.quick-links{
+  margin-top:22px; display:flex; flex-wrap:wrap; gap:12px;
+  justify-content:center; align-items:center;
+}
+.btn{
+  display:inline-flex; align-items:center; gap:10px;
+  border:1px solid var(--border); color:var(--fg); text-decoration:none;
+  padding:10px 16px; border-radius:999px; background:transparent;
+}
+.btn:hover{ transform:translateY(-1px); box-shadow:0 10px 24px rgba(0,0,0,.10); border-color:rgba(0,55,113,.25); }
+.btn .dot{ width:8px; height:8px; border-radius:50%; background:var(--accent); }
+
+/* ===== Sections / Wide dynamic ruler ===== */
+.section{ max-width:var(--content-max); margin:56px auto; }
+.section header{ text-align:center; margin-bottom:18px; }
+.section h2{
+  --underline:0%;
+  font-size:clamp(20px,2.2vw,28px); margin:0 0 24px; color:var(--brand);
+  position:relative; display:inline-block;
+}
+.section h2::after{
+  content:""; position:absolute; left:50%; transform:translateX(-50%);
+  bottom:-12px; height:4px; width:var(--underline);
+  max-width:50vw;                 /* grow up to 50% page width */
+  background:var(--ruler);        /* switches with theme */
+  border-radius:4px; transition:width .7s ease;
+}
+.section.in-view h2{ --underline:100%; }
+
+/* Clean content */
+.section .content{ margin:0 auto; max-width:900px; color:var(--fg); padding:0 20px; }
+.section p{ margin:0 0 10px 0; }
+
+/* ===== Auto-advancing gallery with arrows ===== */
+.gallery{ --gap:12px; max-width:900px; margin:14px auto 0; padding:0 20px; }
+.gallery-viewport{ overflow:hidden; position:relative; width:100%; }
+.gallery-track{ display:flex; gap:var(--gap); will-change:transform; }
+.gallery-item{
+  flex:0 0 calc((100% - 2*var(--gap)) / 3);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:var(--shadow);
+  background:var(--bg);
+  aspect-ratio: 16/9; 
+}
+.gallery-item img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;    
+}
+
+/* Arrows */
+.gallery-arrow{
+  position:absolute; top:50%; transform:translateY(-50%);
+  width:38px; height:38px; border-radius:50%;
+  display:grid; place-items:center; font-size:20px;
+  color:#fff; border:1px solid color-mix(in oklab, var(--fg) 40%, transparent);
+  background: color-mix(in oklab, var(--fg) 22%, transparent);
+  cursor:pointer; user-select:none; opacity:.7;
+}
+.gallery-arrow:hover{ opacity:1; }
+.gallery-arrow.left{ left:6px; }
+.gallery-arrow.right{ right:6px; }
+
+/* Video embed */
+.video{
+  position:relative; width:100%; max-width:900px; margin:14px auto 0;
+  aspect-ratio:16/9; border-radius:12px; overflow:hidden; box-shadow:var(--shadow);
+  border:1px solid var(--border);
+}
+.video iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
+
+/* Two-column layout (optional) */
+.grid{ display:grid; gap:16px; grid-template-columns:repeat(12,1fr); padding:0 20px; }
+@media(min-width:860px){ .span-6{ grid-column:span 6; } }
+.block{ grid-column:span 12; }
+.block h3{ margin:.2rem 0 .4rem; font-size:1.05rem; color:var(--brand); }
+
+/* Code sample + copy */
+pre{ background:color-mix(in oklab, var(--bg) 92%, #000 8%); color:var(--fg);
+     border:1px solid var(--border); border-radius:12px; padding:14px; overflow:auto; margin:8px 20px 0; }
+.copy{
+  border:1px solid var(--border); background:transparent; color:var(--link);
+  border-radius:10px; padding:6px 10px; cursor:pointer;
+}
+.copy:hover{ background: rgba(250,186,19,.12); color: var(--brand); }
+
+/* Funding logos row */
+.funders{
+  display:flex; gap:18px; flex-wrap:wrap; justify-content:center; align-items:center;
+  padding: 6px 20px 0;
+}
+.funders img{
+  max-height:120px;      
+  height:auto;         
+  object-fit:contain;
+}
+:root[data-theme="dark"] .funders img{
+  filter: brightness(0.95) contrast(1.05);
+}
+
+/* Footer */
+.footer{
+  margin-top:56px; padding:22px 20px; border-top:1px solid var(--border);
+  color:var(--muted); text-align:center;
+}
+.footer a{ color:var(--link); text-decoration:none; }
+.footer a:hover{ color:var(--link-hover); text-decoration:underline; }
+
+/* Links */
+a{ color:var(--link); } a:hover{ color:var(--link-hover); }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav">
+    <!-- Theme toggle -->
+    <button class="brand toggle" id="theme-switch" type="button" title="Toggle theme">
+      <span class="logo" aria-hidden="true"></span>
+      <span class="title" id="theme-label">Dark mode</span>
+    </button>
+    <div>
+      <a href="https://robotics.upo.es/" target="_blank" rel="noopener">Service Robotics Lab</a>
+      <a href="https://github.com/robotics-upo" target="_blank" rel="noopener">SRL GitHub</a>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <!-- ===== Hero ===== -->
+  <section class="hero" id="overview">
+    <h1>D-LIO</h1>
+
+    <p class="subtitle">6DoF Direct LiDAR-Inertial Odometry based on Simultaneous Truncated Distance Field Mapping</p>
+
+    <!-- Authors under title -->
+    <div class="authors">
+      <a href="https://scholar.google.com/citations?user=4Ufn1_8AAAAJ&hl=en" target="_blank" rel="noopener">Lucia Coto-Elena</a>
+      <span>·</span>
+      <a href="https://scholar.google.com/citations?user=_csNaiYAAAAJ&hl=es" target="_blank" rel="noopener">Jose E. Maese</a>
+      <span>·</span>
+      <a href="https://scholar.google.es/citations?user=BNdMkI8AAAAJ&hl=es" target="_blank" rel="noopener">Luis Merino</a>
+      <span>·</span>
+      <a href="https://scholar.google.com/citations?user=nb2teTwAAAAJ&hl=es" target="_blank" rel="noopener">Fernando Caballero</a>
+    </div>
+
+    <p class="lead">
+      This paper presents a new approach for 6DoF Direct LiDAR-Inertial Odometry (D-LIO) based on the simultaneous mapping of truncated distance fields on CPU. 
+      This continuous representation enables working with raw 3D LiDAR data online, avoiding the need of LiDAR feature selection and tracking, simplifying the odometry pipeline and easily generalizing to many scenarios.
+    </p>
+
+    <!-- External quick links -->
+    <div class="quick-links">
+      <a class="btn" href="https://arxiv.org/abs/2505.16726" target="_blank" rel="noopener">
+        <span class="dot"></span>Paper
+      </a>
+      <a class="btn" href="https://www.youtube.com/watch?v=HmrA9YOCZ9w" target="_blank" rel="noopener">
+        <span class="dot"></span>Video
+      </a>
+      <a class="btn" href="https://github.com/robotics-upo/D-LIO?tab=readme-ov-file" target="_blank" rel="noopener">
+        <span class="dot"></span>Code
+      </a>
+    </div>
+  </section>
+
+  <!-- ===== Overview / Example Gallery ===== -->
+  <section class="section" id="overview-gallery">
+    <header><h2>Overview</h2></header>
+    <div class="content">
+      <p>
+        The method is based on the proposed <strong>Fast Truncated Distance Field (Fast-TDF)</strong> as a convenient tool to represent the environment. 
+        This representation enables solving the LiDAR point-cloud registration as a nonlinear optimization process, simultaneously producing an accurate <strong>TDF map</strong> of the environment, 
+        and updating such map at <strong>constant time independently of its size</strong>. 
+        The approach is benchmarked against other state-of-the-art odometry approaches, demonstrating the <strong>same or better level of accuracy</strong>.   
+      </p>
+
+      <div class="gallery">
+        <div class="gallery-viewport" id="g-viewport">
+          <div class="gallery-track" id="g-track">
+            <!-- 3 visible -->
+            <div class="gallery-item"><img src="media/map_college.png" alt="Reconstruction College"></div>
+            <div class="gallery-item"><img src="media/map_eee02.png" alt="Reconstruction eee_02"></div>
+            <div class="gallery-item"><img src="media/map_nya03.png" alt="Reconstruction nya_03"></div>
+            <!-- 3 initially hidden -->
+            <div class="gallery-item"><img src="media/map_sbs02.png" alt="Reconstruction sbs_02"></div>
+          </div>
+
+          <!-- arrows -->
+          <button class="gallery-arrow left"  id="g-prev" aria-label="Previous">‹</button>
+          <button class="gallery-arrow right" id="g-next" aria-label="Next">›</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Method Sketch ===== -->
+  <section class="section" id="method">
+    <header><h2>Method</h2></header>
+    <div class="content">
+    <p>
+      The D-LIO algorithm incrementally estimates the system pose using an <strong>Extended Kalman Filter (EKF)</strong>. 
+      It integrates inertial measurements for pose prediction and uses point cloud-to-map registration for pose updates. 
+      The environment is mapped based on the <strong>Truncated Distance Field (TDF)</strong>. 
+      This alignment is used to <strong>constrain the EKF's pose and velocity</strong>. 
+      Whenever the estimated pose variation exceeds a threshold, the <strong>TDF map is updated</strong> by incorporating new information.</p>
+    
+    <p style="text-align:center;margin-top:8px;">
+        <img src="media/diagram.png" alt="DB-TSDF pipeline" style="max-width:100%;border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);" />
+      </p>
+    </div>
+  </section>
+
+  <!-- ===== Results (single embedded video) ===== -->
+  <section class="section" id="results">
+    <header><h2>Results</h2></header>
+    <div class="content" style="text-align:center">
+      <p>Qualitative results, 3D reconstructions, and estimated trajectories from the VIRAL and Newer College datasets.</p>
+      <div class="video">
+        <iframe
+          src="https://www.youtube.com/embed/HmrA9YOCZ9w"
+          title="D-LIO Results"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Citation with Copy ===== -->
+<section class="section" id="citation">
+    <header><h2>Citation</h2></header>
+    <div class="content">
+      <p>If you use D-LIO, please cite:</p>
+      <div class="block-head" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 20px 0;">
+        <div class="label" style="color:var(--muted);">BibTeX</div>
+        <button class="copy" id="copy-cite">Copy</button>
+      </div>
+<pre id="bibtex">
+@misc{cotoelena2025dlio6dofdirectlidarinertial,
+      title={D-LIO: 6DoF Direct LiDAR-Inertial Odometry based on Simultaneous Truncated Distance Field Mapping}, 
+      author={Lucia Coto-Elena and J. E. Maese and L. Merino and F. Caballero},
+      year={2025},
+      eprint={2505.16726},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO},
+      url={https://arxiv.org/abs/2505.16726}, 
+}
+</pre>
+    </div>
+  </section>
+
+  <!-- ===== Funding (logos at the very end) ===== -->
+  <section class="section" id="funding">
+    <header><h2>Acknowledgments</h2></header>
+    <div class="content">
+      <p>
+        This work is partially supported by the grants INSERTION (PID2021- 127648OB-C31) and NORDIC (TED2021-132476B-I00), both funded by the “Agencia Estatal de Investigación – Ministerio de Ciencia, Innovación y Universidades” and the “European Union NextGenerationEU/PRTR.
+      </p>
+      <div class="funders" style="margin-top:10px;">
+        <img src="media/logo_ministerio.png" alt="Logos">
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  © <span id="year"></span> · <a href="https://github.com/robotics-upo/D-LIO?tab=readme-ov-file" target="_blank" rel="noopener">Project Repository</a>
+</footer>
+
+<script>
+  // Year
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // Apply saved theme on load and set initial label
+  (function(){
+    const root = document.documentElement;
+    const key  = 'mm-theme';
+    const saved = localStorage.getItem(key);
+    if (saved === 'light' || saved === 'dark') root.setAttribute('data-theme', saved);
+    const label = document.getElementById('theme-label');
+    const cur = root.getAttribute('data-theme');
+    label.textContent = (cur === 'dark') ? 'Light mode' : 'Dark mode';
+  })();
+
+  // Animate section ruler grow/shrink near both top and bottom edges
+  (function(){
+    const SEGURO_TOP = 0.15, SEGURO_BOTTOM = 0.85;
+    const secs = Array.from(document.querySelectorAll('.section'));
+    function update(){
+      const vh = window.innerHeight || 1;
+      secs.forEach(sec=>{
+        const h2 = sec.querySelector('h2');
+        if(!h2) return;
+        const r = h2.getBoundingClientRect();
+        const centro = r.top + r.height/2;
+        const frac = centro / vh;
+        const dentro = frac > SEGURO_TOP && frac < SEGURO_BOTTOM;
+        sec.classList.toggle('in-view', dentro);
+      });
+    }
+    update();
+    window.addEventListener('scroll', update, {passive:true});
+    window.addEventListener('resize', update);
+  })();
+
+  // Theme toggle
+  (function(){
+    const btn = document.getElementById('theme-switch');
+    const label = document.getElementById('theme-label');
+    const root = document.documentElement;
+    const key  = 'mm-theme';
+    btn?.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const cur  = root.getAttribute('data-theme');
+      const next = (cur === 'dark') ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem(key, next);
+      label.textContent = (next === 'dark') ? 'Light mode' : 'Dark mode';
+    });
+  })();
+
+  // Auto-advancing gallery with manual arrows
+(function(){
+  const viewport = document.getElementById('g-viewport');
+  const track    = document.getElementById('g-track');
+  const prevBtn  = document.getElementById('g-prev');
+  const nextBtn  = document.getElementById('g-next');
+
+  let step = 0;
+
+  function getGapPx(){
+    const cs = getComputedStyle(track);
+    const g  = parseFloat(cs.gap || cs.columnGap || '0');
+    return isNaN(g) ? 0 : g;
+  }
+
+  function recalc(){
+    const first = track.querySelector('.gallery-item');
+    if(!first) return;
+    const itemWidth = first.getBoundingClientRect().width; // ancho real de UNA tarjeta
+    const gapPx     = getGapPx();                           // gap real de flex
+    step = itemWidth + gapPx;                               // un solo ítem por salto
+  }
+
+  function advance(dir = 1){ // dir>0 = izquierda, dir<0 = derecha
+    track.style.transition = 'transform 600ms ease';
+    track.style.transform  = `translateX(${dir > 0 ? -step : step}px)`;
+    const onEnd = ()=>{
+      track.removeEventListener('transitionend', onEnd);
+      if(dir > 0){
+        track.appendChild(track.firstElementChild); // mueve 1 al final
+      }else{
+        track.insertBefore(track.lastElementChild, track.firstElementChild); // mueve 1 al principio
+      }
+      track.style.transition = 'none';
+      track.style.transform  = 'translateX(0)';
+      void track.offsetWidth; // reflow
+    };
+    track.addEventListener('transitionend', onEnd);
+  }
+
+  // init + resize
+  recalc();
+  window.addEventListener('resize', recalc);
+
+  // auto: cada 5s hacia la izquierda, 1 item
+  let timer = setInterval(()=>advance(1), 5000);
+
+  // controles manuales (izq/dcha) y reinicio del auto
+  nextBtn.addEventListener('click', ()=>{ clearInterval(timer); advance(1);  timer = setInterval(()=>advance(1), 5000); });
+  prevBtn.addEventListener('click', ()=>{ clearInterval(timer); advance(-1); timer = setInterval(()=>advance(1), 5000); });
+
+  // pausa al pasar el ratón
+  viewport.addEventListener('mouseenter', ()=> clearInterval(timer));
+  viewport.addEventListener('mouseleave', ()=> { timer = setInterval(()=>advance(1), 5000); });
+})();
+
+  // Copy citation
+  (function(){
+    const btn = document.getElementById('copy-cite');
+    const pre = document.getElementById('bibtex');
+    btn?.addEventListener('click', async ()=>{
+      const text = pre.textContent;
+      try{
+        await navigator.clipboard.writeText(text);
+        const old = btn.textContent;
+        btn.textContent = 'Copied';
+        setTimeout(()=>btn.textContent=old, 1400);
+      }catch(e){
+        alert('Clipboard copy failed. Please copy manually.');
+      }
+    });
+  })();
+</script>
+
+</body>
+</html>

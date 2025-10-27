@@ -17,8 +17,8 @@
 
 A Direct LIDAR Inertial Odometry (D-LIO) able to deal with raw 3D LIDAR data online, avoiding the need of LIDAR feature selection and tracking, simplifying the odometry pipeline and easily generalising to all types of scenarios. The method is based on the use of Fast Truncated Distance Field (Fast-TDF) as a convenient tool to represent the environment, enabling solving the LIDAR point-cloud registration as a nonlinear optimisation process without the need for selecting/tracking LIDAR features in the input data and updating the environment map at constant time independently of the size of the map itself.
 <p>
-  <img src="media/map_college.png" width="45%" />
-  <img src="media/map_eee02.png" width="45%" />
+  <img src="doc/media/map_college.png" width="45%" />
+  <img src="doc/media/map_eee02.png" width="45%" />
 </p>
 
 
@@ -199,7 +199,7 @@ ros2 service call /save_grid_pcd std_srvs/srv/Trigger
 This work is partially supported by the grants INSERTION (PID2021- 127648OB-C31) and NORDIC (TED2021-132476B-I00), both funded by the “Agencia Estatal de Investigación – Ministerio de Ciencia, Innovación y Universidades” and the “European Union NextGenerationEU/PRTR.
 
 <p align="center">
-  <img src="media/logo_ministerio.png" width="60%"  />
+  <img src="doc/media/logo_ministerio.png" width="60%"  />
 </p>
 
 
