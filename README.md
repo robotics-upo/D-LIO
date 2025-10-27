@@ -1,7 +1,6 @@
 <a id="readme-top"></a>
 <!-- PROJECT LOGO -->
 <br />
-<div>
 
 # D-LIO: 6DoF Direct LiDAR-Inertial Odometry based on Simultaneous Truncated Distance Field Mapping
 
