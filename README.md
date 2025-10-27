@@ -2,10 +2,11 @@
 <!-- PROJECT LOGO -->
 <br />
 
-# D-LIO: 6DoF Direct LiDAR-Inertial Odometry based on Simultaneous Truncated Distance Field Mapping
-
 > [!NOTE]  
 > 🎉 **D-LIO** has been accepted to **IEEE Robotics and Automation Letters (RA-L)**! 🎉
+
+
+# D-LIO: 6DoF Direct LiDAR-Inertial Odometry based on Simultaneous Truncated Distance Field Mapping
 
 <p align="center">
 <strong> 🤖 <a href="https://robotics-upo.github.io/D-LIO/">Visit the project website</a> 🤖 </strong>
