@@ -222,6 +222,22 @@ html {
 }
 /* ================================== */
 
+/* ===== Grid 2 Column Layout (para Fast-TDF) ===== */
+.grid-2-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2 columnas de tamaño idéntico */
+  gap: 24px; /* Espacio entre las columnas */
+  /* align-items: start; <-- BORRA ESTA LÍNEA */
+}
+
+/* Apilado responsivo en pantallas pequeñas (móviles) */
+@media (max-width: 860px) { /* Usamos el mismo breakpoint que ya tiene la plantilla */
+  .grid-2-col {
+    grid-template-columns: 1fr; /* Vuelve a una sola columna */
+  }
+}
+/* ================================================== */
+
 /* ===== Estilos de Tablas de Resultados ===== */
 .table-wrapper {
   overflow-x: auto; /* Permite scroll horizontal en móvil */
@@ -573,67 +589,72 @@ a{ color:var(--link); } a:hover{ color:var(--link-hover); }
   </section>
 
   <!-- ===== Fast TDF ===== -->
-  </section> 
   <section class="section" id="fast-tdf">
-    <header><h2>Fast-TDF: The Core Method</h2></header>
+    <header><h2>Fast-TDF</h2></header>
     <div class="content">
-      <p>
-        The core of D-LIO is the <strong>Fast Truncated Distance Field (Fast-TDF)</strong>. This method represents the environment as a 3D grid, but instead of just storing "occupied" or "free", it efficiently encodes the <strong>L1 distance</strong> to the nearest obstacle.
-      </p>
-      <p>
-        To achieve constant-time map updates, it uses a pre-calculated <strong>binary kernel</strong>. The distance in this kernel is represented as a bit-set mask, where each set bit accounts for the distance.
-      </p>
 
-      <div class="kernel-table-wrapper">
-        <table class="kernel-table" style="width:100%;">
-          <thead>
-            <tr>
-              <th>Binary Mask (4-bit)</th>
-              <th>L1 Distance</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>0000</td>
-              <td>0 (Center)</td>
-            </tr>
-            <tr>
-              <td>0001</td>
-              <td>1</td>
-            </tr>
-            <tr>
-              <td>0011</td>
-              <td>2</td>
-            </tr>
-            <tr>
-              <td>0111</td>
-              <td>3</td>
-            </tr>
-             <tr>
-              <td>1111</td>
-              <td>4 (Max / Truncation)</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-       <p style="text-align:center; font-size:0.9rem; color:var(--muted); margin-top:-10px;">
-        Table 1: Correspondence between bit-set masks and L1 distance.
-      </p>
+      <div class="grid-2-col">
 
-      <p style="margin-top:24px;">
-        This encoding has a key advantage: the shortest distance from multiple overlapping kernels can be found with a single, highly efficient <strong>bitwise-AND operation</strong>. This avoids complex comparisons and makes the process parallelizable on the CPU.
-      </p>
+        <div class="grid-text">
+          <p>
+            The core of D-LIO is the <strong>Fast Truncated Distance Field (Fast-TDF)</strong>. This method represents the environment as a 3D grid, but instead of just storing "occupied" or "free", it efficiently encodes the <strong>L1 distance</strong> to the nearest obstacle.
+          </p>
+          <p>
+            To achieve constant-time map updates, it uses a pre-calculated <strong>binary kernel</strong>. The distance in this kernel is represented as a bit-set mask, where each set bit accounts for the distance.
+          </p>
+          <p>
+            This encoding has a key advantage: the shortest distance from multiple overlapping kernels can be found with a single, highly efficient <strong>bitwise-AND operation</strong>. This avoids complex comparisons and makes the process parallelizable on the CPU.
+          </p>
+        </div>
 
-      <p style="text-align:center;margin-top:18px;">
+        <div class="grid-visuals">
+          
+          <div class="kernel-table-wrapper" style="margin-top:0;"> <table class="kernel-table" style="width:100%;">
+              <thead>
+                <tr>
+                  <th>Binary Mask (4-bit)</th>
+                  <th>L1 Distance</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>0000</td>
+                  <td>0 (Center)</td>
+                </tr>
+                <tr>
+                  <td>0001</td>
+                  <td>1</td>
+                </tr>
+                <tr>
+                  <td>0011</td>
+                  <td>2</td>
+                </tr>
+                <tr>
+                  <td>0111</td>
+                  <td>3</td>
+                </tr>
+                <tr>
+                  <td>1111</td>
+                  <td>4 (Max / Truncation)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="text-align:center; font-size:0.9rem; color:var(--muted); margin-top:-10px;">
+            Table 1: Correspondence between bit-set masks and L1 distance.
+          </p>
+
+        </div> </div>
+      
+      <p style="text-align:center;margin-top:24px;">
         <img src="media/fast_tdf_kernel_merge.png" alt="Fast-TDF bitwise-AND operation" style="max-width:550px; width:100%; border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);" />
         <br><span style="font-size:0.9rem; color:var(--muted);">
-          Figure 1: The final distance map (center) is computed by applying the bitwise-AND operation to overlapping kernels (top/bottom), preserving the shortest L1 distance to the nearest obstacle.
+          Figure 1: The final distance map (center) is computed by applying the bitwise-AND operation to overlapping kernels (top/bottom).
         </span>
       </p>
+
     </div>
   </section>
-  <section class="section" id="method">
-
   <!-- ===== Results  ===== -->
   <section class="section" id="results">
     <header><h2>Results</h2></header>
