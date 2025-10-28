@@ -94,6 +94,38 @@ body{
 }
 .nav a:hover{ background:rgba(0,55,113,.06); color:var(--link-hover); }
 
+/* ===== Internal Nav Links (Header) ===== */
+.internal-nav {
+  display: flex; /* Alinea los enlaces */
+  gap: 8px; /* Espacio entre enlaces */
+}
+.internal-nav a {
+  color: var(--muted); /* Un color más suave */
+  text-decoration: none;
+  padding: 8px 10px;
+  border-radius: 10px;
+  text-underline-offset: 3px;
+  font-size: 0.95rem; /* Un poco más pequeños */
+}
+.internal-nav a:hover {
+  background: rgba(0,55,113,.06); /* Mismo hover que los otros enlaces */
+  color: var(--link-hover);
+}
+
+/* Oculta la navegación interna en pantallas pequeñas (móviles) */
+@media (max-width: 768px) {
+  .internal-nav {
+    display: none;
+  }
+}
+/* ======================================= */
+
+/* ===== Smooth Scrolling ===== */
+html {
+  scroll-behavior: smooth;
+}
+/* ============================ */
+
 /* ===== Hero ===== */
 .hero{
   max-width:var(--content-max); margin:48px auto 8px; padding:0 20px; text-align:center;
@@ -187,6 +219,90 @@ body{
   30%, 50%, 70%, 90% { transform: scale(1.05) rotate(3deg); }
   40%, 60%, 80% { transform: scale(1.05) rotate(-3deg); }
   100% { transform: scale(1) rotate(0); }
+}
+/* ================================== */
+
+/* ===== Estilos de Tablas de Resultados ===== */
+.table-wrapper {
+  overflow-x: auto; /* Permite scroll horizontal en móvil */
+  margin: 24px 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+table th, table td {
+  border-bottom: 1px solid var(--border);
+  padding: 10px 14px;
+  white-space: nowrap; /* Evita que los números se partan */
+  text-align: center;
+}
+table td:first-child {
+  font-weight: 500;
+}
+table th:first-child,
+table td:first-child {
+  text-align: left;
+}
+table th {
+  background: color-mix(in oklab, var(--brand) 6%, var(--bg));
+  color: var(--brand);
+  font-weight: 600;
+}
+table tbody tr:last-child td {
+  border-bottom: 0; /* Sin borde en la última fila */
+}
+table tbody tr:nth-child(even) {
+  background: color-mix(in oklab, var(--bg) 96%, #000 4%);
+}
+table strong { /* Para resaltar el mejor resultado */
+  color: var(--brand);
+  font-weight: 700;
+}
+table u { /* Para resaltar el segundo mejor */
+  text-decoration-color: color-mix(in oklab, var(--accent) 80%, transparent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+  font-weight: 500;
+}
+:root[data-theme="dark"] table u,
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) table u {
+    text-decoration-color: var(--authors-dark);
+  }
+}
+table .note { /* Para texto secundario como (RPE %) */
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-left: 4px;
+}
+table .fail { /* Para resultados fallidos (si los hubiera) */
+  color: var(--muted);
+}
+
+/* --- Ajustes de tablas en modo oscuro --- */
+:root[data-theme="dark"] table th,
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) table th {
+    background: color-mix(in oklab, var(--accent) 10%, var(--bg));
+    color: var(--accent);
+  }
+}
+:root[data-theme="dark"] table tbody tr:nth-child(even),
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) table tbody tr:nth-child(even) {
+    background: color-mix(in oklab, var(--bg) 96%, #fff 4%);
+  }
+}
+:root[data-theme="dark"] table strong,
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) table strong {
+    color: var(--authors-dark); /* Amarillo claro */
+  }
 }
 /* ================================== */
 
@@ -310,11 +426,17 @@ a{ color:var(--link); } a:hover{ color:var(--link-hover); }
 
 <header class="site-header">
   <nav class="nav">
-    <!-- Theme toggle -->
     <button class="brand toggle" id="theme-switch" type="button" title="Toggle theme">
       <span class="logo" aria-hidden="true"></span>
       <span class="title" id="theme-label">Dark mode</span>
     </button>
+
+    <div class="internal-nav">
+      <a href="#overview-gallery">Overview</a>
+      <a href="#method">Method</a>
+      <a href="#results">Results</a>
+      <a href="#citation">Cite</a>
+    </div>
     <div>
       <a href="https://robotics.upo.es/" target="_blank" rel="noopener">Service Robotics Lab</a>
       <a href="https://github.com/robotics-upo" target="_blank" rel="noopener">SRL GitHub</a>
@@ -341,7 +463,7 @@ a{ color:var(--link); } a:hover{ color:var(--link-hover); }
     </div>
 
     <p class="lead">
-      This paper presents a new approach for 6DoF Direct LiDAR-Inertial Odometry (D-LIO) based on the simultaneous mapping of truncated distance fields on CPU. 
+      This paper presents a new approach for 6DoF Direct LiDAR-Inertial Odometry (D-LIO) based on the simultaneous mapping of L1 truncated distance fields on CPU. 
       This continuous representation enables working with raw 3D LiDAR data online, avoiding the need of LiDAR feature selection and tracking, simplifying the odometry pipeline and easily generalizing to many scenarios.
     </p>
 
@@ -363,7 +485,6 @@ a{ color:var(--link); } a:hover{ color:var(--link-hover); }
     <span class="icon">🎉</span>
     <p><strong>D-LIO</strong> has been accepted to <strong>IEEE Robotics and Automation Letters (RA-L)</strong>!</p>
   </div>
-  <section class="section" id="overview-gallery">
     
   <!-- ===== Overview / Example Gallery ===== -->
   <section class="section" id="overview-gallery">
@@ -412,11 +533,354 @@ a{ color:var(--link); } a:hover{ color:var(--link-hover); }
     </div>
   </section>
 
-  <!-- ===== Results (single embedded video) ===== -->
+  <!-- ===== Results  ===== -->
   <section class="section" id="results">
     <header><h2>Results</h2></header>
-    <div class="content" style="text-align:center">
-      <p>Qualitative results, 3D reconstructions, and estimated trajectories from the VIRAL and Newer College datasets.</p>
+    <div class="content">
+      
+      <p>We benchmarked D-LIO on three challenging public datasets: <strong>VIRAL</strong>, <strong>Newer College</strong>, and <strong>VBR</strong>. These tests evaluate performance in diverse scenarios, including aerial (UAV) and ground platforms, against several state-of-the-art (SOTA) methods.</p>
+
+      <h3 style="text-align:center; margin-top:28px;">Trajectory Accuracy (ATE)</h3>
+      <p>The <strong>Absolute Translation Error (ATE)</strong> [m] was measured on the VIRAL and Newer College datasets. As shown in the table, D-LIO achieves consistently high accuracy, ranking <strong>first or second</strong> in most sequences. It remains highly competitive even when compared to methods that utilize back-end optimization (like LIO-SAM or PIN-SLAM), which D-LIO does not.</p>
+      
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Sequence</th>
+              <th>D-LIO</th>
+              <th>A-LOAM</th>
+              <th>M-LOAM</th>
+              <th>KISS-ICP</th>
+              <th>FAST-LIO2</th>
+              <th>LIO-SAM</th>
+              <th>PIN-SLAM</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>eee<sub>01</sub></td>
+              <td><strong>0.074</strong></td>
+              <td>0.212</td>
+              <td>0.249</td>
+              <td>2.383</td>
+              <td><u>0.166</u></td>
+              <td>0.075</td>
+              <td class="fail">-</td>
+            </tr>
+            <tr>
+              <td>eee<sub>02</sub></td>
+              <td><strong>0.073</strong></td>
+              <td>0.199</td>
+              <td>0.168</td>
+              <td>1.586</td>
+              <td><u>0.100</u></td>
+              <td>0.069</td>
+              <td>2.056</td>
+            </tr>
+            <tr>
+              <td>eee<sub>03</sub></td>
+              <td><strong>0.121</strong></td>
+              <td>0.148</td>
+              <td>0.233</td>
+              <td>1.055</td>
+              <td><u>0.142</u></td>
+              <td>0.101</td>
+              <td>0.615</td>
+            </tr>
+            <tr>
+              <td>nya<sub>01</sub></td>
+              <td><u>0.080</u></td>
+              <td><strong>0.077</strong></td>
+              <td>0.123</td>
+              <td>0.359</td>
+              <td>0.127</td>
+              <td>0.076</td>
+              <td>0.086</td>
+            </tr>
+            <tr>
+              <td>nya<sub>02</sub></td>
+              <td><u>0.104</u></td>
+              <td><strong>0.091</strong></td>
+              <td>0.191</td>
+              <td class="fail">-</td>
+              <td>0.151</td>
+              <td>0.070</td>
+              <td>0.092</td>
+            </tr>
+            <tr>
+              <td>nya<sub>03</sub></td>
+              <td><strong>0.065</strong></td>
+              <td><u>0.108</u></td>
+              <td>0.226</td>
+              <td>1.389</td>
+              <td>0.130</td>
+              <td>0.137</td>
+              <td>0.455</td>
+            </tr>
+            <tr>
+              <td>sbs<sub>01</sub></td>
+              <td><strong>0.085</strong></td>
+              <td><u>0.103</u></td>
+              <td>0.173</td>
+              <td>1.353</td>
+              <td>0.130</td>
+              <td>0.089</td>
+              <td>0.205</td>
+            </tr>
+            <tr>
+              <td>sbs<sub>02</sub></td>
+              <td><strong>0.067</strong></td>
+              <td><u>0.091</u></td>
+              <td>0.147</td>
+              <td>1.435</td>
+              <td>0.144</td>
+              <td>0.083</td>
+              <td>0.528</td>
+            </tr>
+            <tr>
+              <td>sbs<sub>03</sub></td>
+              <td><strong>0.098</strong></td>
+              <td>0.367</td>
+              <td>0.153</td>
+              <td>1.037</td>
+              <td><u>0.126</u></td>
+              <td>0.140</td>
+              <td>0.708</td>
+            </tr>
+            <tr>
+              <td>q-easy</td>
+              <td><u>0.093</u></td>
+              <td><strong>0.085</strong></td>
+              <td>0.141</td>
+              <td>0.100</td>
+              <td>0.100</td>
+              <td>0.074</td>
+              <td>0.090</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="text-align:center; font-size:0.9rem; color:var(--muted);">
+        Table 1: ATE (m) on VIRAL and Newer College. Best (<strong>bold</strong>) and second-best (<u>underline</u>) odometry methods.
+      </p>
+
+      <h3 style="text-align:center; margin-top:28px;">Scalability on Large Datasets</h3>
+      <p>To evaluate performance in large-scale environments, we used the <strong>VBR dataset</strong>, featuring long trajectories (up to 2.5 km) in complex indoor/outdoor settings. D-LIO demonstrates robust scalability, maintaining low ATE (m) and Relative Pose Error (RPE) (%).</p>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Sequence</th>
+              <th>D-LIO</th>
+              <th>KISS-ICP</th>
+              <th>PIN-SLAM</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>diag</td>
+              <td><u>0.560</u> <span class="note">(0.72%)</span></td>
+              <td>1.397 <span class="note">(1.79%)</span></td>
+              <td><strong>0.362</strong> <span class="note">(0.47%)</span></td>
+            </tr>
+            <tr>
+              <td>pincio</td>
+              <td>7.390 <span class="note">(3.45%)</span></td>
+              <td><u>0.784</u> <span class="note">(0.49%)</span></td>
+              <td><strong>0.647</strong> <span class="note">(0.45%)</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="text-align:center; font-size:0.9rem; color:var(--muted);">
+        Table 2: ATE (m) and RPE (%) on the VBR dataset.
+      </p>
+
+      <hr style="border:0; border-top:1px solid var(--border); margin: 40px auto 20px;">
+
+      <h3 style="text-align:center; margin-top:28px;">Mapping Quality</h3>
+      <p>We also evaluated the 3D reconstruction quality on the <strong>Newer College (Quad-Easy)</strong> sequence using standard metrics: Accuracy, Completeness, Chamfer-L1 (C-L1), and F-Score. D-LIO produces highly competitive maps, achieving the <strong>best completeness</strong> and ranking second for C-L1 and F-Score among all tested odometry-driven methods.</p>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Pose</th>
+              <th>Acc. (cm)</th>
+              <th>Comp. (cm)</th>
+              <th>C-L1 (cm)</th>
+              <th>F-Score (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>VDB-Fusion</td>
+              <td>KissICP</td>
+              <td>14.03</td>
+              <td>25.46</td>
+              <td>19.75</td>
+              <td>69.50</td>
+            </tr>
+            <tr>
+              <td>SHINE</td>
+              <td>KissICP</td>
+              <td>14.87</td>
+              <td>20.02</td>
+              <td>17.45</td>
+              <td>68.85</td>
+            </tr>
+            <tr>
+              <td>NKSR</td>
+              <td>KissICP</td>
+              <td>15.67</td>
+              <td>36.87</td>
+              <td>26.67</td>
+              <td>58.57</td>
+            </tr>
+            <tr>
+              <td>PUMA</td>
+              <td>Odometry</td>
+              <td>15.30</td>
+              <td>71.91</td>
+              <td>43.60</td>
+              <td>57.27</td>
+            </tr>
+            <tr>
+              <td>SLAMesh</td>
+              <td>Odometry</td>
+              <td>19.21</td>
+              <td>48.83</td>
+              <td>34.02</td>
+              <td>45.24</td>
+            </tr>
+            <tr>
+              <td>NeRF-LOAM</td>
+              <td>Odometry</td>
+              <td>12.89</td>
+              <td>22.21</td>
+              <td>17.55</td>
+              <td>74.37</td>
+            </tr>
+            <tr>
+              <td>S²KAN-SLAM</td>
+              <td>Odometry</td>
+              <td>13.32</td>
+              <td>18.80</td>
+              <td>16.06</td>
+              <td>72.03</td>
+            </tr>
+            <tr>
+              <td>ImMesh</td>
+              <td>Odometry</td>
+              <td>15.05</td>
+              <td>19.80</td>
+              <td>17.42</td>
+              <td>66.87</td>
+            </tr>
+            <tr>
+              <td>PIN-SLAM</td>
+              <td>Odometry</td>
+              <td><u>11.55</u></td>
+              <td>15.25</td>
+              <td>13.40</td>
+              <td>82.08</td>
+            </tr>
+            <tr>
+              <td>KN-LIO</td>
+              <td>Odometry</td>
+              <td><strong>8.18</strong></td>
+              <td><u>11.65</u></td>
+              <td><strong>9.92</strong></td>
+              <td><strong>91.01</strong></td>
+            </tr>
+            <tr>
+              <td>D-LIO</td>
+              <td>Odometry</td>
+              <td>12.14</td>
+              <td><strong>10.63</strong></td>
+              <td><u>11.39</u></td>
+              <td><u>83.83</u></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="text-align:center; font-size:0.9rem; color:var(--muted);">
+        Table 3: Mapping metrics on Newer College. Best (<strong>bold</strong>) and second-best (<u>underline</u>) scores.
+      </p>
+
+
+      <h3 style="text-align:center; margin-top:28px;">Runtime Analysis</h3>
+      <p>The system's performance was analyzed on an Intel Core i7-13700H CPU <strong>without GPU acceleration</strong>. The map update step is the most computationally expensive, as its time strongly depends on point cloud density. However, optimization runs at the sensor rate (10 Hz) while updates are triggered less frequently, balancing the load.</p>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Dataset</th>
+              <th>Points (avg.)</th>
+              <th>Total (s)</th>
+              <th>Optimize (s)</th>
+              <th>Update (s)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>eee</td>
+              <td>~20k</td>
+              <td>0.048 <span class="note">± 0.055</span></td>
+              <td>0.046 <span class="note">± 0.013</span></td>
+              <td>0.155 <span class="note">± 0.009</span></td>
+            </tr>
+            <tr>
+              <td>nya</td>
+              <td>~20k</td>
+              <td>0.049 <span class="note">± 0.034</span></td>
+              <td>0.042 <span class="note">± 0.014</span></td>
+              <td>0.146 <span class="note">± 0.016</span></td>
+            </tr>
+            <tr>
+              <td>sbs</td>
+              <td>~20k</td>
+              <td>0.051 <span class="note">± 0.048</span></td>
+              <td>0.044 <span class="note">± 0.016</span></td>
+              <td>0.142 <span class="note">± 0.034</span></td>
+            </tr>
+            <tr>
+              <td>q-easy</td>
+              <td>~100k</td>
+              <td>0.479 <span class="note">± 0.196</span></td>
+              <td>0.442 <span class="note">± 0.158</span></td>
+              <td>0.470 <span class="note">± 0.095</span></td>
+            </tr>
+            <tr>
+              <td>diag</td>
+              <td>~190k</td>
+              <td>0.603 <span class="note">± 0.240</span></td>
+              <td>0.565 <span class="note">± 0.194</span></td>
+              <td>0.315 <span class="note">± 0.085</span></td>
+            </tr>
+            <tr>
+              <td>pincio</td>
+              <td>~140k</td>
+              <td>0.576 <span class="note">± 0.256</span></td>
+              <td>0.505 <span class="note">± 0.182</span></td>
+              <td>0.563 <span class="note">± 0.146</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="text-align:center; font-size:0.9rem; color:var(--muted);">
+        Table 4: Runtime analysis (mean ± std. dev) with no downsampling.
+      </p>
+
+
+      <h3 style="text-align:center; margin-top:28px;">Project Video</h3>
+      <p style="text-align:center;">
+        Qualitative results, 3D reconstructions, and estimated trajectories from the datasets.
+      </p>
       <div class="video">
         <iframe
           src="https://www.youtube.com/embed/HmrA9YOCZ9w"
