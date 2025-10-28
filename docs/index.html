@@ -230,6 +230,44 @@ html {
   border-radius: 12px;
   box-shadow: var(--shadow);
 }
+/* ===== Estilos para la tabla-figura 1(a) ===== */
+.kernel-table-wrapper {
+  max-width: 350px; /* Ancho máximo para la tabla pequeña */
+  margin: 18px auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden; /* Para que el radius afecte a la tabla */
+}
+.kernel-table th {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--brand);
+  background: color-mix(in oklab, var(--brand) 6%, var(--bg));
+}
+.kernel-table td:first-child {
+  font-family: monospace, monospace; /* Para las máscaras binarias */
+  text-align: center;
+  font-size: 1rem;
+  letter-spacing: 10px;
+}
+.kernel-table td, .kernel-table th {
+  text-align: center; /* Centra todo */
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.kernel-table tr:last-child td {
+  border-bottom: 0;
+}
+/* Modo oscuro para la tabla-figura */
+:root[data-theme="dark"] .kernel-table th,
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .kernel-table th {
+    background: color-mix(in oklab, var(--accent) 10%, var(--bg));
+    color: var(--accent);
+  }
+}
+/* ================================== */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -434,6 +472,7 @@ a{ color:var(--link); } a:hover{ color:var(--link-hover); }
     <div class="internal-nav">
       <a href="#overview-gallery">Overview</a>
       <a href="#method">Method</a>
+      <a href="#fast-tdf">Fast-TDF</a>  
       <a href="#results">Results</a>
       <a href="#citation">Cite</a>
     </div>
@@ -532,6 +571,68 @@ a{ color:var(--link); } a:hover{ color:var(--link-hover); }
       </p>
     </div>
   </section>
+
+  <!-- ===== Fast TDF ===== -->
+  </section> 
+  <section class="section" id="fast-tdf">
+    <header><h2>Fast-TDF: The Core Method</h2></header>
+    <div class="content">
+      <p>
+        The core of D-LIO is the <strong>Fast Truncated Distance Field (Fast-TDF)</strong>. This method represents the environment as a 3D grid, but instead of just storing "occupied" or "free", it efficiently encodes the <strong>L1 distance</strong> to the nearest obstacle.
+      </p>
+      <p>
+        To achieve constant-time map updates, it uses a pre-calculated <strong>binary kernel</strong>. The distance in this kernel is represented as a bit-set mask, where each set bit accounts for the distance.
+      </p>
+
+      <div class="kernel-table-wrapper">
+        <table class="kernel-table" style="width:100%;">
+          <thead>
+            <tr>
+              <th>Binary Mask (4-bit)</th>
+              <th>L1 Distance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>0000</td>
+              <td>0 (Center)</td>
+            </tr>
+            <tr>
+              <td>0001</td>
+              <td>1</td>
+            </tr>
+            <tr>
+              <td>0011</td>
+              <td>2</td>
+            </tr>
+            <tr>
+              <td>0111</td>
+              <td>3</td>
+            </tr>
+             <tr>
+              <td>1111</td>
+              <td>4 (Max / Truncation)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+       <p style="text-align:center; font-size:0.9rem; color:var(--muted); margin-top:-10px;">
+        Table 1: Correspondence between bit-set masks and L1 distance.
+      </p>
+
+      <p style="margin-top:24px;">
+        This encoding has a key advantage: the shortest distance from multiple overlapping kernels can be found with a single, highly efficient <strong>bitwise-AND operation</strong>. This avoids complex comparisons and makes the process parallelizable on the CPU.
+      </p>
+
+      <p style="text-align:center;margin-top:18px;">
+        <img src="media/fast_tdf_kernel_merge.png" alt="Fast-TDF bitwise-AND operation" style="max-width:550px; width:100%; border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);" />
+        <br><span style="font-size:0.9rem; color:var(--muted);">
+          Figure 1: The final distance map (center) is computed by applying the bitwise-AND operation to overlapping kernels (top/bottom), preserving the shortest L1 distance to the nearest obstacle.
+        </span>
+      </p>
+    </div>
+  </section>
+  <section class="section" id="method">
 
   <!-- ===== Results  ===== -->
   <section class="section" id="results">
@@ -662,7 +763,7 @@ a{ color:var(--link); } a:hover{ color:var(--link-hover); }
         </table>
       </div>
       <p style="text-align:center; font-size:0.9rem; color:var(--muted);">
-        Table 1: ATE (m) on VIRAL and Newer College. Best (<strong>bold</strong>) and second-best (<u>underline</u>) odometry methods.
+        Table 2: ATE (m) on VIRAL and Newer College. Best (<strong>bold</strong>) and second-best (<u>underline</u>) odometry methods.
       </p>
 
       <h3 style="text-align:center; margin-top:28px;">Scalability on Large Datasets</h3>
@@ -695,7 +796,7 @@ a{ color:var(--link); } a:hover{ color:var(--link-hover); }
         </table>
       </div>
       <p style="text-align:center; font-size:0.9rem; color:var(--muted);">
-        Table 2: ATE (m) and RPE (%) on the VBR dataset.
+        Table 3: ATE (m) and RPE (%) on the VBR dataset.
       </p>
 
       <hr style="border:0; border-top:1px solid var(--border); margin: 40px auto 20px;">
@@ -808,7 +909,7 @@ a{ color:var(--link); } a:hover{ color:var(--link-hover); }
         </table>
       </div>
       <p style="text-align:center; font-size:0.9rem; color:var(--muted);">
-        Table 3: Mapping metrics on Newer College. Best (<strong>bold</strong>) and second-best (<u>underline</u>) scores.
+        Table 4: Mapping metrics on Newer College. Best (<strong>bold</strong>) and second-best (<u>underline</u>) scores.
       </p>
 
 
@@ -873,7 +974,7 @@ a{ color:var(--link); } a:hover{ color:var(--link-hover); }
         </table>
       </div>
       <p style="text-align:center; font-size:0.9rem; color:var(--muted);">
-        Table 4: Runtime analysis (mean ± std. dev) with no downsampling.
+        Table 5: Runtime analysis (mean ± std. dev) with no downsampling.
       </p>
 
 
