@@ -202,6 +202,24 @@ ros2 service call /save_grid_csv std_srvs/srv/Trigger
 
 ros2 service call /save_grid_pcd std_srvs/srv/Trigger
 ```
+
+## Citation
+
+If you use D-LIO in your research, please cite our paper:
+
+```bibtex
+@article{cotoelena2025dlio,
+  title   = {D-LIO: 6DoF Direct LiDAR-Inertial Odometry based on Simultaneous Truncated Distance Field Mapping}, 
+  author  = {Lucia Coto-Elena and J. E. Maese and L. Merino and F. Caballero},
+  journal = {IEEE Robotics and Automation Letters (RA-L)},
+  year    = {2025},
+  note    = {Accepted for publication. To appear.},
+  eprint  = {2505.16726},
+  archivePrefix = {arXiv},
+  url     = {[https://arxiv.org/abs/2505.16726](https://arxiv.org/abs/2505.16726)}
+}
+```
+
 ## 4. Acknowledgments
 This work is partially supported by the grants INSERTION (PID2021- 127648OB-C31) and NORDIC (TED2021-132476B-I00), both funded by the “Agencia Estatal de Investigación – Ministerio de Ciencia, Innovación y Universidades” and the “European Union NextGenerationEU/PRTR.
 
