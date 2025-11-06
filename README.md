@@ -178,7 +178,7 @@ The dlo3d_node requires a series of configuration parameters to operate correctl
 
 These parameters allow you to fine-tune the node’s behavior, including settings related to the input cloud topics, IMU data, grid size, calibration, and solver configurations, among others.
 
-## 3. Output Data and Services
+## 4. Output Data and Services
 When the code is launched, it automatically stores a CSV file containing the odometric pose information every time an optimization occurs, synchronized to the LiDAR frequency. 
 
  **[timestap, x, y, z, q_x, q_y, q_z, q_w, vx, vy, vz, gxf, gyf, gzf, gbx, gby, gbz, abx, aby, abz]**
@@ -203,6 +203,18 @@ ros2 service call /save_grid_csv std_srvs/srv/Trigger
 ros2 service call /save_grid_pcd std_srvs/srv/Trigger
 ```
 
+## To Do
+
+
+- [ ] Extending the Fast-TDF kernel to support signed distance estimation, enabling the system to distinguish whether a point lies in front of or behind an obstacle, potentially enhancing registration accuracy. This will be implemented using [DB-TSDF](https://github.com/robotics-upo/DB-TSDF.git).
+
+- [ ] Implement dynamic object management in the map update process.
+
+- [ ] Implement loop closure module.
+
+
+
+
 ## Citation
 
 If you use D-LIO in your research, please cite our paper:
@@ -220,7 +232,7 @@ If you use D-LIO in your research, please cite our paper:
 }
 ```
 
-## 4. Acknowledgments
+## Acknowledgments
 This work is partially supported by the grants INSERTION (PID2021- 127648OB-C31) and NORDIC (TED2021-132476B-I00), both funded by the “Agencia Estatal de Investigación – Ministerio de Ciencia, Innovación y Universidades” and the “European Union NextGenerationEU/PRTR.
 
 <p align="center">
