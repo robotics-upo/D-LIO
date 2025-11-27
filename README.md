@@ -220,16 +220,15 @@ ros2 service call /save_grid_pcd std_srvs/srv/Trigger
 If you use D-LIO in your research, please cite our paper:
 
 ```bibtex
-@article{cotoelena2025dlio,
-  title   = {D-LIO: 6DoF Direct LiDAR-Inertial Odometry based on Simultaneous Truncated Distance Field Mapping}, 
-  author  = {Lucia Coto-Elena and J. E. Maese and L. Merino and F. Caballero},
-  journal = {IEEE Robotics and Automation Letters (RA-L)},
-  year    = {2025},
-  note    = {Accepted for publication. To appear.},
-  eprint  = {2505.16726},
-  archivePrefix = {arXiv},
-  url     = {[https://arxiv.org/abs/2505.16726](https://arxiv.org/abs/2505.16726)}
-}
+@ARTICLE{11248856,
+  author={Coto-Elena, L. and Maese, J.E. and Merino, L. and Caballero, F.},
+  journal={IEEE Robotics and Automation Letters}, 
+  title={D-LIO: 6DoF Direct LiDAR-Inertial Odometry Based on Simultaneous Truncated Distance Field Mapping}, 
+  year={2026},
+  volume={11},
+  number={1},
+  pages={169-176},
+  doi={10.1109/LRA.2025.3632615}}
 ```
 
 ## Acknowledgments
