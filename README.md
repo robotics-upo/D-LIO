@@ -177,6 +177,7 @@ The dlo3d_node requires a series of configuration parameters to operate correctl
     - **robust_kernel_scale**
 
 These parameters allow you to fine-tune the node’s behavior, including settings related to the input cloud topics, IMU data, grid size, calibration, and solver configurations, among others.
+⚠️ **Note:** This node has been tested with Ouster LiDAR. For other sensors, the unwarp module is not yet adapted, so it will run without performing the unwarp.
 
 ## 4. Output Data and Services
 When the code is launched, it automatically stores a CSV file containing the odometric pose information every time an optimization occurs, synchronized to the LiDAR frequency. 
@@ -211,6 +212,8 @@ ros2 service call /save_grid_pcd std_srvs/srv/Trigger
 - [ ] Implement dynamic object management in the map update process.
 
 - [ ] Implement loop closure module.
+    
+- [ ] Adapt the *unwarp* module to support other LiDAR sensors. Currently, it only supports Ouster; for other sensors, the module runs without performing the unwarp.
 
 
 
