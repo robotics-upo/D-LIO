@@ -34,17 +34,15 @@ def generate_launch_description():
             description='Full path to the RViz config file.'
         ),
 
-        # Iniciar RViz con el archivo de configuración
         ExecuteProcess(
             cmd=['ros2', 'run', 'rviz2', 'rviz2', '-d', LaunchConfiguration('rviz_config_file')],
             output='screen'
         ),
-        # Static Tf
+
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
             name='static_tf_base_link_to_L',
-            # x y z qx qy qz qw  parent child
             arguments=['0.0', '0.0', '0.0',
                     '0.0', '0.0', '0.0', '1.0',
                     'base_link', 'os_sensor'],
@@ -70,14 +68,13 @@ def generate_launch_description():
             output='screen'
         ),
 
-        # DLO3D Node
         Node(
-            package='D-LIO',
-            executable='dlo3d_node',
-            name='dll3d_node',
+            package='dlio',
+            executable='dlio_node',
+            name='dlio_node',
             output='screen',
             remappings=[
-                ('/dll3d_node/initial_pose', '/initialpose')
+                ('/dlio_node/initial_pose', '/initialpose')
             ],
             parameters=[
                 {'in_cloud_aux': '/nada'},
@@ -87,15 +84,15 @@ def generate_launch_description():
                 {'hz_imu': 100.0},
                 {'calibration_time': 5.0},
                 {'aux_lidar_en': False},
-                {'gyr_dev':  0.014929939543128923},
+                {'gyr_dev':  0.0514929939543128923},
                 {'gyr_rw_dev': 1.0106430876706567e-05},
-                {'acc_dev': 0.031800668934690885},
+                {'acc_dev': 0.051800668934690885},
                 {'acc_rw_dev': 1.4361954439703917e-05},
                 {'base_frame_id': 'base_link'},
                 {'odom_frame_id': 'odom'},
                 {'map_frame_id': 'map'},
-                {'keyframe_dist': 1.0},
-                {'keyframe_rot': 1.7708},
+                {'keyframe_dist': 2.0},
+                {'keyframe_rot': 1.5708},
                 {'tdfGridSizeX_low': -300.0},
                 {'tdfGridSizeX_high': 300.0},
                 {'tdfGridSizeY_low': -300.0},
@@ -110,9 +107,14 @@ def generate_launch_description():
                 {'robust_kernel_scale': 1.0},
                 {'kGridMarginFactor': 0.8},
                 {'maxload': 100.0},
-                {'maxCells': 100000}
+                {'maxCells': 100000},
+                {'lidar_type': "ouster"},
+                {'leaf_size': -1.0}
             ],
-            arguments=['--ros-args', '--log-level', 'INFO'] #DEBUG o INFO
+            arguments=[
+                '--ros-args',
+                '--log-level', 'dlio_node:=INFO'
+            ]
         ),
 
         bag_play

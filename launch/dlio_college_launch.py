@@ -34,12 +34,11 @@ def generate_launch_description():
             description='Full path to the RViz config file.'
         ),
 
-        # Iniciar RViz con el archivo de configuración
         ExecuteProcess(
             cmd=['ros2', 'run', 'rviz2', 'rviz2', '-d', LaunchConfiguration('rviz_config_file')],
             output='screen'
         ),
-        # Static Tf
+
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
@@ -58,12 +57,12 @@ def generate_launch_description():
 
         # DLO3D Node
         Node(
-            package='D-LIO',
-            executable='dlo3d_node',
-            name='dll3d_node',
+            package='dlio',
+            executable='dlio_node',
+            name='dlio_node',
             output='screen',
             remappings=[
-                ('/dll3d_node/initial_pose', '/initialpose')
+                ('/dlio_node/initial_pose', '/initialpose')
             ],
             parameters=[
                 {'in_cloud_aux': '/nada'},
@@ -82,12 +81,12 @@ def generate_launch_description():
                 {'map_frame_id': 'map'},
                 {'keyframe_dist': 2.0},
                 {'keyframe_rot': 45.0},
-                {'tdfGridSizeX_low': -10.0},
-                {'tdfGridSizeX_high': 70.0},
-                {'tdfGridSizeY_low': -35.0},
-                {'tdfGridSizeY_high': 35.0},
-                {'tdfGridSizeZ_low': -5.0},
-                {'tdfGridSizeZ_high': 30.0},
+                {'tdfGridSizeX_low': -50.0},
+                {'tdfGridSizeX_high': 100.0},
+                {'tdfGridSizeY_low': -50.0},
+                {'tdfGridSizeY_high': 50.0},
+                {'tdfGridSizeZ_low': -50.0},
+                {'tdfGridSizeZ_high': 50.0},
                 {'solver_max_iter': 500},
                 {'solver_max_threads': 20},
                 {'min_range': 1.0},
@@ -96,7 +95,14 @@ def generate_launch_description():
                 {'robust_kernel_scale': 1.0},
                 {'kGridMarginFactor': 0.8},
                 {'maxload': 100.0},
-                {'maxCells': 100000}
+                {'maxCells': 100000},
+                {'lidar_type': "ouster"},
+                {'leaf_size': -1.0} 
+
+            ],
+            arguments=[
+                '--ros-args',
+                '--log-level', 'dlio_node:=INFO'
             ]
         ),
 

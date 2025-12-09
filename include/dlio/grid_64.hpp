@@ -8,7 +8,8 @@
 
 class GRID64
 {
-    public:
+
+public:
 
 	struct Iterator
     {
@@ -53,9 +54,9 @@ class GRID64
 
         protected:
 
-        uint64_t **_grid;
-        uint64_t *_curr;
-        uint32_t _i, _j, _base, _cellSizeX;
+            uint64_t **_grid;
+            uint64_t *_curr;
+            uint32_t _i, _j, _base, _cellSizeX;
     };
 
 
@@ -93,8 +94,6 @@ class GRID64
 		_gridStepY = _gridSizeX;
 		_gridStepZ = _gridSizeX*_gridSizeY;
 		_gridSize = _gridSizeX*_gridSizeY*_gridSizeZ;
-		//_grid = (uint64_t **)malloc(_gridSize*sizeof(uint64_t *));
-        //std::memset(_grid, 0, _gridSize*sizeof(uint64_t *)); // Set pointers to NULL
         
         // Memory allocation for maxCells
         _maxCells = (uint32_t)maxCells;
@@ -112,15 +111,12 @@ class GRID64
 			_buffer[i*_cellSize] = (uint64_t)_gridSize;
         _cellIndex = 0;
 
-	_dummy = (uint64_t*)malloc(_cellSize * sizeof(uint64_t));
-	std::memset(_dummy, -1, _cellSize * sizeof(uint64_t));
-	_dummy[0] = (uint64_t)_gridSize;
+        _dummy = (uint64_t*)malloc(_cellSize * sizeof(uint64_t));
+        std::memset(_dummy, -1, _cellSize * sizeof(uint64_t));
+        _dummy[0] = (uint64_t)_gridSize;
 
         _grid = (uint64_t**)malloc(_gridSize * sizeof(uint64_t*));
         for (uint32_t k = 0; k < _gridSize; ++k) _grid[k] = _dummy;
-
-
-
 
     }    
 
@@ -160,6 +156,7 @@ class GRID64
 			{
 				_grid[(uint64_t)_grid[i][0]] = _dummy;
 				std::memset(&(_grid[i][1]), -1, (_cellSize-1)*sizeof(uint64_t));     // Init the mask to longest distance
+                std::cout<<"Cleanning Cell"<<std::endl;
 			} 
 			_grid[i][0] = (uint64_t)i; 
 			_cellIndex++;
@@ -204,75 +201,126 @@ class GRID64
 		return Iterator(_grid, i, 1 + (uint32_t)((y-int_y)*_oneDivRes)*_cellStepY + (uint32_t)((z-int_z)*_oneDivRes)*_cellStepZ, (uint32_t)((x-int_x)*_oneDivRes), _cellSizeX);
 	}
 
-void exportGridToPCD(const std::string& filename, int subsampling_factor)
-{
-    using PointT = pcl::PointXYZI;
-    pcl::PointCloud<PointT>::Ptr cloud(new pcl::PointCloud<PointT>);
-
-    const uint32_t step = std::max(1, subsampling_factor);
-
-    for (uint32_t cz = 0; cz < _gridSizeZ; ++cz)
+    void exportGridToPCD(const std::string& filename, int subsampling_factor)
     {
-        const float z0 = _minZ + static_cast<float>(cz);
-        for (uint32_t cy = 0; cy < _gridSizeY; ++cy)
+
+        using PointT = pcl::PointXYZI;
+        pcl::PointCloud<PointT>::Ptr cloud(new pcl::PointCloud<PointT>);
+
+        const uint32_t step = std::max(1, subsampling_factor);
+
+        for (uint32_t cz = 0; cz < _gridSizeZ; ++cz)
         {
-            const float y0 = _minY + static_cast<float>(cy);
-            for (uint32_t cx = 0; cx < _gridSizeX; ++cx)
+            const float z0 = _minZ + static_cast<float>(cz);
+            for (uint32_t cy = 0; cy < _gridSizeY; ++cy)
             {
-                const float x0 = _minX + static_cast<float>(cx);
+                const float y0 = _minY + static_cast<float>(cy);
+                for (uint32_t cx = 0; cx < _gridSizeX; ++cx)
+                {
+                    const float x0 = _minX + static_cast<float>(cx);
 
-                const uint32_t i = cx + cy * _gridStepY + cz * _gridStepZ;
-                uint64_t* cell = _grid[i];
-                if (cell == _dummy) continue;
+                    const uint32_t i = cx + cy * _gridStepY + cz * _gridStepZ;
+                    uint64_t* cell = _grid[i];
+                    if (cell == _dummy) continue;
 
-                for (uint32_t vz = 0; vz < _cellSizeZ; vz += step) {
-                    for (uint32_t vy = 0; vy < _cellSizeY; vy += step) {
-                        for (uint32_t vx = 0; vx < _cellSizeX; vx += step) {
-                            const uint32_t j = 1u + vx + vy * _cellStepY + vz * _cellStepZ;
+                    for (uint32_t vz = 0; vz < _cellSizeZ; vz += step) {
+                        for (uint32_t vy = 0; vy < _cellSizeY; vy += step) {
+                            for (uint32_t vx = 0; vx < _cellSizeX; vx += step) {
+                                const uint32_t j = 1u + vx + vy * _cellStepY + vz * _cellStepZ;
 
-                            const uint64_t mask = cell[j];
-                            if (mask != 0ULL) continue; 
+                                const uint64_t mask = cell[j];
+                                if (mask != 0ULL) continue; 
 
-                            PointT pt;
-                            pt.x = x0 + vx * _cellRes;
-                            pt.y = y0 + vy * _cellRes;
-                            pt.z = z0 + vz * _cellRes;
-                            pt.intensity = 0.0f;
-                            cloud->push_back(pt);
+                                PointT pt;
+                                pt.x = x0 + vx * _cellRes;
+                                pt.y = y0 + vy * _cellRes;
+                                pt.z = z0 + vz * _cellRes;
+                                pt.intensity = 0.0f;
+                                cloud->push_back(pt);
+                            }
                         }
                     }
                 }
             }
         }
+
+        if (cloud->empty())
+        {
+            std::cerr << "[GRID64] Warning: Empty Cloud (no mask==0 found).\n";
+            return;
+        }
+
+        std::cout << "[GRID64] Total points (mask==0): " << cloud->size() << "\n";
+        pcl::io::savePCDFileBinary(filename, *cloud);
+        std::cout << "[GRID64] PCD exported: " << filename << "\n";
     }
 
-    if (cloud->empty())
+
+    pcl::PointCloud<pcl::PointXYZI>::Ptr extractPointCloud(int subsampling_factor = 1)
     {
-        std::cerr << "[GRID64] Warning: Empty Cloud (no mask==0 found).\n";
-        return;
+        using PointT = pcl::PointXYZI;
+        pcl::PointCloud<PointT>::Ptr cloud(new pcl::PointCloud<PointT>);
+
+        const uint32_t step = std::max(1, subsampling_factor);
+
+        // Si grid no inicializado
+        if (_grid == nullptr || _dummy == nullptr || _gridSize == 0) {
+            std::cerr << "[GRID64] extractPointCloud: grid not initialized.\n";
+            return cloud;
+        }
+
+        for (uint32_t cz = 0; cz < _gridSizeZ; ++cz)
+        {
+            const float z0 = _minZ + static_cast<float>(cz);
+            for (uint32_t cy = 0; cy < _gridSizeY; ++cy)
+            {
+                const float y0 = _minY + static_cast<float>(cy);
+                for (uint32_t cx = 0; cx < _gridSizeX; ++cx)
+                {
+                    const float x0 = _minX + static_cast<float>(cx);
+
+                    const uint32_t i = cx + cy * _gridStepY + cz * _gridStepZ;
+                    uint64_t* cell = _grid[i];
+                    if (cell == _dummy) continue;
+
+                    for (uint32_t vz = 0; vz < _cellSizeZ; vz += step) {
+                        for (uint32_t vy = 0; vy < _cellSizeY; vy += step) {
+                            for (uint32_t vx = 0; vx < _cellSizeX; vx += step) {
+                                const uint32_t j = 1u + vx + vy * _cellStepY + vz * _cellStepZ;
+
+                                const uint64_t mask = cell[j];
+                                if (mask != 0ULL) continue;
+
+                                PointT pt;
+                                pt.x = x0 + vx * _cellRes;
+                                pt.y = y0 + vy * _cellRes;
+                                pt.z = z0 + vz * _cellRes;
+                                pt.intensity = 0.0f;
+                                cloud->push_back(pt);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return cloud;
     }
-
-    std::cout << "[GRID64] Total points (mask==0): " << cloud->size() << "\n";
-    pcl::io::savePCDFileBinary(filename, *cloud);
-    std::cout << "[GRID64] PCD exported: " << filename << "\n";
-}
+   
 
 
-	protected:
-
-
+protected:
 
     uint64_t **_grid;
     float _maxX, _maxY, _maxZ, _minX, _minY, _minZ;
-	uint32_t _gridSizeX, _gridSizeY, _gridSizeZ, _gridStepY, _gridStepZ, _gridSize;
+    uint32_t _gridSizeX, _gridSizeY, _gridSizeZ, _gridStepY, _gridStepZ, _gridSize;
     float _cellRes, _oneDivRes;
     uint32_t _cellSizeX, _cellSizeY, _cellSizeZ, _cellStepY, _cellStepZ, _cellSize;
     uint32_t _maxCells, _cellIndex;
     uint64_t *_buffer;
-	uint64_t *_dummy;
+    uint64_t *_dummy;
+    uint64_t _garbage;
 
-	uint64_t _garbage;
 };
 
 #endif
-

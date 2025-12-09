@@ -3,9 +3,9 @@ cmake_minimum_required(VERSION 3.8)
 
 project(dlio)
 
-add_executable(dlo3d_node src/dlo3d_node.cpp)
+add_executable(dlio_node src/dlio_node.cpp)
 
-target_compile_options(dlo3d_node PRIVATE 
+target_compile_options(dlio_node PRIVATE 
   -O3 
   -march=native 
   -mtune=native
@@ -15,7 +15,7 @@ target_compile_options(dlo3d_node PRIVATE
   -fopenmp-simd
   -lpthread
 )
-target_compile_definitions(dlo3d_node PRIVATE
+target_compile_definitions(dlio_node PRIVATE
   NDEBUG
   EIGEN_NO_DEBUG
 )
@@ -40,7 +40,7 @@ find_package(Eigen3 REQUIRED)
 find_package(std_srvs REQUIRED)
 find_library(ANN_LIB ANN PATHS /usr/lib /usr/local/lib)
 
-ament_target_dependencies(dlo3d_node
+ament_target_dependencies(dlio_node
   rclcpp
   message_filters
   tf2
@@ -55,7 +55,7 @@ ament_target_dependencies(dlo3d_node
   OpenMP
 )
 
-target_link_libraries(dlo3d_node
+target_link_libraries(dlio_node
   ${PCL_LIBRARIES}
   ${Boost_LIBRARIES}
   ${glog_LIBRARIES}
@@ -64,7 +64,7 @@ target_link_libraries(dlo3d_node
   OpenMP::OpenMP_CXX
 )
 
-target_include_directories(dlo3d_node PRIVATE
+target_include_directories(dlio_node PRIVATE
   include
   /usr/local/include
   ${PCL_INCLUDE_DIRS}
@@ -74,7 +74,7 @@ target_include_directories(dlo3d_node PRIVATE
 #########################################3
 
 install(TARGETS
-  dlo3d_node
+  dlio_node
   DESTINATION lib/${PROJECT_NAME}
 )
 

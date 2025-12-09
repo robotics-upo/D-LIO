@@ -3,12 +3,12 @@
 
 #include <algorithm>  
 #include <bitset>
-#include <dlo3d/df3d.hpp>
+#include <dlio/df3d.hpp>
 #include "nav_msgs/msg/occupancy_grid.hpp"
 #include <boost/thread.hpp>
 #include <boost/chrono.hpp>
 #include "rclcpp/clock.hpp"
-#include <dlo3d/grid_64.hpp>
+#include <dlio/grid_64.hpp>
 
 class TDF3D64
 {
@@ -27,6 +27,7 @@ public:
 		m_oneDivRes = 1/m_resolution;
 		
 		int k = 0;
+
 		// Creates the manhatan distance mask kernel
 		for(int z=-20; z<=20; z++){
 			for(int y=-20; y<=20; y++){
@@ -42,9 +43,7 @@ public:
 		}
 	}
 
-	~TDF3D64(void)
-	{
-	}
+	~TDF3D64(void){}
 
 	void setup(float minX, float maxX, float minY, float maxY, float minZ, float maxZ, float resolution, int maxCells = 200000)
 	{
@@ -76,6 +75,11 @@ public:
 	{
 		return (x > m_minX+1 && y > m_minY+1 && z > m_minZ+1 && x < m_maxX-1 && y < m_maxY-1 && z < m_maxZ-1);
 	}
+	
+	pcl::PointCloud<pcl::PointXYZI>::Ptr extractPointCloudFromGrid(int subsampling_factor = 1)
+	{
+		return m_grid.extractPointCloud(subsampling_factor);
+	}
 
 
 	void loadCloud(std::vector<pcl::PointXYZ> &cloud, float tx, float ty, float tz, float yaw)
@@ -93,17 +97,17 @@ public:
 		}
 		loadCloud(out);
 	}
+
 	void loadCloudFiltered(std::vector<pcl::PointXYZ> &cloud, 
 						float tx, float ty, float tz,
 						float roll, float pitch, float yaw,
 						float max_dist_xy)
-		{
+	{
 		std::vector<pcl::PointXYZ> out;
-		out.reserve(cloud.size()); // reservar para eficiencia
+		out.reserve(cloud.size()); 
 
-		float max_dist_sq = max_dist_xy * max_dist_xy; // comparar al cuadrado
+		float max_dist_sq = max_dist_xy * max_dist_xy; 
 
-		// Filtrar primero en coordenadas locales
 		for(size_t i = 0; i < cloud.size(); ++i)
 		{
 			float x = cloud[i].x;
@@ -115,7 +119,6 @@ public:
 			}
 		}
 
-		// Si no quedan puntos tras el filtrado, salir
 		if(out.empty()) return;
 
 		// Precompute rotation matrix
@@ -131,7 +134,6 @@ public:
 		r10 = sy*cp; 	r11 = sy*sp*sr + cy*cr; 	r12 = sy*sp*cr - cy*sr;
 		r20 = -sp; 	r21 = cp*sr; 			r22 = cp*cr;
 
-		// Transformar los puntos filtrados al marco global
 		for(size_t i = 0; i < out.size(); ++i)
 		{
 			float x = out[i].x;
@@ -143,7 +145,6 @@ public:
 			out[i].z = x*r20 + y*r21 + z*r22 + tz;
 		}
 
-		// Llamar al loadCloud normal
 		loadCloud(out);
 	}
 
@@ -174,7 +175,6 @@ public:
 		}
 		loadCloud(out);
 	}
-
 
 	void loadCloud(std::vector<pcl::PointXYZ> &cloud)
 	{	
@@ -269,12 +269,8 @@ public:
 	}
 
 
-
-
-
 protected:
 
-	// Grid parameters
 	float m_maxX, m_maxY, m_maxZ;
 	float m_minX, m_minY, m_minZ;
 	float m_resolution, m_oneDivRes;	

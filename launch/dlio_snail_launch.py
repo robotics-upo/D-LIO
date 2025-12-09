@@ -7,10 +7,8 @@ import os
 
 def generate_launch_description():
 
-    # Declare LaunchConfiguration for bag_path
     bag_path = LaunchConfiguration('bag_path')
 
-    # Play the bag if bag_path is provided (evaluates to true if bag_path is non-empty)
     play_bag = ExecuteProcess(
         cmd=[
             'gnome-terminal', '--',
@@ -35,79 +33,83 @@ def generate_launch_description():
             description='Full path to the RViz config file.'
         ),
 
-        # Iniciar RViz con el archivo de configuración
         ExecuteProcess(
             cmd=['ros2', 'run', 'rviz2', 'rviz2', '-d', LaunchConfiguration('rviz_config_file')],
             output='screen'
         ),
 
-        # Static Tf
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            name='static_tf_base_link_to_base_laser_link_1',
-            arguments=['0.0', '0.0', '0.0', '1.5708','0.0', '0.0', 'base_link', 'PandarXT-32'],
+            name='Body_T_Xt32',
+            arguments=[
+                "0.0", "0.0", "0.0",
+                "0.0", "0.0", "0.7071067811865475", "0.7071067811865475",
+                "base_link",
+                "PandarXT-32"
+            ],
             output='screen'
         ),
-
        
-       Node(
+        Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            name='imu_tf',
-            arguments=['0.00173',      # x
-                '0.00799',     # y
-                '0.197481',     # z
-                '0.18476',
-                '-0.0947',     # pitch 
-                '0.0421',    # roll
+            name='x36d',
+            arguments=[
+                "-0.06","0.0","-0.16",
+                "-0.0007904608601149109","-0.003950257535560073","-0.0007041813888545112","0.9999916373478345",
                 'base_link',
-                'mti3dk'
+                'x36d'
             ],
             output='screen' 
         ),
 
-        # DLO3D node
         Node(
-            package='D-LIO',
-            executable='dlo3d_node',
-            name='dlo3d_node',
+            package='dlio',
+            executable='dlio_node',
+            name='dlio_node',
             output='screen',
             remappings=[
-                ('/dll3d_node/initial_pose', '/initialpose')
+                ('/dlio_node/initial_pose', '/initialpose')
             ],
             parameters=[
                 {'in_cloud_aux': '/os1_cloud_node2/points'},
                 {'in_cloud': '/hesai/pandar'},
                 {'hz_cloud': 10.0},
                 {'in_imu': '/mti3dk/imu'},
-                {'hz_imu': 90.0},
-                {'calibration_time': 1.0},
+                {'hz_imu': 100.0},
+                {'calibration_time': 5.0},
                 {'aux_lidar_en': False},
-                {'gyr_dev': 5.236e-5},
+                {'gyr_dev': 5.236e-4},
                 {'gyr_rw_dev': 3.4e-05},
-                {'acc_dev': 7e-4},
+                {'acc_dev': 7e-3},
                 {'acc_rw_dev': 2.5e-9},
                 {'base_frame_id': 'base_link'},
                 {'odom_frame_id': 'odom'},
                 {'map_frame_id': 'map'},
                 {'keyframe_dist':2.0},
-                {'keyframe_rot': 30.0},
-                {'tdfGridSizeX_low': -5.0},
-                {'tdfGridSizeX_high': 90.0},
-                {'tdfGridSizeY_low': -50.0},
-                {'tdfGridSizeY_high': 20.0},
-                {'tdfGridSizeZ_low': -15.0},
-                {'tdfGridSizeZ_high': 15.0},
+                {'keyframe_rot': 0.5},
+                {'tdfGridSizeX_low': -30.0},
+                {'tdfGridSizeX_high': 100.0},
+                {'tdfGridSizeY_low': -100.0},
+                {'tdfGridSizeY_high': 100.0},
+                {'tdfGridSizeZ_low': -100.0},
+                {'tdfGridSizeZ_high': 100.0},
                 {'solver_max_iter': 200},
-                {'solver_max_threads': 16},
+                {'solver_max_threads': 20},
                 {'min_range': 1.0},
-                {'max_range': 100.0},
+                {'max_range': 200.0},
                 {'pc_downsampling': 1},
                 {'robust_kernel_scale': 1.0},
                 {'kGridMarginFactor': 0.8},
-                {'maxload': 100.0},
-                {'maxCells': 100000}
+                {'maxload': 200.0},
+                {'maxCells': 350000},
+                {'lidar_type': "ouster"},
+                {'leaf_size': -1.0}
+            ],
+            arguments=[
+                '--ros-args',
+                '--log-level', 'dlio_node:=INFO'
             ]
         ),
 

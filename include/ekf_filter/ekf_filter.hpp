@@ -9,12 +9,10 @@
 #include <sensor_msgs/msg/imu.hpp>
 #include <vector>
 #include <cmath>
+#include "rclcpp/rclcpp.hpp"
 
-
-// Convenient constants
-#define RAD2DEG(X) ( (X) * 57.2957795131)
-#define DEG2RAD(X) ( (X) * 0.01745329251)
-#define LIN2GRAV(X) ( (X) * 0.10197162)
+#define YEL "\033[33m"
+#define RST  "\033[0m"    
 
 class ImuFilter
 {
@@ -68,7 +66,7 @@ public:
 	}
 
 	// Input: last sensor_msgs::Imu
-	bool initialize(sensor_msgs::msg::Imu &msg)
+	bool initialize(sensor_msgs::msg::Imu &msg, double init_abx = 0.0, double init_aby = 0.0, double init_abz = 0.0)
 	{
 		double gx_m, gy_m, gz_m, ax_m, ay_m, az_m; 
 		
@@ -107,10 +105,14 @@ public:
 		az_m /= static_cast<double>(calibData.size());
 		
 
-		x = y = z = rz = rx = ry = vx = vy = vz = abx = aby = abz = 0.0;
+		x = y = z = rz = rx = ry = vx = vy = vz =  0.0;
 
 		rx = atan2(ay_m, az_m); 
 		ry = atan2(-ax_m, sqrt(ay_m * ay_m + az_m * az_m)); 
+
+		abx = init_abx;
+		aby = init_aby;
+		abz = init_abz;
 
 		gbx = gx_m;
 		gby = gy_m;
@@ -119,49 +121,26 @@ public:
 		gyf = gy_m;
 		gzf = gz_m;
 
-		double cx = std::cos(rx), sx = std::sin(rx);
-		double cy = std::cos(ry), sy = std::sin(ry);
-		double cz = std::cos(rz), sz = std::sin(rz);
+		if(calibTime == 0.0){
+			RCLCPP_INFO(rclcpp::get_logger("ImuFilter"), YEL "Calibration process skipped. To enable it, set the 'calibration_time' parameter to a non-zero value in the launch file." RST);
 
-		Eigen::Matrix3d R;
-		R << cz * cy,                   cz * sy * sx - sz * cx,    cz * sy * cx + sz * sx,
-			sz * cy,                   sz * sy * sx + cz * cx,    sz * sy * cx - cz * sx,
-			-sy,                       cy * sx,                   cy * cx;
-
-		Eigen::Vector3d a_measured(ax_m, ay_m, az_m);
-		Eigen::Vector3d gravity_global(0.0, 0.0, 9.80665);
-
-		Eigen::Vector3d a_expected_local = R.transpose() * gravity_global;
-		Eigen::Vector3d bias = a_measured - a_expected_local;
-
-		abx = bias(0);
-		aby = bias(1);
-		abz = bias(2);
-
-		if(calibTime==0.0){
-			abx = 0.0;
-			aby = 0.0;
-			abz = 0.0;
 			gbx = 0.0;
 			gby = 0.0;
 			gbz = 0.0;
-			std::cout << "Calibration process skipped. To enable it, set the 'calibration_time' parameter to a non-zero value in the launch file." << std::endl;
-			std::cout<<"acc initial bias: x-"<<abx<<" y- "<<aby<<" z- "<<abz<<std::endl;
-			std::cout<<"gtr initial bias: x-"<<gbx<<" y- "<<gby<<" z- "<<gbz<<std::endl;
 		}else{
-			std::cout << "Calibration process completed. Time elapsed: " << calibTime << " seconds." << std::endl;
-			std::cout<<"acc initial bias: x-"<<abx<<" y- "<<aby<<" z- "<<abz<<std::endl;
-			std::cout<<"gtr initial bias: x-"<<gbx<<" y- "<<gby<<" z- "<<gbz<<std::endl;
+			RCLCPP_INFO(rclcpp::get_logger("ImuFilter"), YEL "Calibration completed." RST);
 
 		}
 
+		RCLCPP_INFO_STREAM(rclcpp::get_logger("ImuFilter"),YEL "Acc initial bias: x-" << abx << " y-" << aby << " z-" << abz << RST);
+		RCLCPP_INFO_STREAM(rclcpp::get_logger("ImuFilter"), YEL"Gyro initial bias: x-" << gbx << " y-" << gby << " z-" << gbz << RST);
+		RCLCPP_INFO_STREAM(rclcpp::get_logger("ImuFilter"), YEL"Roll: " << rx << " - Pitch: " << ry << RST);
 		
-
 		P(0,0) = 0.0001*0.0001;
 		P(1,1) = 0.0001*0.0001;
 		P(2,2) = 0.0001*0.0001;
 
-		P(3,3) = 0.0025*0.0025;
+		P(3,3) = 0.0025 * 0.0025;
 		P(4,4) = 0.0025 * 0.0025;
 		P(5,5) = 0.0025 * 0.0025;
 
@@ -174,7 +153,8 @@ public:
 		P(11,11) = 0.000003 * 0.000003;
 		P(12,12) = 0.003 * 0.003;
 		P(13,13) = 0.003 * 0.003;
-		P(14,14) = 0.003 * 0.003;	
+		P(14,14) = 0.003 * 0.003;
+
 		init = true;	
 		return true;
 	}
@@ -346,7 +326,7 @@ public:
 	}
 
 
-		bool update_opt_full(double xopt, double yopt, double zopt, double roll, double pitch, double yaw,double vxopt, double vyopt,double vzopt,double var_pos_opt,double var_pos_z_opt,double var_a_opt,double var_a2_opt, double var_v_opt,double var_v_z_opt,double stamp)
+		bool update_opt_full(double xopt, double yopt, double zopt, double roll, double pitch, double yaw,double vxopt, double vyopt,double vzopt,double var_pos_opt,double var_pos_z_opt,double var_a_opt,double var_a_y_opt, double var_v_opt,double var_v_z_opt,double stamp)
 	{
 		// Check initialization 
 		if(!init)
@@ -371,9 +351,9 @@ public:
 		R(0,0) = var_pos_opt;
 		R(1,1) = var_pos_opt;
 		R(2,2) = var_pos_z_opt;
-		R(3,3) = var_a2_opt;
-		R(4,4) = var_a2_opt;
-		R(5,5) = var_a_opt;
+		R(3,3) = var_a_opt;
+		R(4,4) = var_a_opt;
+		R(5,5) = var_a_y_opt;
 		R(6,6) = var_v_opt;
 		R(7,7) = var_v_opt;
 		R(8,8) = var_v_z_opt;

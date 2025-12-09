@@ -9,20 +9,19 @@ def generate_launch_description():
 
     bag_path = LaunchConfiguration('bag_path')
 
-    bag_play = ExecuteProcess(
+    play_bag = ExecuteProcess(
         cmd=[
-            'gnome-terminal', '--', 
+            'gnome-terminal', '--',
             'ros2', 'bag', 'play', bag_path, '--rate', '0.00001'
         ],
         output='screen',
         condition=IfCondition(PythonExpression(['"', bag_path, '" != ""']))
     )
+
     launch_file_dir = os.path.dirname(os.path.abspath(__file__))
     rviz_config_file = os.path.join(launch_file_dir, 'default.rviz')
 
-
     return LaunchDescription([
-
         DeclareLaunchArgument(
             'bag_path',
             default_value='',
@@ -34,75 +33,67 @@ def generate_launch_description():
             description='Full path to the RViz config file.'
         ),
 
-        # Iniciar RViz con el archivo de configuración
         ExecuteProcess(
             cmd=['ros2', 'run', 'rviz2', 'rviz2', '-d', LaunchConfiguration('rviz_config_file')],
             output='screen'
         ),
-        # Static Tf
+
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            name='static_tf_base_link_to_L',
-            # x y z qx qy qz qw  parent child
-            arguments=['0.0', '0.0', '0.0',
-                    '0.0', '0.0', '0.0', '1.0',
-                    'base_link', 'os_sensor'],
+            name='static_tf_base_link_to_base_laser_link_1',
+            arguments=['-0.050', '0.0', '0.055', '0', '0', '3.1412', 'base_link', 'sensor1/os_sensor'],
             output='screen'
         ),
 
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            name='static_tf_base_link_to_I',
-            arguments=['-0.04563025', '-0.00784853', '-0.60841501',
-                    '0.00445442', '-0.00342322', '-0.01598836', '0.99985640',
-                    'base_link', 'imu_link_ned'],
-            output='screen'
-        ),
-        Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
-            name='static_tf_base_link_to_I',
-            arguments=['0.006253', '-0.011775', '0.007645',
-                    '0.00445442', '-0.00342322', '-0.01598836', '0.99985637',
-                    'base_link', 'os_imu'],
+            name='static_tf_base_link_to_base_laser_link_2',
+            arguments=['-0.55', '-0.03', '-0.05', '3.1412', '0.0', '-1.570', 'base_link', 'sensor2/os_sensor'],
             output='screen'
         ),
 
-        # DLO3D Node
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='new_link2',
+            arguments=['0.0', '0.0', '0.0', '0', '0', '3.1412', 'base_link', 'imu'],
+            output='screen'
+        ),
+
         Node(
             package='dlio',
-            executable='dlo3d_node',
-            name='dll3d_node',
+            executable='dlio_node',
+            name='dlio_node',
             output='screen',
             remappings=[
-                ('/dll3d_node/initial_pose', '/initialpose')
+                ('/dlio_node/initial_pose', '/initialpose')
             ],
             parameters=[
-                {'in_cloud_aux': '/nada'},
-                {'in_cloud': '/ouster/points'},
+                {'in_cloud_aux': '/os1_cloud_node2/points'},
+                {'in_cloud': '/os1_cloud_node1/points'},
                 {'hz_cloud': 10.0},
-                {'in_imu': '/imu/data'},
-                {'hz_imu': 100.0},
-                {'calibration_time': 5.0},
-                {'aux_lidar_en': False},
-                {'gyr_dev':  0.0514929939543128923},
-                {'gyr_rw_dev': 1.0106430876706567e-05},
-                {'acc_dev': 0.051800668934690885},
-                {'acc_rw_dev': 1.4361954439703917e-05},
+                {'in_imu': '/imu/imu'},
+                {'hz_imu': 388.0},
+                {'calibration_time':5.0},
+                {'aux_lidar_en': True},
+                {'gyr_dev': 0.057396706572}, 
+                {'gyr_rw_dev': 2.66e-07},
+                {'acc_dev': 0.0565432018302}, 
+                {'acc_rw_dev': 0.000433},
                 {'base_frame_id': 'base_link'},
                 {'odom_frame_id': 'odom'},
                 {'map_frame_id': 'map'},
-                {'keyframe_dist': 2.0},
+                {'keyframe_dist':2.0},
                 {'keyframe_rot': 1.5708},
-                {'tdfGridSizeX_low': -300.0},
-                {'tdfGridSizeX_high': 300.0},
-                {'tdfGridSizeY_low': -300.0},
-                {'tdfGridSizeY_high': 300.0},
-                {'tdfGridSizeZ_low': -40.0},
-                {'tdfGridSizeZ_high': 40.0},
-                {'solver_max_iter': 1000},
+                {'tdfGridSizeX_low': -200.0},
+                {'tdfGridSizeX_high': 200.0},
+                {'tdfGridSizeY_low': -200.0},
+                {'tdfGridSizeY_high': 200.0},
+                {'tdfGridSizeZ_low': -10.0},
+                {'tdfGridSizeZ_high': 100.0},
+                {'solver_max_iter': 200},
                 {'solver_max_threads': 20},
                 {'min_range': 1.0},
                 {'max_range': 100.0},
@@ -110,10 +101,16 @@ def generate_launch_description():
                 {'robust_kernel_scale': 1.0},
                 {'kGridMarginFactor': 0.8},
                 {'maxload': 100.0},
-                {'maxCells': 100000}
+                {'maxCells': 250000},
+                {'lidar_type': "ouster"},
+                {'leaf_size': -0.1},
+                {'timestamp_mode':"END_OF_SCAN"} # By default timestamp_mode is set on START_OF_SCAN. NTU_VIRAL dataset specifies that the timestamp of the msg refers to the end of the scan.
             ],
-            arguments=['--ros-args', '--log-level', 'INFO'] #DEBUG o INFO
+            arguments=[
+                '--ros-args',
+                '--log-level', 'dlio_node:=INFO'
+            ]
         ),
 
-        bag_play
+        play_bag
     ])

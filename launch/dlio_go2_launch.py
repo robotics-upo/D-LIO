@@ -7,10 +7,8 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
 
-    # Parámetro para la ruta del bag
     bag_path = LaunchConfiguration('bag_path')
 
-    # Proceso para reproducir el bag sólo si bag_path != ''
     bag_play = ExecuteProcess(
         cmd=[
             'gnome-terminal', '--',
@@ -22,13 +20,11 @@ def generate_launch_description():
         )
     )
 
-    # Directorio donde está este launch file
     launch_file_dir = os.path.dirname(os.path.abspath(__file__))
     rviz_config_file = os.path.join(launch_file_dir, 'default.rviz')
 
     return LaunchDescription([
 
-        # Argumento para ruta del bag
         DeclareLaunchArgument(
             'bag_path',
             default_value='',
@@ -37,15 +33,12 @@ def generate_launch_description():
                 'If empty, no bag will be played and se esperará datos externos.'
             )
         ),
-
-        # Argumento para ruta del RViz config
         DeclareLaunchArgument(
             'rviz_config_file',
             default_value=rviz_config_file,
             description='Full path to the RViz config file.'
         ),
 
-        # Lanzar RViz con la configuración indicada
         ExecuteProcess(
             cmd=[
                 'ros2', 'run', 'rviz2', 'rviz2',
@@ -54,76 +47,80 @@ def generate_launch_description():
             output='screen'
         ),
 
-        # Publicar transform estático base_link → os1_lidar
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            name='static_tf_base_link_to_base_laser_link',
+            name='static_tf_base_link_to_os_lidar',
             arguments=[
-                '0.0', '0.0', '0.0',    # xyz
-                '0.0', '0.0', '0.0',    # rpy
-                'base_link', 'os1_lidar'
+                '0.0', '0.0', '0.03618',
+                '0.0', '0.0', '1.0', '0.0',
+                'base_link', 'os_lidar'
             ],
             output='screen'
         ),
 
-        # Publicar transform estático base_link → imu
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            name='static_tf_base_link_to_base_imu_link',
+            name='static_tf_base_link_to_os_imu',
             arguments=[
-                '0.0', '0.0', '0.0',    # xyz
-                '0.0', '0.0', '0.0',    # rpy
-                'base_link', 'body_FLU'
+                '0.006253', '-0.011775', '0.007645',
+                '0.0', '0.0', '0.0', '1.0',
+                'base_link', 'os_imu'
             ],
             output='screen'
         ),
 
-        # Nodo principal DLO3D
         Node(
-            package='D-LIO',
-            executable='dlo3d_node',
-            name='dlo3d_node',
+            package='dlio',
+            executable='dlio_node',
+            name='dlio_node',
             output='screen',
             remappings=[
-                ('/dll3d_node/initial_pose', '/initialpose')
+                ('/dlio_node/initial_pose', '/initialpose')
             ],
             parameters=[
                 {'in_cloud_aux': '/os_cloud_node/points'},
-                {'in_cloud': '/os1_cloud_node/points_non_dense'},
+                {'in_cloud': '/ouster/points'},
                 {'hz_cloud': 10.0},
-                {'in_imu': '/dji_sdk/imu'},
-                {'hz_imu': 400.0},
-                {'calibration_time': 2.0},
+                {'in_imu': '/ouster/imu'},
+                {'hz_imu': 100.0},
+                {'calibration_time': 4.0},
                 {'aux_lidar_en': False},
-                {'gyr_dev': 0.00345},
+                {'gyr_dev': 0.008},
                 {'gyr_rw_dev': 0.000244},
-                {'acc_dev': 0.0222},
-                {'acc_rw_dev': 0.00157},
+                {'acc_dev': 0.08},
+                {'acc_rw_dev': 0.000157},
                 {'base_frame_id': 'base_link'},
                 {'odom_frame_id': 'odom'},
                 {'map_frame_id': 'map'},
                 {'keyframe_dist': 1.0},
                 {'keyframe_rot': 25.0},
-                {'tdfGridSizeX_low': -15.0},
-                {'tdfGridSizeX_high': 25.0},
-                {'tdfGridSizeY_low': -25.0},
-                {'tdfGridSizeY_high': 25.0},
-                {'tdfGridSizeZ_low': -15.0},
-                {'tdfGridSizeZ_high': 30.0},
+                {'tdfGridSizeX_low': -50.0},
+                {'tdfGridSizeX_high': 50.0},
+                {'tdfGridSizeY_low': -50.0},
+                {'tdfGridSizeY_high':50.0},
+                {'tdfGridSizeZ_low': -10.0},
+                {'tdfGridSizeZ_high': 50.0},
                 {'solver_max_iter': 500},
                 {'solver_max_threads': 20},
-                {'min_range': 1.0},
-                {'max_range': 100.0},
+                {'min_range': 0.5},
+                {'max_range': 500.0},
                 {'pc_downsampling': 1},
-                {'robust_kernel_scale': 1.0},
+                {'robust_kernel_scale': 10.0},
                 {'kGridMarginFactor': 0.8},
-                {'maxload': 100.0},
-                {'maxCells': 100000}
+                {'maxload': 25.0},
+                {'maxCells': 200000},
+                {'lidar_type': "ouster"},
+                {'leaf_size': -1.0}
+            ],
+            arguments=[
+                '--ros-args',
+                '--log-level', 'dlio_node:=INFO'
             ]
         ),
 
-        # Finalmente, reproducir el bag si se ha proporcionado ruta
         bag_play
     ])
+
+

@@ -82,7 +82,7 @@ Besides the ROS2 packages, this project depends on several external libraries th
 To install and build the project, simply clone the repository as follows:
 
    ```bash
-   git clone https://github.com/robotics-upo/dlo3d.git
+   git clone https://github.com/robotics-upo/D-LIO.git
    cd ..
    colcon build
    source install/setup.bash
@@ -92,7 +92,7 @@ To install and build the project, simply clone the repository as follows:
 Follow these steps to build and run D-LIO inside a Docker container:
 1. Clone the repository:
     ```bash
-    git clone https://github.com/robotics-upo/dlo3d.git
+    git clone https://github.com/robotics-upo/D-LIO.git
     cd dlo3d
     ```
 
@@ -118,17 +118,17 @@ Follow these steps to build and run D-LIO inside a Docker container:
 The Dockerfile sets up the entire environment and downloads the D-LIO code automatically.
 
 ## 3. Running the Code
-The code can be launched automatically using one of the available launch files. There is a generic launch file, **dlo3d_launch.py**, which serves as a template for adapting the configuration to the specific dataset. Additionally, there are two predefined launch files tailored for the VIRAL and College datasets.
+The code can be launched automatically using one of the available launch files. There is a generic launch file, **dlio_launch.py**, which serves as a template for adapting the configuration to the specific dataset. Additionally, there are two predefined launch files tailored for the VIRAL and College datasets.
 
 To launch the code, use the following example command:
   ```bash
-ros2 launch dlo3d dlo3d_launch.py
+ros2 launch dlio dlio_launch.py
 ```
 This command will start the node and prepare it to receive information via the topics. The node will remain in a waiting state until data is published. If you wish to additionally launch a pre-recorded bag file, you can specify the bag_path parameter as shown below:
 
 
   ```bash
-ros2 launch dlo3d dlo3d_launch.py bag_path:='bag_path/bag.db3
+ros2 launch dlio dlio_launch.py bag_path:='bag_path/bag.db3
 ```
 Along with the node and bag file, RViz visualization will also be launched to display a 3D representation of the environmen
 
@@ -136,14 +136,18 @@ Along with the node and bag file, RViz visualization will also be launched to di
 
 The dlo3d_node requires a series of configuration parameters to operate correctly, which are related to the dataset and the vehicle being used. These parameters are as follows:
 
-* Point Cloud Parameters:
+* LiDAR Parameters:
     - **in_cloud_aux**
     - **in_cloud**
     - **hz_cloud**
     - **aux_lidar_en**
     - **min_range**
     - **max_range**
-    - **pc_downsampling**
+    - **leaf_size** . Voxel grid size for input downsampling. Set to a negative value (e.g., -1.0) to disable.
+    - **m_PubDownsampling** - Subsampling step for RViz visualization to prevent saturation (fast, naive point skipping). Set to 1 to disable.
+    - **lidar_type** - Required to perform unwarping correctly. Currently available for hesai or ouster.
+    - **timestamp_mode** - Time reference (start or end of scan). Defaults to start (standard); typically changed only for specific datasets.
+
 
 * IMU Parameters:
     - **in_imu**
@@ -176,8 +180,9 @@ The dlo3d_node requires a series of configuration parameters to operate correctl
     - **solver_max_threads**
     - **robust_kernel_scale**
 
+
 These parameters allow you to fine-tune the node’s behavior, including settings related to the input cloud topics, IMU data, grid size, calibration, and solver configurations, among others.
-⚠️ **Note:** This node has been tested with Ouster LiDAR. For other sensors, the unwarp module is not yet adapted, so it will run without performing the unwarp.
+⚠️ **Note:** This node has been tested with Ouster and Hesai sensors. For other sensors, the unwarp module is not yet adapted, so it will run without performing the unwarp.
 
 ## 4. Output Data and Services
 When the code is launched, it automatically stores a CSV file containing the odometric pose information every time an optimization occurs, synchronized to the LiDAR frequency. 
@@ -189,19 +194,20 @@ Additionally, a file named times_dlo.csv is generated, which records the runtime
  **[total_time, optimized, opt_time, updated, update_time]**
 
 
-The node also provides two services for saving the grid data to a file. These services execute the process in a parallel thread:
-
-- **save_grid_csv**: Saves the grid in CSV format.
+The node provides two services to save the grid data to a file and publish it to RViz, respectively. These operations are executed in a separate thread.
 
 - **save_grid_pcd**: Saves the grid in PCD format.
+
+- **pub_grid**: Publishes the zero-distance iso-surface to RViz.
 
 You can call these services directly using the following commands in ROS 2:
 
 
   ```bash
-ros2 service call /save_grid_csv std_srvs/srv/Trigger
 
 ros2 service call /save_grid_pcd std_srvs/srv/Trigger
+
+ros2 service call /pub_grid std_srvs/srv/Trigger
 ```
 
 ## To Do
@@ -213,7 +219,7 @@ ros2 service call /save_grid_pcd std_srvs/srv/Trigger
 
 - [ ] Implement loop closure module.
     
-- [ ] Adapt the *unwarp* module to support other LiDAR sensors. Currently, it only supports Ouster; for other sensors, the module runs without performing the unwarp.
+- [ ] Adapt the *unwarp* module to support other LiDAR sensors. Currently, it supports Ouster and Hesai; for other sensors, the module runs without performing the unwarp.
 
 
 
