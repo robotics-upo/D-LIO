@@ -6,6 +6,14 @@
 #include <bitset>
 #include <stdint.h>
 
+#include <vtkSmartPointer.h>
+#include <vtkImageData.h>
+#include <vtkMarchingCubes.h>
+#include <vtkXMLPolyDataWriter.h>
+#include <vtkSTLWriter.h>
+#include <vtkAppendPolyData.h>
+#include <vtkImageGaussianSmooth.h>
+
 class GRID64
 {
 
@@ -305,6 +313,171 @@ public:
         }
 
         return cloud;
+    }
+
+// Añadido parámetro min_neighbors (por defecto 2 o 3 limpia bien el ruido)
+    void exportMesh(const std::string& filename, float iso_level, int min_neighbors = 5)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("GRID64_Mesh"), "Starting mesh extraction...");
+
+        vtkSmartPointer<vtkAppendPolyData> appender = 
+            vtkSmartPointer<vtkAppendPolyData>::New();
+
+        // Aumentamos un poco el BAND para que los núcleos sean sólidos
+        const float BAND = 1.0f * _cellRes; 
+
+        // Dimensiones del subgrid en VTK
+        const int dimX = _cellSizeX + 1;
+        const int dimY = _cellSizeY + 1;
+        const int dimZ = _cellSizeZ + 1;
+        const int num_scalars = dimX * dimY * dimZ;
+
+        for (uint32_t cz = 0; cz < _gridSizeZ; ++cz)
+        for (uint32_t cy = 0; cy < _gridSizeY; ++cy)
+        for (uint32_t cx = 0; cx < _gridSizeX; ++cx)
+        {
+            const uint32_t i = cx + cy * _gridStepY + cz * _gridStepZ;
+            uint64_t* cell = _grid[i];
+            if (cell == _dummy) continue;
+
+            vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
+            image->SetDimensions(dimX, dimY, dimZ); 
+            image->SetSpacing(_cellRes, _cellRes, _cellRes);
+            
+            const float x0 = _minX + static_cast<float>(cx);
+            const float y0 = _minY + static_cast<float>(cy);
+            const float z0 = _minZ + static_cast<float>(cz);
+            
+            image->SetOrigin(x0, y0, z0);
+            image->AllocateScalars(VTK_FLOAT, 1);
+            
+            float *dest = static_cast<float*>(image->GetScalarPointer());
+            bool has_occupied_voxels = false;
+
+            // --- PASO 1: Llenado inicial (Raw SDF) ---
+            for (int vz = 0; vz < dimZ; ++vz)
+            for (int vy = 0; vy < dimY; ++vy)
+            for (int vx = 0; vx < dimX; ++vx)
+            {
+                uint64_t mask = this->read(x0 + vx * _cellRes, 
+                                           y0 + vy * _cellRes, 
+                                           z0 + vz * _cellRes);
+                
+                // En tu lógica: 0ULL = Ocupado
+                const bool occupied = (mask == 0ULL); 
+                
+                // Usamos un valor negativo más fuerte para el núcleo (-BAND * 2.0)
+                // para que el suavizado posterior no lo haga desaparecer.
+                dest[vx + vy * dimX + vz * dimX * dimY] = occupied ? (-BAND * 2.0f) : (+BAND);
+
+                if (occupied) has_occupied_voxels = true;
+            }
+
+            if (!has_occupied_voxels) continue;
+
+            // --- PASO 2: Filtro de Ruido (Despeckle / Eliminación de aislados) ---
+            // Si min_neighbors > 0, filtramos los vóxeles solitarios antes de hacer el mesh
+            if (min_neighbors > 0)
+            {
+                std::vector<int> to_remove; 
+                to_remove.reserve(100);
+
+                for (int vz = 0; vz < dimZ; ++vz)
+                for (int vy = 0; vy < dimY; ++vy)
+                for (int vx = 0; vx < dimX; ++vx)
+                {
+                    int idx = vx + vy * dimX + vz * dimX * dimY;
+                    
+                    // Solo comprobamos si está ocupado (valor negativo)
+                    if (dest[idx] < 0.0f) 
+                    {
+                        int neighbors = 0;
+
+                        // Revisar vecindad 3x3x3 (26 vecinos)
+                        for (int dz = -1; dz <= 1; ++dz)
+                        for (int dy = -1; dy <= 1; ++dy)
+                        for (int dx = -1; dx <= 1; ++dx)
+                        {
+                            if (dx == 0 && dy == 0 && dz == 0) continue;
+
+                            int nx = vx + dx;
+                            int ny = vy + dy;
+                            int nz = vz + dz;
+
+                            // Chequear límites del array local
+                            if (nx >= 0 && nx < dimX && 
+                                ny >= 0 && ny < dimY && 
+                                nz >= 0 && nz < dimZ)
+                            {
+                                int n_idx = nx + ny * dimX + nz * dimX * dimY;
+                                // Si el vecino es negativo, es un vecino ocupado
+                                if (dest[n_idx] < 0.0f) {
+                                    neighbors++;
+                                }
+                            }
+                        }
+
+                        // Si no tiene suficientes amigos, lo marcamos para borrar
+                        if (neighbors < min_neighbors) {
+                            to_remove.push_back(idx);
+                        }
+                    }
+                }
+
+                // Aplicar borrado (poner a positivo = aire)
+                for (int idx : to_remove) {
+                    dest[idx] = +BAND; 
+                }
+                
+                // Si borramos todo, marcamos como vacío para saltar el Marching Cubes
+                if (to_remove.size() == (size_t)num_scalars) has_occupied_voxels = false; 
+            }
+
+            // --- PASO 3: Suavizado y Mallado ---
+            if (has_occupied_voxels)
+            {
+                auto smoother = vtkSmartPointer<vtkImageGaussianSmooth>::New();
+                smoother->SetInputData(image);
+                // Reduce un poco la desviación si quieres más detalle (ej: 0.6 o 0.8)
+                smoother->SetStandardDeviation(0.8); 
+                smoother->Update();
+
+                auto mc = vtkSmartPointer<vtkMarchingCubes>::New();
+                mc->SetInputConnection(smoother->GetOutputPort());
+                mc->SetValue(0, iso_level); 
+                mc->Update();
+
+                if (mc->GetOutput()->GetNumberOfPolys() > 0) {
+                    appender->AddInputData(mc->GetOutput());
+                }
+            }
+        } 
+
+        RCLCPP_INFO(rclcpp::get_logger("GRID64_Mesh"), "Joining cell meshes...");
+        appender->Update();
+
+        // --- Escritura a fichero (Igual que antes) ---
+        auto ext_pos = filename.find_last_of('.');
+        std::string ext = (ext_pos==std::string::npos) ? "" : filename.substr(ext_pos+1);
+
+        if (ext == "stl") {
+            auto writer = vtkSmartPointer<vtkSTLWriter>::New();
+            writer->SetFileName(filename.c_str());
+            writer->SetInputData(appender->GetOutput());
+            writer->SetFileTypeToBinary();  
+            writer->Write();
+        }
+        else if (ext == "vtp") {
+            auto writer = vtkSmartPointer<vtkXMLPolyDataWriter>::New();
+            writer->SetFileName(filename.c_str());
+            writer->SetInputData(appender->GetOutput());
+            writer->Write();
+        }
+        else {
+            std::cerr << "Unsupported file extension: " << ext << "\n";
+        }
+        
+        RCLCPP_INFO(rclcpp::get_logger("GRID64_Mesh"), "Mesh saved to %s", filename.c_str());
     }
    
 

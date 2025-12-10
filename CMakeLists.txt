@@ -62,6 +62,12 @@ target_link_libraries(dlio_node
   ${CERES_LIBRARIES}
   ${ANN_LIB}
   OpenMP::OpenMP_CXX
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::FiltersCore
+  VTK::IOXML
+  VTK::ImagingCore
+  VTK::ImagingGeneral
 )
 
 target_include_directories(dlio_node PRIVATE

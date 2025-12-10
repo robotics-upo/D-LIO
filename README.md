@@ -93,7 +93,7 @@ Follow these steps to build and run D-LIO inside a Docker container:
 1. Clone the repository:
     ```bash
     git clone https://github.com/robotics-upo/D-LIO.git
-    cd dlo3d
+    cd D-LIO
     ```
 
 2. Build the Docker image:
@@ -194,21 +194,27 @@ Additionally, a file named times_dlo.csv is generated, which records the runtime
  **[total_time, optimized, opt_time, updated, update_time]**
 
 
-The node provides two services to save the grid data to a file and publish it to RViz, respectively. These operations are executed in a separate thread.
+The node provides different services to save the grid data to a file and publish it to RViz, respectively. These operations are executed in a separate thread. You can call these services directly using the following commands in ROS 2.
 
 - **save_grid_pcd**: Saves the grid in PCD format.
 
+  ```bash
+  ros2 service call /save_grid_pcd std_srvs/srv/Trigger
+  ```
+
 - **pub_grid**: Publishes the zero-distance iso-surface to RViz.
 
-You can call these services directly using the following commands in ROS 2:
+  ```bash
+  ros2 service call /pub_grid std_srvs/srv/Trigger
+  ```
 
+- **save_grid_mesh**: Generates and saves a 3D mesh (STL or VTP) of the occupied voxels using the Marching Cubes algorithm.
 
   ```bash
+  ros2 service call /save_grid_mesh std_srvs/srv/Trigger
+  ```
 
-ros2 service call /save_grid_pcd std_srvs/srv/Trigger
 
-ros2 service call /pub_grid std_srvs/srv/Trigger
-```
 
 ## To Do
 

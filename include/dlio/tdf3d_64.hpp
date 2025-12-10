@@ -71,6 +71,12 @@ public:
 		m_grid.exportGridToPCD(filename, subsampling_factor);
 	}
 
+	void exportMesh(const std::string& filename, float iso_level)
+	{
+
+		m_grid.exportMesh(filename, iso_level);
+	}
+
 	virtual inline bool isIntoGrid(const float &x, const float &y, const float &z)
 	{
 		return (x > m_minX+1 && y > m_minY+1 && z > m_minZ+1 && x < m_maxX-1 && y < m_maxY-1 && z < m_maxZ-1);

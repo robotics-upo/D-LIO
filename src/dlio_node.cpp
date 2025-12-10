@@ -169,6 +169,8 @@ public:
             "/pub_grid",
             std::bind(&DLO3DNode::exportGridService, this, std::placeholders::_1, std::placeholders::_2)
         );  
+        save_service_mesh_ = this->create_service<std_srvs::srv::Trigger>( "/save_grid_mesh",
+            std::bind(&DLO3DNode::saveGridMesh, this, std::placeholders::_1, std::placeholders::_2));
 
 
         // Kalman Filter Setup
@@ -247,6 +249,7 @@ private:
     // Services
     rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr save_service_pcd_;
     rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr export_grid_srv_;
+    rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr save_service_mesh_;
 
     // ROS2 parameters
     std::string m_inCloudTopic;
@@ -328,7 +331,9 @@ private:
     void exportGridService(const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
                         std::shared_ptr<std_srvs::srv::Trigger::Response> response);
     void saveGridPCD(const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
-                          std::shared_ptr<std_srvs::srv::Trigger::Response> response);
+                        std::shared_ptr<std_srvs::srv::Trigger::Response> response);
+    void saveGridMesh(const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
+                        std::shared_ptr<std_srvs::srv::Trigger::Response> response);
    
     Closest_Filter_Result findClosestFilterData(const std::deque<Filter_Data>& Filter_queue, double target_timestamp);
     Eigen::Matrix4f getTransformMatrix(const geometry_msgs::msg::TransformStamped& transform_stamped);
@@ -373,6 +378,27 @@ void DLO3DNode::exportGridService(const std::shared_ptr<std_srvs::srv::Trigger::
     response->success = true;
     response->message = "Grid published to /grid_pointcloud (no file saved). Points: " + std::to_string(cloud->size());
     RCLCPP_INFO(this->get_logger(), "saveGridPCD service: published %zu points.", cloud->size());
+}
+
+void DLO3DNode::saveGridMesh(const std::shared_ptr<std_srvs::srv::Trigger::Request>, 
+        std::shared_ptr<std_srvs::srv::Trigger::Response> response){
+
+    RCLCPP_INFO(this->get_logger(),"Received request to save Mesh. Starting in background...");
+
+    float iso = 0.00f;
+
+    std::thread([this, iso]() {
+        try {
+            m_grid3d.exportMesh("mesh.stl", iso); 
+            RCLCPP_INFO(this->get_logger(), "Mesh saved successfully to mesh.stl (iso=%.3f)", iso);
+            } 
+        catch (const std::exception &e) {
+            RCLCPP_ERROR(this->get_logger(),"Failed to extract mesh: %s", e.what());
+        }
+    }).detach();
+
+    response->success = true;
+    response->message = "Mesh export started in background.";
 }
 
 // Process queues - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
