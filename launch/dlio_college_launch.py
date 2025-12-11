@@ -79,7 +79,7 @@ def generate_launch_description():
                 {'base_frame_id': 'base_link'},
                 {'odom_frame_id': 'odom'},
                 {'map_frame_id': 'map'},
-                {'keyframe_dist': 1.0},
+                {'keyframe_dist': 2.0},
                 {'keyframe_rot': 45.0},
                 {'tdfGridSizeX_low': -50.0},
                 {'tdfGridSizeX_high': 100.0},
@@ -97,7 +97,7 @@ def generate_launch_description():
                 {'maxload': 100.0},
                 {'maxCells': 100000},
                 {'lidar_type': "ouster"},
-                {'leaf_size': 0.05} 
+                {'leaf_size': -1.0} 
 
             ],
             arguments=[
