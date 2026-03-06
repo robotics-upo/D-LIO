@@ -234,8 +234,8 @@ public:
     }
 
 private:
- int message_count_ = 0; 
- int message_processed_ = 0; 
+    int message_count_ = 0; 
+    int message_processed_ = 0; 
 
     // ROS2 subscribers and publishers
     rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr m_imuSub;

@@ -55,11 +55,11 @@ def generate_launch_description():
 
         Node(
             package='dlio',
-            executable='dlo3d_node',
-            name='dll3d_node',
+            executable='dlio_node',
+            name='dlio_node',
             output='screen',
             remappings=[
-                ('/dll3d_node/initial_pose', '/initialpose')
+                ('/dlio_node/initial_pose', '/initialpose')
             ],
             parameters=[
                 {'in_cloud_aux': '/os_cloud_node/points'},        # Auxiliar LiDAR topic     
