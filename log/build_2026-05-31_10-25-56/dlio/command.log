@@ -1,0 +1,6 @@
+Invoking command in '/home/upo/slam_ws/src/D-LIO/build/dlio': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /home/upo/.local/bin/cmake /home/upo/slam_ws/src/D-LIO -DCMAKE_INSTALL_PREFIX=/home/upo/slam_ws/src/D-LIO/install/dlio
+Invoked command in '/home/upo/slam_ws/src/D-LIO/build/dlio' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /home/upo/.local/bin/cmake /home/upo/slam_ws/src/D-LIO -DCMAKE_INSTALL_PREFIX=/home/upo/slam_ws/src/D-LIO/install/dlio
+Invoking command in '/home/upo/slam_ws/src/D-LIO/build/dlio': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /home/upo/.local/bin/cmake --build /home/upo/slam_ws/src/D-LIO/build/dlio -- -j20 -l20
+Invoked command in '/home/upo/slam_ws/src/D-LIO/build/dlio' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /home/upo/.local/bin/cmake --build /home/upo/slam_ws/src/D-LIO/build/dlio -- -j20 -l20
+Invoking command in '/home/upo/slam_ws/src/D-LIO/build/dlio': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /home/upo/.local/bin/cmake --install /home/upo/slam_ws/src/D-LIO/build/dlio
+Invoked command in '/home/upo/slam_ws/src/D-LIO/build/dlio' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /home/upo/.local/bin/cmake --install /home/upo/slam_ws/src/D-LIO/build/dlio

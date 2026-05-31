@@ -1,0 +1,64 @@
+dlio_node:
+  ros__parameters:
+
+    # ── ROS Topics ──────────────────────────────────────────────
+    in_cloud:     "/hesai/pandar"
+    in_cloud_aux: "/nada"
+    in_imu:       "/x36d/imu_raw"
+
+    # ── Sensor Frequencies ──────────────────────────────────────
+    hz_cloud: 10.0
+    hz_imu:   100.0
+
+    # ── ESKF ────────────────────────────────────────────────────
+    calibration_time:  5.0           # [s] static init period for bias estimation
+    use_fixed_imu_dt:  false         # true: use 1/hz_imu as dt; false: use header stamps
+    imu_acc_in_ms2:    true          # false if accelerometer outputs in g
+    gyr_dev:           0.001         # gyroscope white noise density  [rad/s/√Hz]
+    gyr_rw_dev:        2.0e-05       # gyroscope random walk          [rad/s²/√Hz]
+    acc_dev:           0.1           # accelerometer white noise      [m/s²/√Hz]
+    acc_rw_dev:        1.0e-04       # accelerometer random walk      [m/s³/√Hz]
+
+    # ── Multi-LiDAR ────────────────────────────────────────────
+    aux_lidar_en: false
+
+    # ── Frames ──────────────────────────────────────────────────
+    base_frame_id: "base_link"
+    odom_frame_id: "map"
+
+    # ── Keyframing ──────────────────────────────────────────────
+    keyframe_dist: 2.0               # [m]   min translation for new keyframe
+    keyframe_rot:  25.0              # [rad] min rotation for new keyframe
+
+    # ── TDF Grid ────────────────────────────────────────────────
+    tdfGridSizeX_low:  -200.0
+    tdfGridSizeX_high:   10.0
+    tdfGridSizeY_low:  -200.0
+    tdfGridSizeY_high:   10.0
+    tdfGridSizeZ_low:   -10.0
+    tdfGridSizeZ_high:   50.0
+    tdf_grid_res:         0.05       # [m] voxel side length
+
+    # ── Solver ──────────────────────────────────────────────────
+    solver_max_iter:    100
+    solver_max_threads:  20
+    robust_outlier_dist:  0.5        # [m] Cauchy loss threshold
+
+    # ── Point Cloud Processing ──────────────────────────────────
+    lidar_type:      "hesai"         # hesai | ouster | velodyne | livox
+    min_range:        1.0            # [m]
+    max_range:      100.0            # [m]
+    leaf_size_map:    0.1            # [m] voxel leaf for map update  (-1 = disabled)
+    leaf_size_opt:    0.25           # [m] voxel leaf for solver cloud (-1 = disabled)
+    timestamp_mode:  "START_OF_SCAN" # START_OF_SCAN | END_OF_SCAN
+    kGridMarginFactor: 0.8           # fraction of grid used before re-centering
+    maxload:        100.0            # max point density per voxel
+    maxCells:       300000           # max active voxels in the TDF grid
+
+    # ── Initial Pose (optional) ─────────────────────────────────
+    m_init_x:      -30.79470
+    m_init_y:      -60.42299
+    m_init_z:        2.30835
+    m_init_roll:    -0.01528
+    m_init_pitch:   -0.01326
+    m_init_yaw:     -1.67300

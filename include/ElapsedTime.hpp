@@ -7,7 +7,6 @@ class ElapsedTime
 {
   private:
 
-    // Image with bicubic params for each pixel
     struct timespec t1, t2;
 
   public:

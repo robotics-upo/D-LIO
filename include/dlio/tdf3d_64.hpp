@@ -3,12 +3,46 @@
 
 #include <algorithm>  
 #include <bitset>
-#include <dlio/df3d.hpp>
 #include "nav_msgs/msg/occupancy_grid.hpp"
+
+// TrilinearParams: inlined from df3d.hpp to avoid pulling in unused ANN/KD-tree dependencies
+struct TrilinearParams
+{
+	float a0, a1, a2, a3, a4, a5, a6, a7;
+
+	TrilinearParams(void)
+	{
+		a0 = a1 = a2 = a3 = a4 = a5 = a6 = a7 = 0.0;
+	}
+
+	float interpolate(float x, float y, float z)
+	{
+		return a0 + a1*x + a2*y + a3*z + a4*x*y + a5*x*z + a6*y*z + a7*x*y*z;
+	}
+};
 #include <boost/thread.hpp>
 #include <boost/chrono.hpp>
 #include "rclcpp/clock.hpp"
 #include <dlio/grid_64.hpp>
+
+// Bit layout for uint64_t voxel mask:
+//   bits [0..34]  : distance mask (popcount = distance to nearest surface)
+//   bits [35..63] : hit counter   (number of scans that confirmed this voxel)
+//
+// The kernel AND operation preserves the upper bits because the kernel values
+// have bits 35-63 set to 1; the hit counter is updated separately.
+static constexpr uint64_t DIST_MASK    = 0x00000007FFFFFFFFULL;  // bits  0-34
+static constexpr uint64_t HIT_MASK     = 0xFFFFFFF800000000ULL;  // bits 35-63
+static constexpr int      HIT_SHIFT    = 35;
+static constexpr uint64_t HIT_SENTINEL = 0x1FFFFFFFULL;          // all hit bits = 1 (memset -1 init)
+
+/// Extract the hit counter from a raw voxel value.
+/// Returns 0 for uninitialized voxels (sentinel = all hit bits set from memset -1).
+static inline int extractHits(uint64_t raw)
+{
+	uint64_t h = (raw >> HIT_SHIFT) & HIT_SENTINEL;
+	return (h == HIT_SENTINEL) ? 0 : static_cast<int>(h);
+}
 
 class TDF3D64
 {
@@ -25,19 +59,28 @@ public:
 		m_minZ = -10;
 		m_resolution = 0.05;
 		m_oneDivRes = 1/m_resolution;
+		m_firstLoad = true;
 		
 		int k = 0;
 
-		// Creates the manhatan distance mask kernel
 		for(int z=-20; z<=20; z++){
 			for(int y=-20; y<=20; y++){
 				for(int x=-20; x<=20; x++){
-				int d = abs(x) + abs(y) + abs(z);
-				if (d == 0) {
-					kernel[k++] = 0ULL;
-				} else {
-					kernel[k++] = ((uint64_t)0xffffffffffffffff) >> (64 - d);
-				}
+					
+					// 1. Euclidean L2 distance
+					float dist_euclidiana = std::sqrt(x*x + y*y + z*z);
+					int d = std::round(dist_euclidiana);
+					
+					// 2. Clamp to usable distance range (bits 0-34)
+					if (d > 34) d = 34; 
+
+					if (d == 0) {
+						// Center: zero all distance bits, preserve hit bits
+						kernel[k++] = HIT_MASK;
+					} else {
+						// Set d distance bits + preserve hit bits
+						kernel[k++] = (((uint64_t)0xffffffffffffffff) >> (64 - d)) | HIT_MASK;
+					}
 				}
 			}
 		}
@@ -63,6 +106,7 @@ public:
 	void clear(void)
 	{
 		m_grid.clear();
+		m_firstLoad = true;
 	}
 
 	void exportGridToPCD(const std::string& filename, int subsampling_factor)
@@ -81,12 +125,28 @@ public:
 	{
 		return (x > m_minX+1 && y > m_minY+1 && z > m_minZ+1 && x < m_maxX-1 && y < m_maxY-1 && z < m_maxZ-1);
 	}
+
+	float getResolution() const { return m_resolution; }
+	float getMinX() const { return m_minX; }
+	float getMaxX() const { return m_maxX; }
+	float getMinY() const { return m_minY; }
+	float getMaxY() const { return m_maxY; }
+	float getMinZ() const { return m_minZ; }
+	float getMaxZ() const { return m_maxZ; }
 	
 	pcl::PointCloud<pcl::PointXYZI>::Ptr extractPointCloudFromGrid(int subsampling_factor = 1)
 	{
 		return m_grid.extractPointCloud(subsampling_factor);
 	}
 
+	/// Read the hit counter (observation count) for a voxel at world coordinates.
+	/// Returns 0 for uninitialized/unobserved voxels.
+	inline int readHits(float x, float y, float z)
+	{
+		if(isIntoGrid(x, y, z))
+			return extractHits(m_grid.read(x, y, z));
+		return 0;
+	}
 
 	void loadCloud(std::vector<pcl::PointXYZ> &cloud, float tx, float ty, float tz, float yaw)
 	{
@@ -194,6 +254,9 @@ public:
 							m_grid.allocCell(x, y, z);
 		}
 
+		// Cache first-load flag (read once, shared across threads)
+		const bool is_first_load = m_firstLoad;
+
 		// Applies the pre-computed kernel to all grid cells centered in the cloud points 
 		const float step = 20*m_resolution;
 		#pragma omp parallel for num_threads(20) shared(m_grid) 
@@ -203,10 +266,31 @@ public:
 			if(!isIntoGrid(cloud[i].x-step, cloud[i].y-step, cloud[i].z-step) || 
 			   !isIntoGrid(cloud[i].x+step, cloud[i].y+step, cloud[i].z+step))
 				continue;
-						
-			if(m_grid(cloud[i].x,cloud[i].y,cloud[i].z) == 0)
-				continue;
 
+			// Hit-counter logic
+			// Read center voxel to check observation history
+			uint64_t center_val = m_grid.read(cloud[i].x, cloud[i].y, cloud[i].z);
+			int hits = extractHits(center_val);
+
+			// On non-first loads, skip kernel for never-observed voxels (dynamic filtering)
+			if (!is_first_load && hits == 0) {
+				// Mark as seen once (hit_count = 1) but don't apply the kernel,
+				// so the distance field stays untouched and transient points are excluded.
+				uint64_t dist_bits = center_val & DIST_MASK;
+				m_grid(cloud[i].x, cloud[i].y, cloud[i].z) = (1ULL << HIT_SHIFT) | dist_bits;
+				continue;
+			}
+
+			// Skip if center already at distance 0 (only check distance bits)
+			if((center_val & DIST_MASK) == 0)
+			{
+				// Still increment hit counter even if distance is already 0
+				uint64_t new_hits = std::min((uint64_t)(hits + 1), HIT_SENTINEL - 1);
+				m_grid(cloud[i].x, cloud[i].y, cloud[i].z) = (new_hits << HIT_SHIFT);  // dist=0
+				continue;
+			}
+
+			// Apply 41^3 kernel (hot loop)
 			int xi, yi, zi, k = 0;
 			float x, y, z;
 			for(zi=0, z=cloud[i].z-step; zi<41; zi++, z+=m_resolution)
@@ -216,64 +300,63 @@ public:
 						*it &= kernel[k++];
 					}
 				}
-		}
-		#pragma omp barrier
-	}
 
-	inline TrilinearParams computeDistInterpolation(const double &x, const double &y, const double &z)
-	{
-		TrilinearParams r;
-
-		if(isIntoGrid(x, y, z))
-		{
-
-			// Get neightbour values to compute trilinear interpolation
-			float c000, c001, c010, c011, c100, c101, c110, c111;
-			c000 = std::bitset<64>(m_grid.read(x, y, z)).count(); 
-			c001 = std::bitset<64>(m_grid.read(x, y, z+m_resolution)).count(); 
-			c010 = std::bitset<64>(m_grid.read(x, y+m_resolution, z)).count(); 
-			c011 = std::bitset<64>(m_grid.read(x, y+m_resolution, z+m_resolution)).count();  
-			c100 = std::bitset<64>(m_grid.read(x+m_resolution, y, z)).count();  
-			c101 = std::bitset<64>(m_grid.read(x+m_resolution, y, z+m_resolution)).count();  
-			c110 = std::bitset<64>(m_grid.read(x+m_resolution, y+m_resolution, z)).count();  
-			c111 = std::bitset<64>(m_grid.read(x+m_resolution, y+m_resolution, z+m_resolution)).count(); 
-
-			// Compute trilinear parameters
-			const float div = -m_oneDivRes*m_oneDivRes*m_oneDivRes;
-			float x0, y0, z0, x1, y1, z1;
-			x0 = ((int)(x*m_oneDivRes))*m_resolution;
-			if(x0<0)
-				x0 -= m_resolution; 
-			x1 = x0+m_resolution;
-			y0 = ((int)(y*m_oneDivRes))*m_resolution;
-			if(y0<0)
-				y0 -= m_resolution;
-			y1 = y0+m_resolution;
-			z0 = ((int)(z*m_oneDivRes))*m_resolution;
-			if(z0<0)
-				z0 -= m_resolution;
-			z1 = z0+m_resolution;
-			r.a0 = (-c000*x1*y1*z1 + c001*x1*y1*z0 + c010*x1*y0*z1 - c011*x1*y0*z0 
-			+ c100*x0*y1*z1 - c101*x0*y1*z0 - c110*x0*y0*z1 + c111*x0*y0*z0)*div;
-			r.a1 = (c000*y1*z1 - c001*y1*z0 - c010*y0*z1 + c011*y0*z0
-			- c100*y1*z1 + c101*y1*z0 + c110*y0*z1 - c111*y0*z0)*div;
-			r.a2 = (c000*x1*z1 - c001*x1*z0 - c010*x1*z1 + c011*x1*z0 
-			- c100*x0*z1 + c101*x0*z0 + c110*x0*z1 - c111*x0*z0)*div;
-			r.a3 = (c000*x1*y1 - c001*x1*y1 - c010*x1*y0 + c011*x1*y0 
-			- c100*x0*y1 + c101*x0*y1 + c110*x0*y0 - c111*x0*y0)*div;
-			r.a4 = (-c000*z1 + c001*z0 + c010*z1 - c011*z0 + c100*z1 
-			- c101*z0 - c110*z1 + c111*z0)*div;
-			r.a5 = (-c000*y1 + c001*y1 + c010*y0 - c011*y0 + c100*y1 
-			- c101*y1 - c110*y0 + c111*y0)*div;
-			r.a6 = (-c000*x1 + c001*x1 + c010*x1 - c011*x1 + c100*x0 
-			- c101*x0 - c110*x0 + c111*x0)*div;
-			r.a7 = (c000 - c001 - c010 + c011 - c100
-			+ c101 + c110 - c111)*div;
+			// Update hit counter at center voxel
+			center_val = m_grid.read(cloud[i].x, cloud[i].y, cloud[i].z);
+			uint64_t dist_bits = center_val & DIST_MASK;
+			uint64_t new_hits = std::min((uint64_t)(hits + 1), HIT_SENTINEL - 1);
+			m_grid(cloud[i].x, cloud[i].y, cloud[i].z) = (new_hits << HIT_SHIFT) | dist_bits;
 		}
 
-		return r;
+		m_firstLoad = false;
 	}
 
+inline TrilinearParams computeDistInterpolation(const double &x, const double &y, const double &z)
+{
+    TrilinearParams r;
+
+    if(isIntoGrid(x, y, z))
+    {
+        // Neighbour values, masked to distance bits, via hardware popcount
+        float c000, c001, c010, c011, c100, c101, c110, c111;
+        c000 = __builtin_popcountll(m_grid.read(x, y, z) & DIST_MASK); 
+        c001 = __builtin_popcountll(m_grid.read(x, y, z+m_resolution) & DIST_MASK); 
+        c010 = __builtin_popcountll(m_grid.read(x, y+m_resolution, z) & DIST_MASK); 
+        c011 = __builtin_popcountll(m_grid.read(x, y+m_resolution, z+m_resolution) & DIST_MASK);  
+        c100 = __builtin_popcountll(m_grid.read(x+m_resolution, y, z) & DIST_MASK);  
+        c101 = __builtin_popcountll(m_grid.read(x+m_resolution, y, z+m_resolution) & DIST_MASK);  
+        c110 = __builtin_popcountll(m_grid.read(x+m_resolution, y+m_resolution, z) & DIST_MASK);  
+        c111 = __builtin_popcountll(m_grid.read(x+m_resolution, y+m_resolution, z+m_resolution) & DIST_MASK); 
+
+        // Compute trilinear parameters
+        const float div = -m_oneDivRes*m_oneDivRes*m_oneDivRes;
+        float x0, y0, z0, x1, y1, z1;
+        x0 = std::floor(x * m_oneDivRes) * m_resolution;
+        x1 = x0 + m_resolution;
+        y0 = std::floor(y * m_oneDivRes) * m_resolution;
+        y1 = y0 + m_resolution;
+        z0 = std::floor(z * m_oneDivRes) * m_resolution;
+        z1 = z0 + m_resolution;
+        r.a0 = (-c000*x1*y1*z1 + c001*x1*y1*z0 + c010*x1*y0*z1 - c011*x1*y0*z0 
+        + c100*x0*y1*z1 - c101*x0*y1*z0 - c110*x0*y0*z1 + c111*x0*y0*z0)*div;
+        r.a1 = (c000*y1*z1 - c001*y1*z0 - c010*y0*z1 + c011*y0*z0
+        - c100*y1*z1 + c101*y1*z0 + c110*y0*z1 - c111*y0*z0)*div;
+        r.a2 = (c000*x1*z1 - c001*x1*z0 - c010*x1*z1 + c011*x1*z0 
+        - c100*x0*z1 + c101*x0*z0 + c110*x0*z1 - c111*x0*z0)*div;
+        r.a3 = (c000*x1*y1 - c001*x1*y1 - c010*x1*y0 + c011*x1*y0 
+        - c100*x0*y1 + c101*x0*y1 + c110*x0*y0 - c111*x0*y0)*div;
+        r.a4 = (-c000*z1 + c001*z0 + c010*z1 - c011*z0 + c100*z1 
+        - c101*z0 - c110*z1 + c111*z0)*div;
+        r.a5 = (-c000*y1 + c001*y1 + c010*y0 - c011*y0 + c100*y1 
+        - c101*y1 - c110*y0 + c111*y0)*div;
+        r.a6 = (-c000*x1 + c001*x1 + c010*x1 - c011*x1 + c100*x0 
+        - c101*x0 - c110*x0 + c111*x0)*div;
+        r.a7 = (c000 - c001 - c010 + c011 - c100
+        + c101 + c110 - c111)*div;
+    }
+
+    return r;
+}
 
 protected:
 
@@ -282,6 +365,7 @@ protected:
 	float m_resolution, m_oneDivRes;	
 	uint64_t kernel[41*41*41];
 	GRID64 m_grid;
+	bool m_firstLoad;	// True until first loadCloud completes after clear()
 };	
 
 

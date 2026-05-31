@@ -1,0 +1,682 @@
+[0.000000] (-) TimerEvent: {}
+[0.000695] (dlio) JobQueued: {'identifier': 'dlio', 'dependencies': OrderedDict()}
+[0.000731] (dlio) JobStarted: {'identifier': 'dlio'}
+[0.010315] (dlio) JobProgress: {'identifier': 'dlio', 'progress': 'cmake'}
+[0.010963] (dlio) Command: {'cmd': ['/home/upo/.local/bin/cmake', '/home/upo/slam_ws/src/D-LIO', '-DCMAKE_INSTALL_PREFIX=/home/upo/slam_ws/src/D-LIO/install/dlio'], 'cwd': '/home/upo/slam_ws/src/D-LIO/build/dlio', 'env': OrderedDict([('GJS_DEBUG_TOPICS', 'JS ERROR;JS LOG'), ('LESSOPEN', '| /usr/bin/lesspipe %s'), ('VSCODE_CWD', '/home/upo'), ('USER', 'upo'), ('LC_TIME', 'es_ES.UTF-8'), ('VSCODE_NLS_CONFIG', '{"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/usr/share/antigravity/resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}'), ('XDG_SESSION_TYPE', 'x11'), ('SHLVL', '0'), ('LD_LIBRARY_PATH', '/home/upo/pose_slam/install/localization/lib:/home/upo/pose_slam/install/ndt_omp/lib:/home/upo/pose_slam/install/fast_gicp/lib:/home/upo/slam_ws/install/livox_ros_driver2/lib:/home/upo/slam_ws/install/g_edf_odom/lib:/home/upo/slam_ws/install/gdf_map/lib:/home/upo/slam_ws/install/g_edf_loc/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib:/usr/lib/x86_64-linux-gnu:'), ('HOME', '/home/upo'), ('CHROME_DESKTOP', 'antigravity.desktop'), ('DESKTOP_SESSION', 'ubuntu'), ('VSCODE_IPC_HOOK', '/run/user/1000/vscode-5f4768d8-1.10-main.sock'), ('GIO_LAUNCHED_DESKTOP_FILE', '/usr/share/applications/antigravity.desktop'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('PAGER', 'cat'), ('LC_MONETARY', 'es_ES.UTF-8'), ('MANAGERPID', '2009'), ('SYSTEMD_EXEC_PID', '2754'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('ANTIGRAVITY_AGENT', '1'), ('GIO_LAUNCHED_DESKTOP_FILE_PID', '9150'), ('COLCON_PREFIX_PATH', '/home/upo/pose_slam/install:/home/upo/slam_ws/install'), ('ROS_DISTRO', 'humble'), ('GTK_IM_MODULE', 'ibus'), ('LOGNAME', 'upo'), ('_', '/usr/bin/colcon'), ('JOURNAL_STREAM', '8:16833'), ('ROS_VERSION', '2'), ('PKG_CONFIG_PATH', '/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:'), ('XDG_SESSION_CLASS', 'user'), ('USERNAME', 'upo'), ('TERM', 'dumb'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('FC_FONTATIONS', '1'), ('ROS_LOCALHOST_ONLY', '0'), ('WINDOWPATH', '2'), ('ANTIGRAVITY_EDITOR_APP_ROOT', '/usr/share/antigravity/resources/app'), ('PATH', '/home/upo/.local/bin:/opt/ros/humble/bin:/usr/local/MATLAB/R2024a/bin:/home/upo/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin:/home/upo/tools/LAStools/bin'), ('SESSION_MANAGER', 'local/upo-Victus-by-HP-Gaming-Laptop-16-r0xxx:@/tmp/.ICE-unix/2699,unix/upo-Victus-by-HP-Gaming-Laptop-16-r0xxx:/tmp/.ICE-unix/2699'), ('INVOCATION_ID', 'f41e977cceb94d9e8307897f8a96cdf2'), ('XDG_MENU_PREFIX', 'gnome-'), ('LC_ADDRESS', 'es_ES.UTF-8'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('GDK_BACKEND', 'x11'), ('DISPLAY', ':0'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('LC_TELEPHONE', 'es_ES.UTF-8'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu'), ('XAUTHORITY', '/run/user/1000/gdm/Xauthority'), ('LS_COLORS', ''), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('AMENT_PREFIX_PATH', '/home/upo/pose_slam/install/radar_analysis:/home/upo/pose_slam/install/localization:/home/upo/pose_slam/install/ndt_omp:/home/upo/pose_slam/install/lidar_analysis:/home/upo/pose_slam/install/fast_gicp:/home/upo/slam_ws/install/dlio_slam:/home/upo/slam_ws/install/dlio:/home/upo/slam_ws/install/livox_ros_driver2:/home/upo/slam_ws/install/g_edf_odom:/home/upo/slam_ws/install/g_edf_lc:/home/upo/slam_ws/install/gdf_map:/home/upo/slam_ws/install/g_edf_loc:/home/upo/slam_ws/install/dji_odom:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'es_ES.UTF-8'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'ubuntu'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'es_ES.UTF-8'), ('GPG_AGENT_INFO', '/run/user/1000/gnupg/S.gpg-agent:0:1'), ('GJS_DEBUG_OUTPUT', 'stderr'), ('LC_IDENTIFICATION', 'es_ES.UTF-8'), ('QT_IM_MODULE', 'ibus'), ('ANTIGRAVITY_TRAJECTORY_ID', '741003ab-c10d-43bc-8ddc-493275a9de29'), ('PWD', '/home/upo/slam_ws/src/D-LIO/build/dlio'), ('LC_ALL', 'en_US.UTF-8'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu:/etc/xdg'), ('VSCODE_CODE_CACHE_PATH', '/home/upo/.config/Antigravity/CachedData/15487b3041e65228cae24980a3f796c905ef582c'), ('XDG_DATA_DIRS', '/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/upo/slam_ws/install/livox_ros_driver2/local/lib/python3.10/dist-packages:/home/upo/slam_ws/install/gdf_map/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'es_ES.UTF-8'), ('LC_PAPER', 'es_ES.UTF-8'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/home/upo/pose_slam/install/radar_analysis:/home/upo/pose_slam/install/localization:/home/upo/pose_slam/install/ndt_omp:/home/upo/pose_slam/install/lidar_analysis:/home/upo/pose_slam/install/fast_gicp:/home/upo/slam_ws/install/dlio_slam:/home/upo/slam_ws/install/dlio:/home/upo/slam_ws/install/livox_ros_driver2:/home/upo/slam_ws/install/g_edf_odom:/home/upo/slam_ws/install/g_edf_lc:/home/upo/slam_ws/install/gdf_map:/home/upo/slam_ws/install/g_edf_loc:/home/upo/slam_ws/install/dji_odom:/opt/ros/humble'), ('VSCODE_PID', '9150')]), 'shell': False}
+[0.084167] (dlio) StderrLine: {'line': b'CMake Deprecation Warning at CMakeLists.txt:2 (cmake_minimum_required):\n'}
+[0.084388] (dlio) StderrLine: {'line': b'  Compatibility with CMake < 3.10 will be removed from a future version of\n'}
+[0.084467] (dlio) StderrLine: {'line': b'  CMake.\n'}
+[0.084530] (dlio) StderrLine: {'line': b'\n'}
+[0.084587] (dlio) StderrLine: {'line': b'  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax\n'}
+[0.084649] (dlio) StderrLine: {'line': b'  to tell CMake that the project requires at least <min> but has been updated\n'}
+[0.084719] (dlio) StderrLine: {'line': b'  to work with policies introduced by <max> or earlier.\n'}
+[0.084806] (dlio) StderrLine: {'line': b'\n'}
+[0.084889] (dlio) StderrLine: {'line': b'\n'}
+[0.100044] (-) TimerEvent: {}
+[0.156933] (dlio) StdoutLine: {'line': b'-- The C compiler identification is GNU 11.4.0\n'}
+[0.200218] (-) TimerEvent: {}
+[0.241226] (dlio) StdoutLine: {'line': b'-- The CXX compiler identification is GNU 11.4.0\n'}
+[0.249943] (dlio) StdoutLine: {'line': b'-- Detecting C compiler ABI info\n'}
+[0.300342] (-) TimerEvent: {}
+[0.316690] (dlio) StdoutLine: {'line': b'-- Detecting C compiler ABI info - done\n'}
+[0.332338] (dlio) StdoutLine: {'line': b'-- Check for working C compiler: /usr/bin/cc - skipped\n'}
+[0.333156] (dlio) StdoutLine: {'line': b'-- Detecting C compile features\n'}
+[0.333841] (dlio) StdoutLine: {'line': b'-- Detecting C compile features - done\n'}
+[0.348408] (dlio) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info\n'}
+[0.400446] (-) TimerEvent: {}
+[0.425826] (dlio) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info - done\n'}
+[0.442606] (dlio) StdoutLine: {'line': b'-- Check for working CXX compiler: /usr/bin/c++ - skipped\n'}
+[0.442783] (dlio) StdoutLine: {'line': b'-- Detecting CXX compile features\n'}
+[0.443465] (dlio) StdoutLine: {'line': b'-- Detecting CXX compile features - done\n'}
+[0.456297] (dlio) StdoutLine: {'line': b'-- Found ament_cmake: 1.3.11 (/opt/ros/humble/share/ament_cmake/cmake)\n'}
+[0.500593] (-) TimerEvent: {}
+[0.600843] (-) TimerEvent: {}
+[0.659838] (dlio) StdoutLine: {'line': b'-- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter\n'}
+[0.700990] (-) TimerEvent: {}
+[0.793767] (dlio) StdoutLine: {'line': b'-- Found rclcpp: 16.0.11 (/opt/ros/humble/share/rclcpp/cmake)\n'}
+[0.801296] (-) TimerEvent: {}
+[0.857857] (dlio) StdoutLine: {'line': b'-- Found rosidl_generator_c: 3.1.6 (/opt/ros/humble/share/rosidl_generator_c/cmake)\n'}
+[0.865828] (dlio) StdoutLine: {'line': b'-- Found rosidl_adapter: 3.1.6 (/opt/ros/humble/share/rosidl_adapter/cmake)\n'}
+[0.879649] (dlio) StdoutLine: {'line': b'-- Found rosidl_generator_cpp: 3.1.6 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)\n'}
+[0.898127] (dlio) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c\n'}
+[0.901357] (-) TimerEvent: {}
+[0.920690] (dlio) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp\n'}
+[0.987045] (dlio) StdoutLine: {'line': b'-- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)\n'}
+[0.993430] (dlio) StdoutLine: {'line': b'-- Found rmw_fastrtps_cpp: 6.2.7 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)\n'}
+[1.001606] (-) TimerEvent: {}
+[1.101839] (-) TimerEvent: {}
+[1.149663] (dlio) StdoutLine: {'line': b'-- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")\n'}
+[1.199793] (dlio) StdoutLine: {'line': b'-- Found FastRTPS: /opt/ros/humble/include\n'}
+[1.202060] (-) TimerEvent: {}
+[1.279965] (dlio) StdoutLine: {'line': b"-- Using RMW implementation 'rmw_fastrtps_cpp' as default\n"}
+[1.297256] (dlio) StdoutLine: {'line': b'-- Performing Test CMAKE_HAVE_LIBC_PTHREAD\n'}
+[1.302156] (-) TimerEvent: {}
+[1.367184] (dlio) StdoutLine: {'line': b'-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success\n'}
+[1.368118] (dlio) StdoutLine: {'line': b'-- Found Threads: TRUE\n'}
+[1.402390] (-) TimerEvent: {}
+[1.443886] (dlio) StdoutLine: {'line': b'-- Found message_filters: 4.3.5 (/opt/ros/humble/share/message_filters/cmake)\n'}
+[1.450318] (dlio) StdoutLine: {'line': b'-- Found tf2: 0.25.11 (/opt/ros/humble/share/tf2/cmake)\n'}
+[1.489297] (dlio) StdoutLine: {'line': b'-- Found tf2_ros: 0.25.11 (/opt/ros/humble/share/tf2_ros/cmake)\n'}
+[1.502534] (-) TimerEvent: {}
+[1.602854] (-) TimerEvent: {}
+[1.617597] (dlio) StdoutLine: {'line': b'-- Found tf2_geometry_msgs: 0.25.11 (/opt/ros/humble/share/tf2_geometry_msgs/cmake)\n'}
+[1.652712] (dlio) StdoutLine: {'line': b'-- Found eigen3_cmake_module: 0.1.1 (/opt/ros/humble/share/eigen3_cmake_module/cmake)\n'}
+[1.654300] (dlio) StdoutLine: {'line': b'-- Found Eigen3: TRUE (found version "3.4.0")\n'}
+[1.654349] (dlio) StdoutLine: {'line': b'-- Ensuring Eigen3 include directory is part of orocos-kdl CMake target\n'}
+[1.660646] (dlio) StdoutLine: {'line': b'-- Found sensor_msgs: 4.2.4 (/opt/ros/humble/share/sensor_msgs/cmake)\n'}
+[1.685817] (dlio) StdoutLine: {'line': b'-- Found nav_msgs: 4.2.4 (/opt/ros/humble/share/nav_msgs/cmake)\n'}
+[1.702989] (-) TimerEvent: {}
+[1.707347] (dlio) StdoutLine: {'line': b'-- Found pcl_ros: 2.4.5 (/opt/ros/humble/share/pcl_ros/cmake)\n'}
+[1.759346] (dlio) StderrLine: {'line': b'CMake Warning (dev) at /usr/lib/x86_64-linux-gnu/cmake/pcl/PCLConfig.cmake:146 (find_package):\n'}
+[1.759523] (dlio) StderrLine: {'line': b'  Policy CMP0144 is not set: find_package uses upper-case <PACKAGENAME>_ROOT\n'}
+[1.759586] (dlio) StderrLine: {'line': b'  variables.  Run "cmake --help-policy CMP0144" for policy details.  Use the\n'}
+[1.759650] (dlio) StderrLine: {'line': b'  cmake_policy command to set the policy and suppress this warning.\n'}
+[1.759701] (dlio) StderrLine: {'line': b'\n'}
+[1.759751] (dlio) StderrLine: {'line': b'  CMake variable EIGEN_ROOT is set to:\n'}
+[1.759802] (dlio) StderrLine: {'line': b'\n'}
+[1.759851] (dlio) StderrLine: {'line': b'    /usr/include/eigen3\n'}
+[1.759914] (dlio) StderrLine: {'line': b'\n'}
+[1.759974] (dlio) StderrLine: {'line': b'  For compatibility, find_package is ignoring the variable, but code in a\n'}
+[1.760034] (dlio) StderrLine: {'line': b'  .cmake module might still use it.\n'}
+[1.760083] (dlio) StderrLine: {'line': b'Call Stack (most recent call first):\n'}
+[1.760131] (dlio) StderrLine: {'line': b'  /usr/lib/x86_64-linux-gnu/cmake/pcl/PCLConfig.cmake:299 (find_eigen)\n'}
+[1.760201] (dlio) StderrLine: {'line': b'  /usr/lib/x86_64-linux-gnu/cmake/pcl/PCLConfig.cmake:543 (find_external_library)\n'}
+[1.760262] (dlio) StderrLine: {'line': b'  /opt/ros/humble/share/pcl_conversions/cmake/ament_cmake_export_dependencies-extras.cmake:21 (find_package)\n'}
+[1.760311] (dlio) StderrLine: {'line': b'  /opt/ros/humble/share/pcl_conversions/cmake/pcl_conversionsConfig.cmake:41 (include)\n'}
+[1.760357] (dlio) StderrLine: {'line': b'  /opt/ros/humble/share/pcl_ros/cmake/ament_cmake_export_dependencies-extras.cmake:21 (find_package)\n'}
+[1.760400] (dlio) StderrLine: {'line': b'  /opt/ros/humble/share/pcl_ros/cmake/pcl_rosConfig.cmake:41 (include)\n'}
+[1.760437] (dlio) StderrLine: {'line': b'  CMakeLists.txt:36 (find_package)\n'}
+[1.760475] (dlio) StderrLine: {'line': b'This warning is for project developers.  Use -Wno-dev to suppress it.\n'}
+[1.760513] (dlio) StderrLine: {'line': b'\n'}
+[1.765213] (dlio) StdoutLine: {'line': b"-- Checking for module 'eigen3'\n"}
+[1.780853] (dlio) StdoutLine: {'line': b'--   Found eigen3, version 3.4.0\n'}
+[1.803158] (-) TimerEvent: {}
+[1.818053] (dlio) StdoutLine: {'line': b'-- Found Eigen: /usr/include/eigen3 (Required is at least version "3.1")\n'}
+[1.818220] (dlio) StdoutLine: {'line': b'-- Eigen found (include: /usr/include/eigen3, version: 3.4.0)\n'}
+[1.818491] (dlio) StderrLine: {'line': b'CMake Warning (dev) at /usr/lib/x86_64-linux-gnu/cmake/pcl/PCLConfig.cmake:128 (find_package):\n'}
+[1.818609] (dlio) StderrLine: {'line': b'  Policy CMP0167 is not set: The FindBoost module is removed.  Run "cmake\n'}
+[1.818652] (dlio) StderrLine: {'line': b'  --help-policy CMP0167" for policy details.  Use the cmake_policy command to\n'}
+[1.818690] (dlio) StderrLine: {'line': b'  set the policy and suppress this warning.\n'}
+[1.818725] (dlio) StderrLine: {'line': b'\n'}
+[1.818757] (dlio) StderrLine: {'line': b'Call Stack (most recent call first):\n'}
+[1.818787] (dlio) StderrLine: {'line': b'  /usr/lib/x86_64-linux-gnu/cmake/pcl/PCLConfig.cmake:297 (find_boost)\n'}
+[1.818818] (dlio) StderrLine: {'line': b'  /usr/lib/x86_64-linux-gnu/cmake/pcl/PCLConfig.cmake:543 (find_external_library)\n'}
+[1.818850] (dlio) StderrLine: {'line': b'  /opt/ros/humble/share/pcl_conversions/cmake/ament_cmake_export_dependencies-extras.cmake:21 (find_package)\n'}
+[1.818884] (dlio) StderrLine: {'line': b'  /opt/ros/humble/share/pcl_conversions/cmake/pcl_conversionsConfig.cmake:41 (include)\n'}
+[1.818916] (dlio) StderrLine: {'line': b'  /opt/ros/humble/share/pcl_ros/cmake/ament_cmake_export_dependencies-extras.cmake:21 (find_package)\n'}
+[1.818950] (dlio) StderrLine: {'line': b'  /opt/ros/humble/share/pcl_ros/cmake/pcl_rosConfig.cmake:41 (include)\n'}
+[1.818990] (dlio) StderrLine: {'line': b'  CMakeLists.txt:36 (find_package)\n'}
+[1.819025] (dlio) StderrLine: {'line': b'This warning is for project developers.  Use -Wno-dev to suppress it.\n'}
+[1.819063] (dlio) StderrLine: {'line': b'\n'}
+[1.858806] (dlio) StderrLine: {'line': b'CMake Warning (dev) at /usr/lib/x86_64-linux-gnu/cmake/pcl/Modules/FindFLANN.cmake:44 (find_package):\n'}
+[1.859040] (dlio) StderrLine: {'line': b'  Policy CMP0144 is not set: find_package uses upper-case <PACKAGENAME>_ROOT\n'}
+[1.859118] (dlio) StderrLine: {'line': b'  variables.  Run "cmake --help-policy CMP0144" for policy details.  Use the\n'}
+[1.859181] (dlio) StderrLine: {'line': b'  cmake_policy command to set the policy and suppress this warning.\n'}
+[1.859239] (dlio) StderrLine: {'line': b'\n'}
+[1.859291] (dlio) StderrLine: {'line': b'  CMake variable FLANN_ROOT is set to:\n'}
+[1.859343] (dlio) StderrLine: {'line': b'\n'}
+[1.859392] (dlio) StderrLine: {'line': b'    /usr\n'}
+[1.859454] (dlio) StderrLine: {'line': b'\n'}
+[1.859497] (dlio) StderrLine: {'line': b'  For compatibility, find_package is ignoring the variable, but code in a\n'}
+[1.859543] (dlio) StderrLine: {'line': b'  .cmake module might still use it.\n'}
+[1.859591] (dlio) StderrLine: {'line': b'Call Stack (most recent call first):\n'}
+[1.859639] (dlio) StderrLine: {'line': b'  /usr/lib/x86_64-linux-gnu/cmake/pcl/PCLConfig.cmake:256 (find_package)\n'}
+[1.859688] (dlio) StderrLine: {'line': b'  /usr/lib/x86_64-linux-gnu/cmake/pcl/PCLConfig.cmake:301 (find_flann)\n'}
+[1.859744] (dlio) StderrLine: {'line': b'  /usr/lib/x86_64-linux-gnu/cmake/pcl/PCLConfig.cmake:543 (find_external_library)\n'}
+[1.859792] (dlio) StderrLine: {'line': b'  /opt/ros/humble/share/pcl_conversions/cmake/ament_cmake_export_dependencies-extras.cmake:21 (find_package)\n'}
+[1.859834] (dlio) StderrLine: {'line': b'  /opt/ros/humble/share/pcl_conversions/cmake/pcl_conversionsConfig.cmake:41 (include)\n'}
+[1.859877] (dlio) StderrLine: {'line': b'  /opt/ros/humble/share/pcl_ros/cmake/ament_cmake_export_dependencies-extras.cmake:21 (find_package)\n'}
+[1.859916] (dlio) StderrLine: {'line': b'  /opt/ros/humble/share/pcl_ros/cmake/pcl_rosConfig.cmake:41 (include)\n'}
+[1.859956] (dlio) StderrLine: {'line': b'  CMakeLists.txt:36 (find_package)\n'}
+[1.860012] (dlio) StderrLine: {'line': b'This warning is for project developers.  Use -Wno-dev to suppress it.\n'}
+[1.860058] (dlio) StderrLine: {'line': b'\n'}
+[1.890246] (dlio) StdoutLine: {'line': b"-- Checking for module 'flann'\n"}
+[1.903263] (-) TimerEvent: {}
+[1.905884] (dlio) StdoutLine: {'line': b'--   Found flann, version 1.9.1\n'}
+[1.956343] (dlio) StdoutLine: {'line': b'-- Found FLANN: /usr/lib/x86_64-linux-gnu/libflann_cpp.so\n'}
+[1.956566] (dlio) StdoutLine: {'line': b'-- FLANN found (include: /usr/include, lib: /usr/lib/x86_64-linux-gnu/libflann_cpp.so)\n'}
+[2.003530] (-) TimerEvent: {}
+[2.103775] (-) TimerEvent: {}
+[2.204085] (-) TimerEvent: {}
+[2.304499] (-) TimerEvent: {}
+[2.404742] (-) TimerEvent: {}
+[2.505190] (-) TimerEvent: {}
+[2.605519] (-) TimerEvent: {}
+[2.705798] (-) TimerEvent: {}
+[2.806127] (-) TimerEvent: {}
+[2.906456] (-) TimerEvent: {}
+[3.006893] (-) TimerEvent: {}
+[3.073232] (dlio) StdoutLine: {'line': b"-- Checking for module 'libusb-1.0'\n"}
+[3.090065] (dlio) StdoutLine: {'line': b'--   Found libusb-1.0, version 1.0.25\n'}
+[3.106999] (-) TimerEvent: {}
+[3.131901] (dlio) StdoutLine: {'line': b'-- Found libusb: /usr/lib/x86_64-linux-gnu/libusb-1.0.so\n'}
+[3.133176] (dlio) StdoutLine: {'line': b'-- OpenNI found (version: 1.5.4.0, include: /usr/include/ni, lib: /usr/lib/libOpenNI.so;libusb::libusb)\n'}
+[3.201280] (dlio) StdoutLine: {'line': b'-- OpenNI2 found (version: 2.2.0.33, include: /usr/include/openni2, lib: /usr/lib/x86_64-linux-gnu/libOpenNI2.so;libusb::libusb)\n'}
+[3.207067] (-) TimerEvent: {}
+[3.307481] (-) TimerEvent: {}
+[3.407887] (-) TimerEvent: {}
+[3.472464] (dlio) StderrLine: {'line': b'CMake Warning (dev) at /usr/lib/x86_64-linux-gnu/cmake/pcl/PCLConfig.cmake:128 (find_package):\n'}
+[3.472618] (dlio) StderrLine: {'line': b'  Policy CMP0167 is not set: The FindBoost module is removed.  Run "cmake\n'}
+[3.472676] (dlio) StderrLine: {'line': b'  --help-policy CMP0167" for policy details.  Use the cmake_policy command to\n'}
+[3.472728] (dlio) StderrLine: {'line': b'  set the policy and suppress this warning.\n'}
+[3.472779] (dlio) StderrLine: {'line': b'\n'}
+[3.472829] (dlio) StderrLine: {'line': b'Call Stack (most recent call first):\n'}
+[3.472880] (dlio) StderrLine: {'line': b'  /usr/lib/x86_64-linux-gnu/cmake/pcl/PCLConfig.cmake:297 (find_boost)\n'}
+[3.472936] (dlio) StderrLine: {'line': b'  /usr/lib/x86_64-linux-gnu/cmake/pcl/PCLConfig.cmake:543 (find_external_library)\n'}
+[3.472994] (dlio) StderrLine: {'line': b'  /opt/ros/humble/share/pcl_conversions/cmake/ament_cmake_export_dependencies-extras.cmake:21 (find_package)\n'}
+[3.473054] (dlio) StderrLine: {'line': b'  /opt/ros/humble/share/pcl_conversions/cmake/pcl_conversionsConfig.cmake:41 (include)\n'}
+[3.473103] (dlio) StderrLine: {'line': b'  /opt/ros/humble/share/pcl_ros/cmake/ament_cmake_export_dependencies-extras.cmake:21 (find_package)\n'}
+[3.473153] (dlio) StderrLine: {'line': b'  /opt/ros/humble/share/pcl_ros/cmake/pcl_rosConfig.cmake:41 (include)\n'}
+[3.473202] (dlio) StderrLine: {'line': b'  CMakeLists.txt:36 (find_package)\n'}
+[3.473250] (dlio) StderrLine: {'line': b'This warning is for project developers.  Use -Wno-dev to suppress it.\n'}
+[3.473297] (dlio) StderrLine: {'line': b'\n'}
+[3.482805] (dlio) StdoutLine: {'line': b'-- Eigen found (include: /usr/include/eigen3, version: 3.4.0)\n'}
+[3.489003] (dlio) StdoutLine: {'line': b'-- OpenNI found (version: 1.5.4.0, include: /usr/include/ni, lib: /usr/lib/libOpenNI.so;libusb::libusb)\n'}
+[3.494945] (dlio) StdoutLine: {'line': b'-- OpenNI2 found (version: 2.2.0.33, include: /usr/include/openni2, lib: /usr/lib/x86_64-linux-gnu/libOpenNI2.so;libusb::libusb)\n'}
+[3.508185] (-) TimerEvent: {}
+[3.608547] (-) TimerEvent: {}
+[3.708898] (-) TimerEvent: {}
+[3.774512] (dlio) StdoutLine: {'line': b'-- Found Qhull version 8.0.2\n'}
+[3.809069] (-) TimerEvent: {}
+[3.909386] (-) TimerEvent: {}
+[4.009650] (-) TimerEvent: {}
+[4.109925] (-) TimerEvent: {}
+[4.111458] (dlio) StdoutLine: {'line': b'-- OpenNI found (version: 1.5.4.0, include: /usr/include/ni, lib: /usr/lib/libOpenNI.so;libusb::libusb)\n'}
+[4.210090] (-) TimerEvent: {}
+[4.310314] (-) TimerEvent: {}
+[4.410589] (-) TimerEvent: {}
+[4.416892] (dlio) StdoutLine: {'line': b'-- Found PCL_COMMON: /usr/lib/x86_64-linux-gnu/libpcl_common.so\n'}
+[4.427097] (dlio) StdoutLine: {'line': b'-- Found PCL_KDTREE: /usr/lib/x86_64-linux-gnu/libpcl_kdtree.so\n'}
+[4.428522] (dlio) StdoutLine: {'line': b'-- Found PCL_OCTREE: /usr/lib/x86_64-linux-gnu/libpcl_octree.so\n'}
+[4.430674] (dlio) StdoutLine: {'line': b'-- Found PCL_SEARCH: /usr/lib/x86_64-linux-gnu/libpcl_search.so\n'}
+[4.433456] (dlio) StdoutLine: {'line': b'-- Found PCL_SAMPLE_CONSENSUS: /usr/lib/x86_64-linux-gnu/libpcl_sample_consensus.so\n'}
+[4.435529] (dlio) StdoutLine: {'line': b'-- Found PCL_FILTERS: /usr/lib/x86_64-linux-gnu/libpcl_filters.so\n'}
+[4.436326] (dlio) StdoutLine: {'line': b'-- Found PCL_2D: /usr/include/pcl-1.12\n'}
+[4.436959] (dlio) StdoutLine: {'line': b'-- Found PCL_GEOMETRY: /usr/include/pcl-1.12\n'}
+[4.438250] (dlio) StdoutLine: {'line': b'-- Found PCL_IO: /usr/lib/x86_64-linux-gnu/libpcl_io.so\n'}
+[4.439510] (dlio) StdoutLine: {'line': b'-- Found PCL_FEATURES: /usr/lib/x86_64-linux-gnu/libpcl_features.so\n'}
+[4.441035] (dlio) StdoutLine: {'line': b'-- Found PCL_ML: /usr/lib/x86_64-linux-gnu/libpcl_ml.so\n'}
+[4.441857] (dlio) StdoutLine: {'line': b'-- Found PCL_SEGMENTATION: /usr/lib/x86_64-linux-gnu/libpcl_segmentation.so\n'}
+[4.442797] (dlio) StdoutLine: {'line': b'-- Found PCL_VISUALIZATION: /usr/lib/x86_64-linux-gnu/libpcl_visualization.so\n'}
+[4.443683] (dlio) StdoutLine: {'line': b'-- Found PCL_SURFACE: /usr/lib/x86_64-linux-gnu/libpcl_surface.so\n'}
+[4.444718] (dlio) StdoutLine: {'line': b'-- Found PCL_REGISTRATION: /usr/lib/x86_64-linux-gnu/libpcl_registration.so\n'}
+[4.446258] (dlio) StdoutLine: {'line': b'-- Found PCL_KEYPOINTS: /usr/lib/x86_64-linux-gnu/libpcl_keypoints.so\n'}
+[4.448108] (dlio) StdoutLine: {'line': b'-- Found PCL_TRACKING: /usr/lib/x86_64-linux-gnu/libpcl_tracking.so\n'}
+[4.449753] (dlio) StdoutLine: {'line': b'-- Found PCL_RECOGNITION: /usr/lib/x86_64-linux-gnu/libpcl_recognition.so\n'}
+[4.451010] (dlio) StdoutLine: {'line': b'-- Found PCL_STEREO: /usr/lib/x86_64-linux-gnu/libpcl_stereo.so\n'}
+[4.451930] (dlio) StdoutLine: {'line': b'-- Found PCL_APPS: /usr/lib/x86_64-linux-gnu/libpcl_apps.so\n'}
+[4.452859] (dlio) StdoutLine: {'line': b'-- Found PCL_IN_HAND_SCANNER: /usr/include/pcl-1.12\n'}
+[4.453173] (dlio) StdoutLine: {'line': b'-- Found PCL_MODELER: /usr/include/pcl-1.12\n'}
+[4.453855] (dlio) StdoutLine: {'line': b'-- Found PCL_POINT_CLOUD_EDITOR: /usr/include/pcl-1.12\n'}
+[4.454640] (dlio) StdoutLine: {'line': b'-- Found PCL_OUTOFCORE: /usr/lib/x86_64-linux-gnu/libpcl_outofcore.so\n'}
+[4.455620] (dlio) StdoutLine: {'line': b'-- Found PCL_PEOPLE: /usr/lib/x86_64-linux-gnu/libpcl_people.so\n'}
+[4.467904] (dlio) StderrLine: {'line': b'CMake Warning (dev) at CMakeLists.txt:38 (find_package):\n'}
+[4.467979] (dlio) StderrLine: {'line': b'  Policy CMP0074 is not set: find_package uses <PackageName>_ROOT variables.\n'}
+[4.468031] (dlio) StderrLine: {'line': b'  Run "cmake --help-policy CMP0074" for policy details.  Use the cmake_policy\n'}
+[4.468072] (dlio) StderrLine: {'line': b'  command to set the policy and suppress this warning.\n'}
+[4.468120] (dlio) StderrLine: {'line': b'\n'}
+[4.468155] (dlio) StderrLine: {'line': b'  CMake variable PCL_ROOT is set to:\n'}
+[4.468190] (dlio) StderrLine: {'line': b'\n'}
+[4.468224] (dlio) StderrLine: {'line': b'    /usr\n'}
+[4.468257] (dlio) StderrLine: {'line': b'\n'}
+[4.468290] (dlio) StderrLine: {'line': b'  For compatibility, CMake is ignoring the variable.\n'}
+[4.468325] (dlio) StderrLine: {'line': b'This warning is for project developers.  Use -Wno-dev to suppress it.\n'}
+[4.468355] (dlio) StderrLine: {'line': b'\n'}
+[4.475059] (dlio) StderrLine: {'line': b'CMake Warning (dev) at CMakeLists.txt:39 (find_package):\n'}
+[4.475091] (dlio) StderrLine: {'line': b'  Policy CMP0167 is not set: The FindBoost module is removed.  Run "cmake\n'}
+[4.475113] (dlio) StderrLine: {'line': b'  --help-policy CMP0167" for policy details.  Use the cmake_policy command to\n'}
+[4.475144] (dlio) StderrLine: {'line': b'  set the policy and suppress this warning.\n'}
+[4.475170] (dlio) StderrLine: {'line': b'\n'}
+[4.475194] (dlio) StderrLine: {'line': b'This warning is for project developers.  Use -Wno-dev to suppress it.\n'}
+[4.475217] (dlio) StderrLine: {'line': b'\n'}
+[4.501097] (dlio) StdoutLine: {'line': b'-- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.74.0/BoostConfig.cmake (found version "1.74.0") found components: thread chrono\n'}
+[4.510708] (-) TimerEvent: {}
+[4.610995] (-) TimerEvent: {}
+[4.711225] (-) TimerEvent: {}
+[4.811536] (-) TimerEvent: {}
+[4.911781] (-) TimerEvent: {}
+[4.934217] (dlio) StdoutLine: {'line': b'-- Found AMD headers in: /usr/include/suitesparse\n'}
+[4.938681] (dlio) StdoutLine: {'line': b'-- Found AMD library: /usr/lib/x86_64-linux-gnu/libamd.so\n'}
+[4.939208] (dlio) StdoutLine: {'line': b'-- Found CAMD headers in: /usr/include/suitesparse\n'}
+[4.941239] (dlio) StdoutLine: {'line': b'-- Found CAMD library: /usr/lib/x86_64-linux-gnu/libcamd.so\n'}
+[4.941833] (dlio) StdoutLine: {'line': b'-- Found CCOLAMD headers in: /usr/include/suitesparse\n'}
+[4.943225] (dlio) StdoutLine: {'line': b'-- Found CCOLAMD library: /usr/lib/x86_64-linux-gnu/libccolamd.so\n'}
+[4.943793] (dlio) StdoutLine: {'line': b'-- Found CHOLMOD headers in: /usr/include/suitesparse\n'}
+[4.944791] (dlio) StdoutLine: {'line': b'-- Found CHOLMOD library: /usr/lib/x86_64-linux-gnu/libcholmod.so\n'}
+[4.944895] (dlio) StdoutLine: {'line': b'-- Found COLAMD headers in: /usr/include/suitesparse\n'}
+[4.946098] (dlio) StdoutLine: {'line': b'-- Found COLAMD library: /usr/lib/x86_64-linux-gnu/libcolamd.so\n'}
+[4.946474] (dlio) StdoutLine: {'line': b'-- Found SPQR headers in: /usr/include/suitesparse\n'}
+[4.947906] (dlio) StdoutLine: {'line': b'-- Found SPQR library: /usr/lib/x86_64-linux-gnu/libspqr.so\n'}
+[4.948773] (dlio) StdoutLine: {'line': b'-- Found Config headers in: /usr/include/suitesparse\n'}
+[4.950457] (dlio) StdoutLine: {'line': b'-- Found Config library: /usr/lib/x86_64-linux-gnu/libsuitesparseconfig.so\n'}
+[4.951353] (dlio) StdoutLine: {'line': b'-- Found Intel Thread Building Blocks (TBB) library (2021.5 / ). Assuming SuiteSparseQR was compiled with TBB.\n'}
+[4.951500] (dlio) StdoutLine: {'line': b'-- Looking for shm_open in rt\n'}
+[5.006997] (dlio) StdoutLine: {'line': b'-- Looking for shm_open in rt - found\n'}
+[5.007156] (dlio) StdoutLine: {'line': b'-- Adding librt to SuiteSparse_config libraries (required on Linux & Unix [not OSX] if SuiteSparse is compiled with timing).\n'}
+[5.011849] (-) TimerEvent: {}
+[5.011963] (dlio) StdoutLine: {'line': b'-- Found METIS: /usr/include (found version "5.1.0")\n'}
+[5.012017] (dlio) StdoutLine: {'line': b'-- Looking for cholmod_metis\n'}
+[5.107251] (dlio) StdoutLine: {'line': b'-- Looking for cholmod_metis - found\n'}
+[5.108729] (dlio) StdoutLine: {'line': b'-- Found SuiteSparse: /usr/include/suitesparse (found suitable version "5.10.1", minimum required is "5.10.1") found components: AMD CAMD CCOLAMD CHOLMOD COLAMD SPQR Config\n'}
+[5.109560] (dlio) StdoutLine: {'line': b'-- Found required Ceres dependency: Eigen version 3.4.0 in /usr/share/eigen3/cmake\n'}
+[5.112082] (-) TimerEvent: {}
+[5.121372] (dlio) StdoutLine: {'line': b'-- Found required Ceres dependency: glog\n'}
+[5.121864] (dlio) StdoutLine: {'line': b'-- Found required Ceres dependency: gflags\n'}
+[5.122552] (dlio) StdoutLine: {'line': b'-- Found Ceres version: 2.2.0 installed in: /usr/local with components: [EigenSparse, SparseLinearAlgebraLibrary, LAPACK, SuiteSparse, SchurSpecializations]\n'}
+[5.212181] (-) TimerEvent: {}
+[5.312391] (-) TimerEvent: {}
+[5.341504] (dlio) StdoutLine: {'line': b'-- Found OpenMP_C: -fopenmp (found version "4.5")\n'}
+[5.407649] (dlio) StdoutLine: {'line': b'-- Found OpenMP_CXX: -fopenmp (found version "4.5")\n'}
+[5.407792] (dlio) StdoutLine: {'line': b'-- Found OpenMP: TRUE (found version "4.5")\n'}
+[5.412115] (dlio) StdoutLine: {'line': b'-- Found std_srvs: 4.2.4 (/opt/ros/humble/share/std_srvs/cmake)\n'}
+[5.412438] (-) TimerEvent: {}
+[5.427745] (dlio) StdoutLine: {'line': b'-- Found livox_ros_driver2: 1.0.0 (/home/upo/slam_ws/install/livox_ros_driver2/share/livox_ros_driver2/cmake)\n'}
+[5.511455] (dlio) StdoutLine: {'line': b'-- Configuring done (5.4s)\n'}
+[5.512654] (-) TimerEvent: {}
+[5.580597] (dlio) StdoutLine: {'line': b'-- Generating done (0.1s)\n'}
+[5.586476] (dlio) StdoutLine: {'line': b'-- Build files have been written to: /home/upo/slam_ws/src/D-LIO/build/dlio\n'}
+[5.603688] (dlio) CommandEnded: {'returncode': 0}
+[5.604037] (dlio) JobProgress: {'identifier': 'dlio', 'progress': 'build'}
+[5.605894] (dlio) Command: {'cmd': ['/home/upo/.local/bin/cmake', '--build', '/home/upo/slam_ws/src/D-LIO/build/dlio', '--', '-j20', '-l20'], 'cwd': '/home/upo/slam_ws/src/D-LIO/build/dlio', 'env': OrderedDict([('GJS_DEBUG_TOPICS', 'JS ERROR;JS LOG'), ('LESSOPEN', '| /usr/bin/lesspipe %s'), ('VSCODE_CWD', '/home/upo'), ('USER', 'upo'), ('LC_TIME', 'es_ES.UTF-8'), ('VSCODE_NLS_CONFIG', '{"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/usr/share/antigravity/resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}'), ('XDG_SESSION_TYPE', 'x11'), ('SHLVL', '0'), ('LD_LIBRARY_PATH', '/home/upo/pose_slam/install/localization/lib:/home/upo/pose_slam/install/ndt_omp/lib:/home/upo/pose_slam/install/fast_gicp/lib:/home/upo/slam_ws/install/livox_ros_driver2/lib:/home/upo/slam_ws/install/g_edf_odom/lib:/home/upo/slam_ws/install/gdf_map/lib:/home/upo/slam_ws/install/g_edf_loc/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib:/usr/lib/x86_64-linux-gnu:'), ('HOME', '/home/upo'), ('CHROME_DESKTOP', 'antigravity.desktop'), ('DESKTOP_SESSION', 'ubuntu'), ('VSCODE_IPC_HOOK', '/run/user/1000/vscode-5f4768d8-1.10-main.sock'), ('GIO_LAUNCHED_DESKTOP_FILE', '/usr/share/applications/antigravity.desktop'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('PAGER', 'cat'), ('LC_MONETARY', 'es_ES.UTF-8'), ('MANAGERPID', '2009'), ('SYSTEMD_EXEC_PID', '2754'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('ANTIGRAVITY_AGENT', '1'), ('GIO_LAUNCHED_DESKTOP_FILE_PID', '9150'), ('COLCON_PREFIX_PATH', '/home/upo/pose_slam/install:/home/upo/slam_ws/install'), ('ROS_DISTRO', 'humble'), ('GTK_IM_MODULE', 'ibus'), ('LOGNAME', 'upo'), ('_', '/usr/bin/colcon'), ('JOURNAL_STREAM', '8:16833'), ('ROS_VERSION', '2'), ('PKG_CONFIG_PATH', '/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:'), ('XDG_SESSION_CLASS', 'user'), ('USERNAME', 'upo'), ('TERM', 'dumb'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('FC_FONTATIONS', '1'), ('ROS_LOCALHOST_ONLY', '0'), ('WINDOWPATH', '2'), ('ANTIGRAVITY_EDITOR_APP_ROOT', '/usr/share/antigravity/resources/app'), ('PATH', '/home/upo/.local/bin:/opt/ros/humble/bin:/usr/local/MATLAB/R2024a/bin:/home/upo/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin:/home/upo/tools/LAStools/bin'), ('SESSION_MANAGER', 'local/upo-Victus-by-HP-Gaming-Laptop-16-r0xxx:@/tmp/.ICE-unix/2699,unix/upo-Victus-by-HP-Gaming-Laptop-16-r0xxx:/tmp/.ICE-unix/2699'), ('INVOCATION_ID', 'f41e977cceb94d9e8307897f8a96cdf2'), ('XDG_MENU_PREFIX', 'gnome-'), ('LC_ADDRESS', 'es_ES.UTF-8'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('GDK_BACKEND', 'x11'), ('DISPLAY', ':0'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('LC_TELEPHONE', 'es_ES.UTF-8'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu'), ('XAUTHORITY', '/run/user/1000/gdm/Xauthority'), ('LS_COLORS', ''), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('AMENT_PREFIX_PATH', '/home/upo/pose_slam/install/radar_analysis:/home/upo/pose_slam/install/localization:/home/upo/pose_slam/install/ndt_omp:/home/upo/pose_slam/install/lidar_analysis:/home/upo/pose_slam/install/fast_gicp:/home/upo/slam_ws/install/dlio_slam:/home/upo/slam_ws/install/dlio:/home/upo/slam_ws/install/livox_ros_driver2:/home/upo/slam_ws/install/g_edf_odom:/home/upo/slam_ws/install/g_edf_lc:/home/upo/slam_ws/install/gdf_map:/home/upo/slam_ws/install/g_edf_loc:/home/upo/slam_ws/install/dji_odom:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'es_ES.UTF-8'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'ubuntu'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'es_ES.UTF-8'), ('GPG_AGENT_INFO', '/run/user/1000/gnupg/S.gpg-agent:0:1'), ('GJS_DEBUG_OUTPUT', 'stderr'), ('LC_IDENTIFICATION', 'es_ES.UTF-8'), ('QT_IM_MODULE', 'ibus'), ('ANTIGRAVITY_TRAJECTORY_ID', '741003ab-c10d-43bc-8ddc-493275a9de29'), ('PWD', '/home/upo/slam_ws/src/D-LIO/build/dlio'), ('LC_ALL', 'en_US.UTF-8'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu:/etc/xdg'), ('VSCODE_CODE_CACHE_PATH', '/home/upo/.config/Antigravity/CachedData/15487b3041e65228cae24980a3f796c905ef582c'), ('XDG_DATA_DIRS', '/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/upo/slam_ws/install/livox_ros_driver2/local/lib/python3.10/dist-packages:/home/upo/slam_ws/install/gdf_map/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'es_ES.UTF-8'), ('LC_PAPER', 'es_ES.UTF-8'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/home/upo/pose_slam/install/radar_analysis:/home/upo/pose_slam/install/localization:/home/upo/pose_slam/install/ndt_omp:/home/upo/pose_slam/install/lidar_analysis:/home/upo/pose_slam/install/fast_gicp:/home/upo/slam_ws/install/dlio_slam:/home/upo/slam_ws/install/dlio:/home/upo/slam_ws/install/livox_ros_driver2:/home/upo/slam_ws/install/g_edf_odom:/home/upo/slam_ws/install/g_edf_lc:/home/upo/slam_ws/install/gdf_map:/home/upo/slam_ws/install/g_edf_loc:/home/upo/slam_ws/install/dji_odom:/opt/ros/humble'), ('VSCODE_PID', '9150')]), 'shell': False}
+[5.612828] (-) TimerEvent: {}
+[5.691361] (dlio) StdoutLine: {'line': b'[ 33%] \x1b[32mBuilding CXX object CMakeFiles/dlio_node.dir/src/dlio_node.cpp.o\x1b[0m\n'}
+[5.691495] (dlio) StdoutLine: {'line': b'[ 66%] \x1b[32mBuilding CXX object CMakeFiles/dlio_node.dir/src/point_cloud_processor.cpp.o\x1b[0m\n'}
+[5.713118] (-) TimerEvent: {}
+[5.813527] (-) TimerEvent: {}
+[5.913865] (-) TimerEvent: {}
+[6.014277] (-) TimerEvent: {}
+[6.114651] (-) TimerEvent: {}
+[6.215019] (-) TimerEvent: {}
+[6.315406] (-) TimerEvent: {}
+[6.415829] (-) TimerEvent: {}
+[6.516360] (-) TimerEvent: {}
+[6.616846] (-) TimerEvent: {}
+[6.717367] (-) TimerEvent: {}
+[6.817760] (-) TimerEvent: {}
+[6.918231] (-) TimerEvent: {}
+[7.018483] (-) TimerEvent: {}
+[7.118882] (-) TimerEvent: {}
+[7.219413] (-) TimerEvent: {}
+[7.319812] (-) TimerEvent: {}
+[7.420197] (-) TimerEvent: {}
+[7.520450] (-) TimerEvent: {}
+[7.620931] (-) TimerEvent: {}
+[7.721430] (-) TimerEvent: {}
+[7.821764] (-) TimerEvent: {}
+[7.922250] (-) TimerEvent: {}
+[8.022609] (-) TimerEvent: {}
+[8.122956] (-) TimerEvent: {}
+[8.223364] (-) TimerEvent: {}
+[8.323880] (-) TimerEvent: {}
+[8.424246] (-) TimerEvent: {}
+[8.524531] (-) TimerEvent: {}
+[8.625099] (-) TimerEvent: {}
+[8.725472] (-) TimerEvent: {}
+[8.825806] (-) TimerEvent: {}
+[8.926207] (-) TimerEvent: {}
+[9.026797] (-) TimerEvent: {}
+[9.127252] (-) TimerEvent: {}
+[9.227614] (-) TimerEvent: {}
+[9.328161] (-) TimerEvent: {}
+[9.428502] (-) TimerEvent: {}
+[9.528898] (-) TimerEvent: {}
+[9.629257] (-) TimerEvent: {}
+[9.729539] (-) TimerEvent: {}
+[9.829831] (-) TimerEvent: {}
+[9.930091] (-) TimerEvent: {}
+[10.030366] (-) TimerEvent: {}
+[10.130900] (-) TimerEvent: {}
+[10.231219] (-) TimerEvent: {}
+[10.331517] (-) TimerEvent: {}
+[10.431907] (-) TimerEvent: {}
+[10.532228] (-) TimerEvent: {}
+[10.632471] (-) TimerEvent: {}
+[10.732835] (-) TimerEvent: {}
+[10.833251] (-) TimerEvent: {}
+[10.933486] (-) TimerEvent: {}
+[11.033855] (-) TimerEvent: {}
+[11.134130] (-) TimerEvent: {}
+[11.234425] (-) TimerEvent: {}
+[11.334805] (-) TimerEvent: {}
+[11.435195] (-) TimerEvent: {}
+[11.535537] (-) TimerEvent: {}
+[11.635987] (-) TimerEvent: {}
+[11.736366] (-) TimerEvent: {}
+[11.836761] (-) TimerEvent: {}
+[11.937014] (-) TimerEvent: {}
+[12.037288] (-) TimerEvent: {}
+[12.137608] (-) TimerEvent: {}
+[12.238034] (-) TimerEvent: {}
+[12.338285] (-) TimerEvent: {}
+[12.438597] (-) TimerEvent: {}
+[12.538946] (-) TimerEvent: {}
+[12.639244] (-) TimerEvent: {}
+[12.739511] (-) TimerEvent: {}
+[12.839775] (-) TimerEvent: {}
+[12.939988] (-) TimerEvent: {}
+[13.040235] (-) TimerEvent: {}
+[13.140437] (-) TimerEvent: {}
+[13.240758] (-) TimerEvent: {}
+[13.341157] (-) TimerEvent: {}
+[13.441403] (-) TimerEvent: {}
+[13.541664] (-) TimerEvent: {}
+[13.642022] (-) TimerEvent: {}
+[13.742268] (-) TimerEvent: {}
+[13.842534] (-) TimerEvent: {}
+[13.942886] (-) TimerEvent: {}
+[14.043240] (-) TimerEvent: {}
+[14.143516] (-) TimerEvent: {}
+[14.243850] (-) TimerEvent: {}
+[14.344208] (-) TimerEvent: {}
+[14.444508] (-) TimerEvent: {}
+[14.544772] (-) TimerEvent: {}
+[14.645257] (-) TimerEvent: {}
+[14.745610] (-) TimerEvent: {}
+[14.845937] (-) TimerEvent: {}
+[14.946182] (-) TimerEvent: {}
+[15.046510] (-) TimerEvent: {}
+[15.146876] (-) TimerEvent: {}
+[15.247143] (-) TimerEvent: {}
+[15.347475] (-) TimerEvent: {}
+[15.447732] (-) TimerEvent: {}
+[15.548053] (-) TimerEvent: {}
+[15.648440] (-) TimerEvent: {}
+[15.748755] (-) TimerEvent: {}
+[15.849094] (-) TimerEvent: {}
+[15.949325] (-) TimerEvent: {}
+[16.049686] (-) TimerEvent: {}
+[16.150012] (-) TimerEvent: {}
+[16.250356] (-) TimerEvent: {}
+[16.350684] (-) TimerEvent: {}
+[16.450903] (-) TimerEvent: {}
+[16.551160] (-) TimerEvent: {}
+[16.651421] (-) TimerEvent: {}
+[16.751764] (-) TimerEvent: {}
+[16.852098] (-) TimerEvent: {}
+[16.952331] (-) TimerEvent: {}
+[17.052584] (-) TimerEvent: {}
+[17.152779] (-) TimerEvent: {}
+[17.253095] (-) TimerEvent: {}
+[17.353311] (-) TimerEvent: {}
+[17.453624] (-) TimerEvent: {}
+[17.553979] (-) TimerEvent: {}
+[17.654314] (-) TimerEvent: {}
+[17.754637] (-) TimerEvent: {}
+[17.854979] (-) TimerEvent: {}
+[17.955346] (-) TimerEvent: {}
+[18.055669] (-) TimerEvent: {}
+[18.155996] (-) TimerEvent: {}
+[18.256352] (-) TimerEvent: {}
+[18.356684] (-) TimerEvent: {}
+[18.457003] (-) TimerEvent: {}
+[18.557252] (-) TimerEvent: {}
+[18.657582] (-) TimerEvent: {}
+[18.757914] (-) TimerEvent: {}
+[18.858287] (-) TimerEvent: {}
+[18.958617] (-) TimerEvent: {}
+[19.058937] (-) TimerEvent: {}
+[19.159281] (-) TimerEvent: {}
+[19.259608] (-) TimerEvent: {}
+[19.359930] (-) TimerEvent: {}
+[19.460280] (-) TimerEvent: {}
+[19.560604] (-) TimerEvent: {}
+[19.660927] (-) TimerEvent: {}
+[19.761288] (-) TimerEvent: {}
+[19.861616] (-) TimerEvent: {}
+[19.961948] (-) TimerEvent: {}
+[20.062304] (-) TimerEvent: {}
+[20.162639] (-) TimerEvent: {}
+[20.262998] (-) TimerEvent: {}
+[20.363332] (-) TimerEvent: {}
+[20.463585] (-) TimerEvent: {}
+[20.563903] (-) TimerEvent: {}
+[20.664300] (-) TimerEvent: {}
+[20.764629] (-) TimerEvent: {}
+[20.864978] (-) TimerEvent: {}
+[20.965357] (-) TimerEvent: {}
+[21.065695] (-) TimerEvent: {}
+[21.166065] (-) TimerEvent: {}
+[21.266296] (-) TimerEvent: {}
+[21.366563] (-) TimerEvent: {}
+[21.466955] (-) TimerEvent: {}
+[21.567244] (-) TimerEvent: {}
+[21.667498] (-) TimerEvent: {}
+[21.767983] (-) TimerEvent: {}
+[21.868250] (-) TimerEvent: {}
+[21.968459] (-) TimerEvent: {}
+[22.068862] (-) TimerEvent: {}
+[22.169118] (-) TimerEvent: {}
+[22.269355] (-) TimerEvent: {}
+[22.369700] (-) TimerEvent: {}
+[22.470137] (-) TimerEvent: {}
+[22.570564] (-) TimerEvent: {}
+[22.671177] (-) TimerEvent: {}
+[22.771427] (-) TimerEvent: {}
+[22.871818] (-) TimerEvent: {}
+[22.972652] (-) TimerEvent: {}
+[23.073238] (-) TimerEvent: {}
+[23.173642] (-) TimerEvent: {}
+[23.274259] (-) TimerEvent: {}
+[23.374581] (-) TimerEvent: {}
+[23.475075] (-) TimerEvent: {}
+[23.575683] (-) TimerEvent: {}
+[23.676177] (-) TimerEvent: {}
+[23.776585] (-) TimerEvent: {}
+[23.877078] (-) TimerEvent: {}
+[23.977625] (-) TimerEvent: {}
+[24.078184] (-) TimerEvent: {}
+[24.178539] (-) TimerEvent: {}
+[24.279117] (-) TimerEvent: {}
+[24.379837] (-) TimerEvent: {}
+[24.480214] (-) TimerEvent: {}
+[24.580554] (-) TimerEvent: {}
+[24.680987] (-) TimerEvent: {}
+[24.781265] (-) TimerEvent: {}
+[24.881743] (-) TimerEvent: {}
+[24.982110] (-) TimerEvent: {}
+[25.082446] (-) TimerEvent: {}
+[25.182752] (-) TimerEvent: {}
+[25.283253] (-) TimerEvent: {}
+[25.383656] (-) TimerEvent: {}
+[25.483994] (-) TimerEvent: {}
+[25.584252] (-) TimerEvent: {}
+[25.684571] (-) TimerEvent: {}
+[25.784917] (-) TimerEvent: {}
+[25.885208] (-) TimerEvent: {}
+[25.985461] (-) TimerEvent: {}
+[26.085820] (-) TimerEvent: {}
+[26.186091] (-) TimerEvent: {}
+[26.286333] (-) TimerEvent: {}
+[26.386622] (-) TimerEvent: {}
+[26.486834] (-) TimerEvent: {}
+[26.587195] (-) TimerEvent: {}
+[26.687607] (-) TimerEvent: {}
+[26.787881] (-) TimerEvent: {}
+[26.888105] (-) TimerEvent: {}
+[26.988326] (-) TimerEvent: {}
+[27.088635] (-) TimerEvent: {}
+[27.188981] (-) TimerEvent: {}
+[27.289244] (-) TimerEvent: {}
+[27.389626] (-) TimerEvent: {}
+[27.489973] (-) TimerEvent: {}
+[27.590200] (-) TimerEvent: {}
+[27.690439] (-) TimerEvent: {}
+[27.790831] (-) TimerEvent: {}
+[27.891248] (-) TimerEvent: {}
+[27.991460] (-) TimerEvent: {}
+[28.091714] (-) TimerEvent: {}
+[28.192142] (-) TimerEvent: {}
+[28.292353] (-) TimerEvent: {}
+[28.392612] (-) TimerEvent: {}
+[28.492983] (-) TimerEvent: {}
+[28.593223] (-) TimerEvent: {}
+[28.693481] (-) TimerEvent: {}
+[28.793757] (-) TimerEvent: {}
+[28.894021] (-) TimerEvent: {}
+[28.994251] (-) TimerEvent: {}
+[29.094509] (-) TimerEvent: {}
+[29.194860] (-) TimerEvent: {}
+[29.295175] (-) TimerEvent: {}
+[29.395512] (-) TimerEvent: {}
+[29.495823] (-) TimerEvent: {}
+[29.596196] (-) TimerEvent: {}
+[29.696425] (-) TimerEvent: {}
+[29.796744] (-) TimerEvent: {}
+[29.897021] (-) TimerEvent: {}
+[29.997259] (-) TimerEvent: {}
+[30.097517] (-) TimerEvent: {}
+[30.197919] (-) TimerEvent: {}
+[30.298319] (-) TimerEvent: {}
+[30.398580] (-) TimerEvent: {}
+[30.498894] (-) TimerEvent: {}
+[30.599137] (-) TimerEvent: {}
+[30.699343] (-) TimerEvent: {}
+[30.799610] (-) TimerEvent: {}
+[30.899924] (-) TimerEvent: {}
+[31.000320] (-) TimerEvent: {}
+[31.100573] (-) TimerEvent: {}
+[31.200914] (-) TimerEvent: {}
+[31.301243] (-) TimerEvent: {}
+[31.401569] (-) TimerEvent: {}
+[31.501897] (-) TimerEvent: {}
+[31.602143] (-) TimerEvent: {}
+[31.702472] (-) TimerEvent: {}
+[31.802801] (-) TimerEvent: {}
+[31.903164] (-) TimerEvent: {}
+[32.003541] (-) TimerEvent: {}
+[32.103855] (-) TimerEvent: {}
+[32.204109] (-) TimerEvent: {}
+[32.304422] (-) TimerEvent: {}
+[32.404747] (-) TimerEvent: {}
+[32.505078] (-) TimerEvent: {}
+[32.605410] (-) TimerEvent: {}
+[32.705677] (-) TimerEvent: {}
+[32.806009] (-) TimerEvent: {}
+[32.906248] (-) TimerEvent: {}
+[33.006560] (-) TimerEvent: {}
+[33.106910] (-) TimerEvent: {}
+[33.207298] (-) TimerEvent: {}
+[33.307620] (-) TimerEvent: {}
+[33.407941] (-) TimerEvent: {}
+[33.508182] (-) TimerEvent: {}
+[33.608500] (-) TimerEvent: {}
+[33.708854] (-) TimerEvent: {}
+[33.809181] (-) TimerEvent: {}
+[33.909486] (-) TimerEvent: {}
+[34.015266] (-) TimerEvent: {}
+[34.115567] (-) TimerEvent: {}
+[34.215866] (-) TimerEvent: {}
+[34.316285] (-) TimerEvent: {}
+[34.416709] (-) TimerEvent: {}
+[34.517284] (-) TimerEvent: {}
+[34.617743] (-) TimerEvent: {}
+[34.718259] (-) TimerEvent: {}
+[34.818608] (-) TimerEvent: {}
+[34.919216] (-) TimerEvent: {}
+[35.019607] (-) TimerEvent: {}
+[35.120003] (-) TimerEvent: {}
+[35.220410] (-) TimerEvent: {}
+[35.320854] (-) TimerEvent: {}
+[35.421245] (-) TimerEvent: {}
+[35.521567] (-) TimerEvent: {}
+[35.622023] (-) TimerEvent: {}
+[35.722467] (-) TimerEvent: {}
+[35.822791] (-) TimerEvent: {}
+[35.923169] (-) TimerEvent: {}
+[36.023550] (-) TimerEvent: {}
+[36.123934] (-) TimerEvent: {}
+[36.224388] (-) TimerEvent: {}
+[36.324724] (-) TimerEvent: {}
+[36.425141] (-) TimerEvent: {}
+[36.525406] (-) TimerEvent: {}
+[36.625674] (-) TimerEvent: {}
+[36.726068] (-) TimerEvent: {}
+[36.826326] (-) TimerEvent: {}
+[36.926654] (-) TimerEvent: {}
+[37.027187] (-) TimerEvent: {}
+[37.127541] (-) TimerEvent: {}
+[37.227946] (-) TimerEvent: {}
+[37.328261] (-) TimerEvent: {}
+[37.428834] (-) TimerEvent: {}
+[37.529195] (-) TimerEvent: {}
+[37.629491] (-) TimerEvent: {}
+[37.729845] (-) TimerEvent: {}
+[37.830151] (-) TimerEvent: {}
+[37.930511] (-) TimerEvent: {}
+[38.030820] (-) TimerEvent: {}
+[38.131032] (-) TimerEvent: {}
+[38.231315] (-) TimerEvent: {}
+[38.331589] (-) TimerEvent: {}
+[38.432032] (-) TimerEvent: {}
+[38.532273] (-) TimerEvent: {}
+[38.632702] (-) TimerEvent: {}
+[38.733122] (-) TimerEvent: {}
+[38.833432] (-) TimerEvent: {}
+[38.933827] (-) TimerEvent: {}
+[39.034261] (-) TimerEvent: {}
+[39.101980] (dlio) StdoutLine: {'line': b'[100%] \x1b[32m\x1b[1mLinking CXX executable dlio_node\x1b[0m\n'}
+[39.134365] (-) TimerEvent: {}
+[39.234684] (-) TimerEvent: {}
+[39.335164] (-) TimerEvent: {}
+[39.435595] (-) TimerEvent: {}
+[39.536015] (-) TimerEvent: {}
+[39.636311] (-) TimerEvent: {}
+[39.736688] (-) TimerEvent: {}
+[39.837089] (-) TimerEvent: {}
+[39.937474] (-) TimerEvent: {}
+[40.037851] (-) TimerEvent: {}
+[40.138164] (-) TimerEvent: {}
+[40.189728] (dlio) StdoutLine: {'line': b'[100%] Built target dlio_node\n'}
+[40.200471] (dlio) CommandEnded: {'returncode': 0}
+[40.201149] (dlio) JobProgress: {'identifier': 'dlio', 'progress': 'install'}
+[40.238265] (-) TimerEvent: {}
+[40.268573] (dlio) Command: {'cmd': ['/home/upo/.local/bin/cmake', '--install', '/home/upo/slam_ws/src/D-LIO/build/dlio'], 'cwd': '/home/upo/slam_ws/src/D-LIO/build/dlio', 'env': OrderedDict([('GJS_DEBUG_TOPICS', 'JS ERROR;JS LOG'), ('LESSOPEN', '| /usr/bin/lesspipe %s'), ('VSCODE_CWD', '/home/upo'), ('USER', 'upo'), ('LC_TIME', 'es_ES.UTF-8'), ('VSCODE_NLS_CONFIG', '{"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/usr/share/antigravity/resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}'), ('XDG_SESSION_TYPE', 'x11'), ('SHLVL', '0'), ('LD_LIBRARY_PATH', '/home/upo/pose_slam/install/localization/lib:/home/upo/pose_slam/install/ndt_omp/lib:/home/upo/pose_slam/install/fast_gicp/lib:/home/upo/slam_ws/install/livox_ros_driver2/lib:/home/upo/slam_ws/install/g_edf_odom/lib:/home/upo/slam_ws/install/gdf_map/lib:/home/upo/slam_ws/install/g_edf_loc/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib:/usr/lib/x86_64-linux-gnu:'), ('HOME', '/home/upo'), ('CHROME_DESKTOP', 'antigravity.desktop'), ('DESKTOP_SESSION', 'ubuntu'), ('VSCODE_IPC_HOOK', '/run/user/1000/vscode-5f4768d8-1.10-main.sock'), ('GIO_LAUNCHED_DESKTOP_FILE', '/usr/share/applications/antigravity.desktop'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('PAGER', 'cat'), ('LC_MONETARY', 'es_ES.UTF-8'), ('MANAGERPID', '2009'), ('SYSTEMD_EXEC_PID', '2754'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('ANTIGRAVITY_AGENT', '1'), ('GIO_LAUNCHED_DESKTOP_FILE_PID', '9150'), ('COLCON_PREFIX_PATH', '/home/upo/pose_slam/install:/home/upo/slam_ws/install'), ('ROS_DISTRO', 'humble'), ('GTK_IM_MODULE', 'ibus'), ('LOGNAME', 'upo'), ('_', '/usr/bin/colcon'), ('JOURNAL_STREAM', '8:16833'), ('ROS_VERSION', '2'), ('PKG_CONFIG_PATH', '/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:'), ('XDG_SESSION_CLASS', 'user'), ('USERNAME', 'upo'), ('TERM', 'dumb'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('FC_FONTATIONS', '1'), ('ROS_LOCALHOST_ONLY', '0'), ('WINDOWPATH', '2'), ('ANTIGRAVITY_EDITOR_APP_ROOT', '/usr/share/antigravity/resources/app'), ('PATH', '/home/upo/.local/bin:/opt/ros/humble/bin:/usr/local/MATLAB/R2024a/bin:/home/upo/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin:/home/upo/tools/LAStools/bin'), ('SESSION_MANAGER', 'local/upo-Victus-by-HP-Gaming-Laptop-16-r0xxx:@/tmp/.ICE-unix/2699,unix/upo-Victus-by-HP-Gaming-Laptop-16-r0xxx:/tmp/.ICE-unix/2699'), ('INVOCATION_ID', 'f41e977cceb94d9e8307897f8a96cdf2'), ('XDG_MENU_PREFIX', 'gnome-'), ('LC_ADDRESS', 'es_ES.UTF-8'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('GDK_BACKEND', 'x11'), ('DISPLAY', ':0'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('LC_TELEPHONE', 'es_ES.UTF-8'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu'), ('XAUTHORITY', '/run/user/1000/gdm/Xauthority'), ('LS_COLORS', ''), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('AMENT_PREFIX_PATH', '/home/upo/pose_slam/install/radar_analysis:/home/upo/pose_slam/install/localization:/home/upo/pose_slam/install/ndt_omp:/home/upo/pose_slam/install/lidar_analysis:/home/upo/pose_slam/install/fast_gicp:/home/upo/slam_ws/install/dlio_slam:/home/upo/slam_ws/install/dlio:/home/upo/slam_ws/install/livox_ros_driver2:/home/upo/slam_ws/install/g_edf_odom:/home/upo/slam_ws/install/g_edf_lc:/home/upo/slam_ws/install/gdf_map:/home/upo/slam_ws/install/g_edf_loc:/home/upo/slam_ws/install/dji_odom:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'es_ES.UTF-8'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'ubuntu'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'es_ES.UTF-8'), ('GPG_AGENT_INFO', '/run/user/1000/gnupg/S.gpg-agent:0:1'), ('GJS_DEBUG_OUTPUT', 'stderr'), ('LC_IDENTIFICATION', 'es_ES.UTF-8'), ('QT_IM_MODULE', 'ibus'), ('ANTIGRAVITY_TRAJECTORY_ID', '741003ab-c10d-43bc-8ddc-493275a9de29'), ('PWD', '/home/upo/slam_ws/src/D-LIO/build/dlio'), ('LC_ALL', 'en_US.UTF-8'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu:/etc/xdg'), ('VSCODE_CODE_CACHE_PATH', '/home/upo/.config/Antigravity/CachedData/15487b3041e65228cae24980a3f796c905ef582c'), ('XDG_DATA_DIRS', '/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/upo/slam_ws/install/livox_ros_driver2/local/lib/python3.10/dist-packages:/home/upo/slam_ws/install/gdf_map/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'es_ES.UTF-8'), ('LC_PAPER', 'es_ES.UTF-8'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/home/upo/pose_slam/install/radar_analysis:/home/upo/pose_slam/install/localization:/home/upo/pose_slam/install/ndt_omp:/home/upo/pose_slam/install/lidar_analysis:/home/upo/pose_slam/install/fast_gicp:/home/upo/slam_ws/install/dlio_slam:/home/upo/slam_ws/install/dlio:/home/upo/slam_ws/install/livox_ros_driver2:/home/upo/slam_ws/install/g_edf_odom:/home/upo/slam_ws/install/g_edf_lc:/home/upo/slam_ws/install/gdf_map:/home/upo/slam_ws/install/g_edf_loc:/home/upo/slam_ws/install/dji_odom:/opt/ros/humble'), ('VSCODE_PID', '9150')]), 'shell': False}
+[40.328838] (dlio) StdoutLine: {'line': b'-- Install configuration: ""\n'}
+[40.329153] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/lib/dlio/dlio_node\n'}
+[40.338330] (-) TimerEvent: {}
+[40.338460] (dlio) StdoutLine: {'line': b'-- Set non-toolchain portion of runtime path of "/home/upo/slam_ws/src/D-LIO/install/dlio/lib/dlio/dlio_node" to ""\n'}
+[40.338530] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/launch\n'}
+[40.338584] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/launch/dlio_college_launch.py\n'}
+[40.347077] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/launch/dlio_diag_launch.py\n'}
+[40.347339] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/launch/default.rviz\n'}
+[40.347433] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/launch/dlio_tudorun_launch.py\n'}
+[40.347530] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/launch/dlio_colosseo_launch.py\n'}
+[40.347626] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/launch/dlio_spagna_launch.py\n'}
+[40.347679] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/launch/dlio_go2_launch.py\n'}
+[40.347916] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/launch/dlio_pinicio_launch.py\n'}
+[40.347992] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/launch/dlio_dji_launch.py\n'}
+[40.348100] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/launch/dlio_launch.py\n'}
+[40.348162] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/launch/dlio_grandtour_launch.py\n'}
+[40.348196] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/launch/dlio_viral_launch.py\n'}
+[40.348326] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/launch/dlio_snail_launch.py\n'}
+[40.348542] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/config\n'}
+[40.348769] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/config/dlio_dji.yaml\n'}
+[40.348808] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/config/dlio.yaml\n'}
+[40.348843] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/config/dlio_go2.yaml\n'}
+[40.348880] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/config/dlio_college.yaml\n'}
+[40.348953] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/config/dlio_diag.yaml\n'}
+[40.348994] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/config/dlio_snail.yaml\n'}
+[40.349032] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/config/dlio_spagna.yaml\n'}
+[40.349085] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/config/dlio_viral.yaml\n'}
+[40.349120] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/config/dlio_colosseo.yaml\n'}
+[40.349157] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/config/dlio_pinicio.yaml\n'}
+[40.349198] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/config/dlio_grandtour.yaml\n'}
+[40.349240] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/config/dlio_tudorun.yaml\n'}
+[40.349353] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/ament_index/resource_index/package_run_dependencies/dlio\n'}
+[40.349400] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/ament_index/resource_index/parent_prefix_path/dlio\n'}
+[40.349436] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/environment/ament_prefix_path.sh\n'}
+[40.349548] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/environment/ament_prefix_path.dsv\n'}
+[40.349583] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/environment/path.sh\n'}
+[40.349757] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/environment/path.dsv\n'}
+[40.349821] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/local_setup.bash\n'}
+[40.349855] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/local_setup.sh\n'}
+[40.349892] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/local_setup.zsh\n'}
+[40.349926] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/local_setup.dsv\n'}
+[40.349959] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/package.dsv\n'}
+[40.350002] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/ament_index/resource_index/packages/dlio\n'}
+[40.350102] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/cmake/dlioConfig.cmake\n'}
+[40.350208] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/cmake/dlioConfig-version.cmake\n'}
+[40.350263] (dlio) StdoutLine: {'line': b'-- Installing: /home/upo/slam_ws/src/D-LIO/install/dlio/share/dlio/package.xml\n'}
+[40.351748] (dlio) CommandEnded: {'returncode': 0}
+[40.369942] (dlio) JobEnded: {'identifier': 'dlio', 'rc': 0}
+[40.370807] (-) EventReactorShutdown: {}

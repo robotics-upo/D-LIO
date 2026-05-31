@@ -3,7 +3,10 @@ cmake_minimum_required(VERSION 3.8)
 
 project(dlio)
 
-add_executable(dlio_node src/dlio_node.cpp)
+add_executable(dlio_node
+  src/dlio_node.cpp
+  src/point_cloud_processor.cpp
+)
 
 target_compile_options(dlio_node PRIVATE 
   -O3 
@@ -39,6 +42,7 @@ find_package(OpenMP REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(std_srvs REQUIRED)
 find_library(ANN_LIB ANN PATHS /usr/lib /usr/local/lib)
+find_package(livox_ros_driver2 REQUIRED)
 
 ament_target_dependencies(dlio_node
   rclcpp
@@ -53,7 +57,10 @@ ament_target_dependencies(dlio_node
   pcl_conversions
   std_srvs
   OpenMP
+  livox_ros_driver2
 )
+
+
 
 target_link_libraries(dlio_node
   ${PCL_LIBRARIES}
@@ -87,6 +94,11 @@ install(TARGETS
 install(
   DIRECTORY launch/
   DESTINATION share/${PROJECT_NAME}/launch
+)
+
+install(
+  DIRECTORY config/
+  DESTINATION share/${PROJECT_NAME}/config
 )
 
 ament_package()

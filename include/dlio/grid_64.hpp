@@ -71,7 +71,7 @@ public:
     GRID64(void)
 	{
 		_grid = NULL;
-        _buffer = NULL; // Circular buffer to store all cell masks
+        _buffer = NULL;
 		_garbage = UINT64_MAX;
 		_dummy = NULL;       
 
@@ -95,7 +95,7 @@ public:
 		_minY = (int)floor(minY);
 		_minZ = (int)floor(minZ);
         
-		// Memory allocation for the world grid. It is initialized to 0 (NULL)
+		// World grid (pointers init to NULL)
 		_gridSizeX = abs(_maxX-_minX);
 		_gridSizeY = abs(_maxY-_minY);
 		_gridSizeZ = abs(_maxZ-_minZ);
@@ -103,7 +103,7 @@ public:
 		_gridStepZ = _gridSizeX*_gridSizeY;
 		_gridSize = _gridSizeX*_gridSizeY*_gridSizeZ;
         
-        // Memory allocation for maxCells
+        // Cell buffer
         _maxCells = (uint32_t)maxCells;
         _cellRes = cellRes;
         _oneDivRes = 1.0/_cellRes;
@@ -112,9 +112,9 @@ public:
         _cellSizeZ = (uint32_t)_oneDivRes;
         _cellStepY = _cellSizeX;
         _cellStepZ = _cellSizeX*_cellSizeY;
-        _cellSize = 1 + _cellSizeX*_cellSizeY*_cellSizeZ;  // The 1 is to store control information of the cell
-        _buffer = (uint64_t *)malloc(_maxCells*_cellSize*sizeof(uint64_t)); // Circular buffer to store all cell masks
-        std::memset(_buffer, -1, _maxCells*_cellSize*sizeof(uint64_t));     // Init the buffer to longest distance
+        _cellSize = 1 + _cellSizeX*_cellSizeY*_cellSizeZ;  // +1 stores the cell's control word
+        _buffer = (uint64_t *)malloc(_maxCells*_cellSize*sizeof(uint64_t)); // circular buffer of all cell masks
+        std::memset(_buffer, -1, _maxCells*_cellSize*sizeof(uint64_t)); // init to longest distance
         for(int i=0; i<_maxCells; i++)
 			_buffer[i*_cellSize] = (uint64_t)_gridSize;
         _cellIndex = 0;
@@ -143,7 +143,7 @@ public:
 	void clear(void)
 	{
 		for (uint32_t k = 0; k < _gridSize; ++k) _grid[k] = _dummy; // Set pointers to dummy
-		std::memset(_buffer, -1, _maxCells*_cellSize*sizeof(uint64_t));     // Init the buffer to longest distance
+		std::memset(_buffer, -1, _maxCells*_cellSize*sizeof(uint64_t)); // init to longest distance
         for(int i=0; i<_maxCells; i++)
 			_buffer[i*_cellSize] = _gridSize;
         _cellIndex = 0;
@@ -162,9 +162,9 @@ public:
 
 			if(_grid[i][0] != (uint64_t)_gridSize)
 			{
+                std::cout << "[GRID64] Reusing cell " << i << std::endl;
 				_grid[(uint64_t)_grid[i][0]] = _dummy;
-				std::memset(&(_grid[i][1]), -1, (_cellSize-1)*sizeof(uint64_t));     // Init the mask to longest distance
-                std::cout<<"Cleanning Cell"<<std::endl;
+				std::memset(&(_grid[i][1]), -1, (_cellSize-1)*sizeof(uint64_t)); // init mask to longest distance
 			} 
 			_grid[i][0] = (uint64_t)i; 
 			_cellIndex++;
@@ -271,7 +271,6 @@ public:
 
         const uint32_t step = std::max(1, subsampling_factor);
 
-        // Si grid no inicializado
         if (_grid == nullptr || _dummy == nullptr || _gridSize == 0) {
             std::cerr << "[GRID64] extractPointCloud: grid not initialized.\n";
             return cloud;
