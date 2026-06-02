@@ -3,7 +3,7 @@
 <br />
 
 > [!NOTE]  
-> 🎉 **D-LIO** has been accepted to **IEEE Robotics and Automation Letters (RA-L)**! 🎉
+
 
 
 # D-LIO: 6DoF Direct LiDAR-Inertial Odometry based on Simultaneous Truncated Distance Field Mapping
@@ -25,9 +25,6 @@ A Direct LIDAR Inertial Odometry (D-LIO) able to deal with raw 3D LIDAR data onl
 </p>
 
 
-<div align="center">
-  <h3>🎉 D-LIO has been accepted to IEEE Robotics and Automation Letters (RA-L)! 🎉</h3>
-</div>
 
 <details>
   <summary>Index</summary>
@@ -137,15 +134,16 @@ Along with the node and bag file, RViz visualization will also be launched to di
 The dlo3d_node requires a series of configuration parameters to operate correctly, which are related to the dataset and the vehicle being used. These parameters are as follows:
 
 * LiDAR Parameters:
-    - **in_cloud_aux**
     - **in_cloud**
-    - **hz_cloud**
+    - **in_cloud_aux**
     - **aux_lidar_en**
+    - **hz_cloud**
     - **min_range**
     - **max_range**
-    - **leaf_size** . Voxel grid size for input downsampling. Set to a negative value (e.g., -1.0) to disable.
-    - **m_PubDownsampling** - Subsampling step for RViz visualization to prevent saturation (fast, naive point skipping). Set to 1 to disable.
-    - **lidar_type** - Required to perform unwarping correctly. Currently available for hesai or ouster.
+    - **leaf_size_map** - Voxel size [m] for the fine downsampling used to build the TDF map.
+    - **leaf_size_opt** - Voxel size [m] for the coarser downsampling fed to the solver (faster registration).
+    - **PubDownsampling** - Subsampling step for RViz visualization to prevent saturation (fast, naive point skipping). Set to 1 to disable.
+    - **lidar_type** - Required to perform unwarping correctly. Currently available for ouster, hesai and livox.
     - **timestamp_mode** - Time reference (start or end of scan). Defaults to start (standard); typically changed only for specific datasets.
 
 
@@ -157,11 +155,20 @@ The dlo3d_node requires a series of configuration parameters to operate correctl
     - **gyr_rw_dev**
     - **acc_dev**
     - **acc_rw_dev**
+    - **imu_acc_in_ms2** - Set to true if the accelerometer reports m/s^2; false if it reports g (it will be scaled by 9.80665).
+    - **use_fixed_imu_dt** - Use the nominal IMU period (1/hz_imu) instead of the measured stamp difference for prediction.
+
+* Initial Pose Parameters:
+    - **m_init_x**
+    - **m_init_y**
+    - **m_init_z**
+    - **m_init_roll**
+    - **m_init_pitch**
+    - **m_init_yaw**
 
 * Frames Id
     - **base_frame_id**
     - **odom_frame_id**
-    - **map_frame_id**
 
 * KeyFrame Treshold Parameters:
     - **keyframe_dist**
@@ -174,15 +181,19 @@ The dlo3d_node requires a series of configuration parameters to operate correctl
     - **tdfGridSizeY_high**
     - **tdfGridSizeZ_low**
     - **tdfGridSizeZ_high**
+    - **tdf_grid_res** - Voxel resolution [m] of the truncated distance field.
+    - **maxCells** - Maximum number of 1 m cells kept in the circular buffer (bounds map memory).
+    - **maxload** - Max XY distance [m] from the keyframe used when loading a cloud into the grid.
+    - **kGridMarginFactor** - Fraction of the grid half-size at which a new map is triggered.
 
 * Solver and Performance Parameters:
     - **solver_max_iter**
     - **solver_max_threads**
-    - **robust_kernel_scale**
+    - **robust_outlier_dist** - Scale of the Cauchy robust kernel (in metres, range-dependent).
 
 
 These parameters allow you to fine-tune the node’s behavior, including settings related to the input cloud topics, IMU data, grid size, calibration, and solver configurations, among others.
-⚠️ **Note:** This node has been tested with Ouster and Hesai sensors. For other sensors, the unwarp module is not yet adapted, so it will run without performing the unwarp.
+⚠️ **Note:** This node has been tested with Ouster, Hesai and Livox sensors. For other sensors, the unwarp module is not yet adapted, so it will run without performing the unwarp.
 
 ## 4. Output Data and Services
 When the code is launched, it automatically stores a CSV file containing the odometric pose information every time an optimization occurs, synchronized to the LiDAR frequency. 
@@ -225,7 +236,7 @@ The node provides different services to save the grid data to a file and publish
 
 - [ ] Implement loop closure module.
     
-- [ ] Adapt the *unwarp* module to support other LiDAR sensors. Currently, it supports Ouster and Hesai; for other sensors, the module runs without performing the unwarp.
+- [ ] Adapt the *unwarp* module to support other LiDAR sensors. Currently, it supports Ouster, Hesai and Livox; for other sensors, the module runs without performing the unwarp.
 
 
 
@@ -254,4 +265,4 @@ This work is partially supported by the grants INSERTION (PID2021- 127648OB-C31)
 </p>
 
 
-<p align="right"><a href="#readme-top">⬆ Back to top</a></p> 
+<p align="right"><a href="#readme-top">⬆ Back to top</a></p>

@@ -1,7 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"/home/upo/slam_ws/src/D-LIO/build/dlio/cmake_install.cmake"
-	],
-	"Parallel" : false
-}

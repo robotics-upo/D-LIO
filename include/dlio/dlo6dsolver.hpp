@@ -49,7 +49,7 @@ class DistanceFunction : public ceres::SizedCostFunction<1, 3>
         if(_grid.isIntoGrid(x, y, z))
         {
             TrilinearParams p = _grid.computeDistInterpolation(x, y, z);
-            // Multiply by resolution so the residual is expressed in metres rather than voxel units
+            // scale to metres (interpolation is in voxel units)
             residuals[0] = _res * (p.a0 + p.a1*x + p.a2*y + p.a3*z + p.a4*x*y + p.a5*x*z + p.a6*y*z + p.a7*x*y*z);
             if (jacobians != NULL && jacobians[0] != NULL) 
             {
@@ -60,13 +60,9 @@ class DistanceFunction : public ceres::SizedCostFunction<1, 3>
         }
         else
         {
-            // Out of grid: constant max-distance penalty (= _penalty, in metres),
-            // gradient 0. The constant high cost means the solver gains nothing by
-            // pushing points outside the grid (no "escape to zero error"), while the
-            // zero gradient avoids introducing an artificial pull toward any point.
-            // NOTE: the residual here must stay at _penalty (max distance), NEVER 0:
-            // a 0 here would read as "point perfectly on a surface" and would reward
-            // moving points into empty space (degenerate solution).
+            // Out of grid: constant max-distance penalty, zero gradient.
+            // Must stay at _penalty (not 0): a 0 reads as "on a surface" and would
+            // reward pushing points into empty space.
             residuals[0] = _penalty;
             if (jacobians != NULL && jacobians[0] != NULL) 
             {
@@ -84,7 +80,7 @@ class DistanceFunction : public ceres::SizedCostFunction<1, 3>
     TDF3D64 &_grid;
     double _res;
     double _penalty;
-    // Kept for reference / potential reuse; no longer used by the (zero-gradient) else branch.
+    // kept for reference; unused by the zero-gradient else branch
     double _grid_min_x, _grid_max_x;
     double _grid_min_y, _grid_max_y;
     double _grid_min_z, _grid_max_z;
@@ -113,7 +109,7 @@ class DLL6DCostFunctor
         const T qz = q[3];
         const T qw = q[0];
 
-        // Compute transformed point
+        // transformed point
         T r00, r01, r02, r10, r11, r12, r20, r21, r22;
         T p[3], dist;
         r00 = 1.0-2.0*(qy*qy+qz*qz);    r01 = 2.0*(qx*qy-qz*qw);        r02 = 2.0*(qx*qz+qy*qw); 
@@ -123,10 +119,10 @@ class DLL6DCostFunctor
         p[1] = r10*_px + r11*_py + r12*_pz + ty;
         p[2] = r20*_px + r21*_py + r22*_pz + tz;
 
-        // Compute distance
+        // distance
         _distanceFunctor(p, &dist);
 
-        // Compute weigthed residual
+        // weighted residual
         residuals[0] = _w * dist;
         
         return true;
@@ -145,11 +141,11 @@ class DLL6DCostFunctor
     // Distance grid
     TDF3D64 &_grid;
 
-    // Distance funtion diferenciation
+    // distance function differentiation
     ceres::CostFunctionToFunctor<1, 3> _distanceFunctor;
 };
 
-// QuatNormCostFunction removed — QuaternionManifold already handles quaternion normalization.
+// QuatNormCostFunction removed: QuaternionManifold handles normalization.
 
 
 class DLL6DSolver
@@ -172,13 +168,8 @@ class DLL6DSolver
         _max_num_iterations = 50;
         _max_threads = 5;
 
-        // Effective Cauchy scale (see solve()):
-        //     cauchy_scale = resolution * _robusKernelScale * (0.1 + 0.1*range)
-        // With resolution = 0.05 and _robusKernelScale = 5 this is ~5 cm at close range
-        // (≈ map resolution) growing with range. The guard in setRobustKernelScale() now
-        // accepts any positive value, so the YAML parameter "robust_outlier_dist" takes
-        // effect. To reproduce this default behaviour set robust_outlier_dist: 5.0 in the
-        // YAML (NOT 0.5 — that would shrink the scale ~10x and over-reject inliers).
+        // cauchy_scale = resolution * _robusKernelScale * (0.1 + 0.1*range).
+        // Default 5 gives ~5 cm at close range; set robust_outlier_dist: 5.0 in YAML to match.
         _robusKernelScale = 5;
     }
 
@@ -211,10 +202,7 @@ class DLL6DSolver
 
     bool setRobustKernelScale(double s)
     {
-        // Guard relaxed from (s > 0.9) to (s > 0.0): the residual is now in metres,
-        // so small metre-scale values (e.g. a few cm) are legitimate and must not be
-        // silently rejected. Previously (s > 0.9) discarded any value < 0.9 and the
-        // scale stayed at the constructor default (5), making the YAML knob a no-op.
+        // s > 0.0: residual is in metres, so a few cm is a legitimate scale.
         if(s > 0.0)
         {
             _robusKernelScale = s;
@@ -247,9 +235,7 @@ class DLL6DSolver
         ceres::Manifold* quaternion_manifold = new ceres::QuaternionManifold();
         problem.SetManifold(q, quaternion_manifold);
 
-        // The residual is now in metres (DistanceFunction multiplies by grid resolution).
-        // The original Cauchy threshold was in voxel units, so multiply it by the resolution
-        // to keep the exact same physical behaviour as before.
+        // residual is in metres; scale the Cauchy threshold by resolution
         const double res = _grid.getResolution();
 
         int n=0;
@@ -260,10 +246,10 @@ class DLL6DSolver
         transform.setRotation(q_pre);
         transform.setOrigin(tf2::Vector3(tx, ty, tz));
         
-        // Set up a cost funtion per point into the cloud
+        // one cost function per cloud point
         for(unsigned int i=0; i<p.size(); i++)
         {
-            // Compute position of the point into the grid according to initial transform
+            // apply the initial transform
             tf2::Vector3 point(p[i].x, p[i].y, p[i].z);
             tf2::Vector3 transformed_point = transform * point;
 
@@ -271,14 +257,12 @@ class DLL6DSolver
             ny = transformed_point.y();
             nz = transformed_point.z();
 
-            // Outlier rejection. Points out of the grid are discarded
+            // drop points outside the grid
             if(_grid.isIntoGrid(nx, ny, nz))
             {
                 n++;
 
-                // Hit-counter weighting disabled for now (still under test): uniform weight.
-                // (The hit counter is still maintained in TDF3D64::loadCloud; it just does
-                //  not influence the solver residual while confidence == 1.0.)
+                // hit-counter weighting disabled (under test): uniform weight
                 double confidence = 1.0;
 
                 float d = sqrt(p[i].x*p[i].x + p[i].y*p[i].y + p[i].z*p[i].z);
@@ -300,16 +284,13 @@ class DLL6DSolver
         if(summary.termination_type == ceres::CONVERGENCE)
             converged = true;
 
-        // Cheap quality scalars (already computed -> free).
+        // quality scalars (already computed)
         if (numInliers != nullptr) *numInliers = n;
         if (finalCost  != nullptr) *finalCost  = summary.final_cost;
 
-        // ---- Direction-aware measurement covariance from the Hessian -------------
-        // Computed only if the caller passes a buffer (covMatrix != NULL): cost is
-        // ~one extra Jacobian sweep + a 6x6 SVD. Output: row-major 6x6 ordered
-        // [px,py,pz, rx,ry,rz] to match the ESKF measurement [dp, dtheta].
-        // Degenerate DoF (e.g. yaw over a flat floor) -> large capped variance there,
-        // so the ESKF leans on the gyro for that DoF.
+        // Direction-aware measurement covariance from the Hessian (only if covMatrix
+        // != NULL). Output: row-major 6x6 [px,py,pz, rx,ry,rz] to match the ESKF.
+        // Degenerate DoF (e.g. yaw on a flat floor) gets a large capped variance.
         if (covMatrix != nullptr)
         {
             const double res       = _grid.getResolution();
@@ -318,7 +299,7 @@ class DLL6DSolver
             const double cap_pos   = 0.5*0.5;               // 0.5 m
             const double cap_ori   = 0.5*0.5;               // ~28 deg
 
-            // Default = large isotropic: if we cannot estimate, the filter ~ignores LiDAR.
+            // large isotropic default: if not estimable, the filter ~ignores LiDAR
             double var[6] = { cap_pos, cap_pos, cap_pos, cap_ori, cap_ori, cap_ori };
 
             if (converged && n > 6)
@@ -339,12 +320,11 @@ class DLL6DSolver
                     covariance.GetCovarianceBlockInTangentSpace(t, t, Ctt);
                     covariance.GetCovarianceBlockInTangentSpace(q, q, Cqq);
 
-                    // A-posteriori variance factor: scales (J^T J)^-1 (unit-residual
-                    // assumption) to the real fit quality.
+                    // a-posteriori factor: scales (J^T J)^-1 to the real fit quality
                     const double dof    = std::max(1, n - 6);
                     const double sigma2 = std::max(1e-9, 2.0 * summary.final_cost / dof);
 
-                    // Diagonals of each 3x3 (row-major -> indices 0,4,8).
+                    // diagonals of each 3x3 (indices 0,4,8)
                     const double raw[6] = { Ctt[0], Ctt[4], Ctt[8],
                                             Cqq[0], Cqq[4], Cqq[8] };
                     for (int i = 0; i < 6; ++i)
