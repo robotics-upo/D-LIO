@@ -1,9 +1,0 @@
-%YAML:1.0
-T_W_Wleica: !!opencv-matrix
-  rows: 4
-  cols: 4
-  dt: d
-  data: [ NaN, NaN, NaN, NaN,
-          NaN, NaN, NaN, NaN,
-          NaN, NaN, NaN, NaN,
-          0.000000000, 0.000000000, 0.000000000, 1.000000000 ]
