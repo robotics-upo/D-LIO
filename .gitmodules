@@ -1,4 +1,0 @@
-[submodule "D-LIO"]
-	path = D-LIO
-	url = https://github.com/robotics-upo/D-LIO.git
-	branch = dev
