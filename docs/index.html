@@ -1,1185 +1,505 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>D-LIO · 6DoF Direct LiDAR-Inertial Odometry</title>
-
-<meta name="description" content="D-LIO: A Direct LIDAR Inertial Odometry (D-LIO) able to deal with raw 3D LIDAR data online, avoiding the need of LIDAR feature selection and tracking." />
-<meta property="og:title" content="D-LIO: 6DoF Direct LiDAR-Inertial Odometry based on Simultaneous Truncated Distance Field Mapping" />
-<meta property="og:description" content="A Direct LIDAR Inertial Odometry (D-LIO) able to deal with raw 3D LIDAR data online, avoiding the need of LIDAR feature selection and tracking." />
-<meta property="og:type" content="website" />
-<meta name="color-scheme" content="light dark" />
-
-<style>
-/* ===== Brand palette (Universidad Pablo de Olavide) ===== */
-:root{
-  --bg:#ffffff; --fg:#141a20; --muted:#6b7280;
-  --brand:#003771;           /* blue */
-  --accent:#faba13;          /* yellow */
-  --ruler:#faba13;           /* light mode: ruler = yellow */
-  --ruler-dark:#77b1ff;      /* dark mode: ruler = light blue */
-  --authors-dark:#ffe58a;    /* dark mode: lighter yellow for authors */
-  --border:#e9edf2; --shadow:0 6px 18px rgba(0,0,0,.06);
-  --link:var(--brand); --link-hover:var(--accent);
-  --content-max: 1040px;
-}
-
-/* Auto dark if no manual override */
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme]){
-    --bg:#0b0f14; --fg:#e6edf3; --muted:#9aa4b2;
-    --border:#263142; --shadow:0 6px 18px rgba(0,0,0,.35);
-    --link:#77b1ff; --link-hover:var(--accent);
-    --ruler: var(--ruler-dark); /* invert: ruler becomes blue */
-  }
-  :root:not([data-theme]) .hero h1,
-  :root:not([data-theme]) .hero .subtitle,
-  :root:not([data-theme]) .section h2{ color: var(--accent); } /* titles yellow */
-  :root:not([data-theme]) .authors{ color: var(--authors-dark); } /* authors lighter yellow */
-}
-
-/* Manual overrides force dark */
-:root[data-theme="dark"]{
-  --bg:#0b0f14; --fg:#e6edf3; --muted:#9aa4b2;
-  --border:#263142; --shadow:0 6px 18px rgba(0,0,0,.35);
-  --link:#77b1ff; --link-hover:var(--accent);
-  --ruler: var(--ruler-dark);
-}
-:root[data-theme="dark"] .hero h1,
-:root[data-theme="dark"] .hero .subtitle,
-:root[data-theme="dark"] .section h2{ color: var(--accent); } /* titles yellow */
-:root[data-theme="dark"] .authors{ color: var(--authors-dark); } /* authors lighter yellow */
-
-html,body,.site-header,.btn,.footer,.nav a{
-  transition: background-color .28s ease, color .28s ease, border-color .28s ease, box-shadow .28s ease;
-}
-
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
-  font:16px/1.7 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,"Helvetica Neue",Arial,"Noto Sans";
-  background:var(--bg); color:var(--fg);
-}
-
-/* ===== Header / Nav ===== */
-.site-header{
-  position:sticky; top:0; z-index:50;
-  background:color-mix(in oklab, var(--bg) 85%, transparent);
-  border-bottom:1px solid var(--border);
-  backdrop-filter:saturate(150%) blur(6px);
-}
-.nav{
-  max-width:var(--content-max); margin:0 auto; padding:14px 20px;
-  display:flex; align-items:center; justify-content:space-between; gap:12px;
-}
-.brand.toggle{
-  display:flex; align-items:center; gap:10px;
-  color:var(--fg); cursor:pointer; user-select:none;
-  padding:6px 10px; border-radius:12px;
-  background:#fff; border:2px solid var(--brand);
-}
-.brand.toggle .logo{ width:18px; height:18px; border-radius:50%; background:var(--brand); }
-.brand.toggle .title{ font-weight:700; letter-spacing:.2px; }
-:root[data-theme="dark"] .brand.toggle{ background:#000; border-color:var(--accent); color:#fff; }
-:root[data-theme="dark"] .brand.toggle .logo{ background:var(--accent); }
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme]) .brand.toggle{ background:#000; border-color:var(--accent); color:#fff; }
-  :root:not([data-theme]) .brand.toggle .logo{ background:var(--accent); }
-}
-.nav a{
-  color:var(--link); text-decoration:none; padding:8px 10px; border-radius:10px;
-  text-underline-offset:3px;
-}
-.nav a:hover{ background:rgba(0,55,113,.06); color:var(--link-hover); }
-
-/* ===== Internal Nav Links (Header) ===== */
-.internal-nav {
-  display: flex; /* Alinea los enlaces */
-  gap: 8px; /* Espacio entre enlaces */
-}
-.internal-nav a {
-  color: var(--muted); /* Un color más suave */
-  text-decoration: none;
-  padding: 8px 10px;
-  border-radius: 10px;
-  text-underline-offset: 3px;
-  font-size: 0.95rem; /* Un poco más pequeños */
-}
-.internal-nav a:hover {
-  background: rgba(0,55,113,.06); /* Mismo hover que los otros enlaces */
-  color: var(--link-hover);
-}
-
-/* Oculta la navegación interna en pantallas pequeñas (móviles) */
-@media (max-width: 768px) {
-  .internal-nav {
-    display: none;
-  }
-}
-/* ======================================= */
-
-/* ===== Smooth Scrolling ===== */
-html {
-  scroll-behavior: smooth;
-}
-/* ============================ */
-
-/* ===== Hero ===== */
-.hero{
-  max-width:var(--content-max); margin:48px auto 8px; padding:0 20px; text-align:center;
-}
-.hero h1{
-  margin:6px 0 6px; font-size:clamp(28px,3.4vw,44px);
-  line-height:1.12; letter-spacing:.2px; color:var(--brand);
-}
-.authors{
-  margin:0 auto 10px; color:var(--muted); font-size:0.98rem;
-  display:flex; gap:10px; justify-content:center; flex-wrap:wrap;
-}
-.authors a {
-  color: var(--link);
-  text-decoration: none;
-}
-/* Ensure authors go yellow in dark (even as links) */
-:root[data-theme="dark"] .authors a { color: var(--authors-dark) !important; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) .authors a { color: var(--authors-dark) !important; }
-}
-.authors a:hover{ color:var(--link-hover); text-decoration:underline; }
-
-.hero .lead{ color:var(--muted); margin:10px auto 0; max-width:820px; }
-
-.hero .subtitle {
-  font-size: clamp(1.1rem, 2.2vw, 1.5rem); 
-  line-height: 1.3;
-  color: var(--brand); /* <-- CAMBIADO: Ahora usa el color --brand */
-  font-weight: 400;    
-  margin: -4px auto 14px; 
-  max-width: 820px;
-}
-
-/* ===== Cajetín de Anuncio (RA-L) ===== */
-.announcement-box {
-  width: fit-content;
-  margin: 48px auto -16px; /* Espacio arriba, y negativo abajo para juntarlo con la sección siguiente */
-  padding: 18px 24px;
-  border-radius: 12px;
-  /* Fondo amarillo muy claro, mezclado con el fondo general */
-  background: color-mix(in oklab, var(--accent) 15%, var(--bg));
-  /* Borde de acento */
-  border: 1px solid color-mix(in oklab, var(--accent) 60%, #000);
-  box-shadow: var(--shadow);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-}
-.announcement-box .icon {
-  font-size: 2rem; /* Tamaño del emoji */
-  line-height: 1;
-  /* Animación "tada" para llamar la atención */
-  animation: tada 2s infinite ease-in-out;
-  transform-origin: bottom center;
-}
-.announcement-box p {
-  margin: 0;
-  font-size: 0.98rem;
-  line-height: 1.6;
-  color: var(--fg); /* Color de texto normal */
-  text-align: center;
-}
-.announcement-box p strong {
-  color: var(--brand); /* Color azul (marca) para el nombre de la revista */
-}
-
-/* Ajustes para modo oscuro */
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme]) .announcement-box {
-    background: color-mix(in oklab, var(--accent) 12%, var(--bg));
-    border-color: var(--accent);
-  }
-  :root:not([data-theme]) .announcement-box p strong {
-    color: var(--authors-dark); /* Amarillo claro para la revista en modo oscuro */
-  }
-}
-:root[data-theme="dark"] .announcement-box {
-  background: color-mix(in oklab, var(--accent) 12%, var(--bg));
-  border-color: var(--accent);
-}
-:root[data-theme="dark"] .announcement-box p strong {
-  color: var(--authors-dark); /* Amarillo claro para la revista en modo oscuro */
-}
-
-/* Definición de la animación "tada" */
-@keyframes tada {
-  0% { transform: scale(1); }
-  10%, 20% { transform: scale(0.95) rotate(-3deg); }
-  30%, 50%, 70%, 90% { transform: scale(1.05) rotate(3deg); }
-  40%, 60%, 80% { transform: scale(1.05) rotate(-3deg); }
-  100% { transform: scale(1) rotate(0); }
-}
-/* ================================== */
-
-/* ===== Grid 2 Column Layout (para Fast-TDF) ===== */
-.grid-2-col {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* 2 columnas de tamaño idéntico */
-  gap: 24px; /* Espacio entre las columnas */
-  /* align-items: start; <-- BORRA ESTA LÍNEA */
-}
-
-/* Apilado responsivo en pantallas pequeñas (móviles) */
-@media (max-width: 860px) { /* Usamos el mismo breakpoint que ya tiene la plantilla */
-  .grid-2-col {
-    grid-template-columns: 1fr; /* Vuelve a una sola columna */
-  }
-}
-/* ================================================== */
-
-/* ===== Estilos de Tablas de Resultados ===== */
-.table-wrapper {
-  overflow-x: auto; /* Permite scroll horizontal en móvil */
-  margin: 24px 0;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-}
-/* ===== Estilos para la tabla-figura 1(a) ===== */
-.kernel-table-wrapper {
-  max-width: 350px; /* Ancho máximo para la tabla pequeña */
-  margin: 18px auto;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  overflow: hidden; /* Para que el radius afecte a la tabla */
-}
-.kernel-table th {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--brand);
-  background: color-mix(in oklab, var(--brand) 6%, var(--bg));
-}
-.kernel-table td:first-child {
-  font-family: monospace, monospace; /* Para las máscaras binarias */
-  text-align: center;
-  font-size: 1rem;
-  letter-spacing: 10px;
-}
-.kernel-table td, .kernel-table th {
-  text-align: center; /* Centra todo */
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
-}
-.kernel-table tr:last-child td {
-  border-bottom: 0;
-}
-/* Modo oscuro para la tabla-figura */
-:root[data-theme="dark"] .kernel-table th,
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) .kernel-table th {
-    background: color-mix(in oklab, var(--accent) 10%, var(--bg));
-    color: var(--accent);
-  }
-}
-/* ================================== */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
-}
-table th, table td {
-  border-bottom: 1px solid var(--border);
-  padding: 10px 14px;
-  white-space: nowrap; /* Evita que los números se partan */
-  text-align: center;
-}
-table td:first-child {
-  font-weight: 500;
-}
-table th:first-child,
-table td:first-child {
-  text-align: left;
-}
-table th {
-  background: color-mix(in oklab, var(--brand) 6%, var(--bg));
-  color: var(--brand);
-  font-weight: 600;
-}
-table tbody tr:last-child td {
-  border-bottom: 0; /* Sin borde en la última fila */
-}
-table tbody tr:nth-child(even) {
-  background: color-mix(in oklab, var(--bg) 96%, #000 4%);
-}
-table strong { /* Para resaltar el mejor resultado */
-  color: var(--brand);
-  font-weight: 700;
-}
-table u { /* Para resaltar el segundo mejor */
-  text-decoration-color: color-mix(in oklab, var(--accent) 80%, transparent);
-  text-decoration-thickness: 1.5px;
-  text-underline-offset: 3px;
-  font-weight: 500;
-}
-:root[data-theme="dark"] table u,
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) table u {
-    text-decoration-color: var(--authors-dark);
-  }
-}
-table .note { /* Para texto secundario como (RPE %) */
-  font-size: 0.8rem;
-  color: var(--muted);
-  margin-left: 4px;
-}
-table .fail { /* Para resultados fallidos (si los hubiera) */
-  color: var(--muted);
-}
-
-/* --- Ajustes de tablas en modo oscuro --- */
-:root[data-theme="dark"] table th,
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) table th {
-    background: color-mix(in oklab, var(--accent) 10%, var(--bg));
-    color: var(--accent);
-  }
-}
-:root[data-theme="dark"] table tbody tr:nth-child(even),
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) table tbody tr:nth-child(even) {
-    background: color-mix(in oklab, var(--bg) 96%, #fff 4%);
-  }
-}
-:root[data-theme="dark"] table strong,
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) table strong {
-    color: var(--authors-dark); /* Amarillo claro */
-  }
-}
-/* ================================== */
-
-/* Quick external links */
-.quick-links{
-  margin-top:22px; display:flex; flex-wrap:wrap; gap:12px;
-  justify-content:center; align-items:center;
-}
-.btn{
-  display:inline-flex; align-items:center; gap:10px;
-  border:1px solid var(--border); color:var(--fg); text-decoration:none;
-  padding:10px 16px; border-radius:999px; background:transparent;
-}
-.btn:hover{ transform:translateY(-1px); box-shadow:0 10px 24px rgba(0,0,0,.10); border-color:rgba(0,55,113,.25); }
-.btn .dot{ width:8px; height:8px; border-radius:50%; background:var(--accent); }
-
-/* ===== Sections / Wide dynamic ruler ===== */
-.section{ max-width:var(--content-max); margin:56px auto; }
-.section header{ text-align:center; margin-bottom:18px; }
-.section h2{
-  --underline:0%;
-  font-size:clamp(20px,2.2vw,28px); margin:0 0 24px; color:var(--brand);
-  position:relative; display:inline-block;
-}
-.section h2::after{
-  content:""; position:absolute; left:50%; transform:translateX(-50%);
-  bottom:-12px; height:4px; width:var(--underline);
-  max-width:50vw;                 /* grow up to 50% page width */
-  background:var(--ruler);        /* switches with theme */
-  border-radius:4px; transition:width .7s ease;
-}
-.section.in-view h2{ --underline:100%; }
-
-/* Clean content */
-.section .content{ margin:0 auto; max-width:900px; color:var(--fg); padding:0 20px; }
-.section p{ margin:0 0 10px 0; }
-
-/* ===== Auto-advancing gallery with arrows ===== */
-.gallery{ --gap:12px; max-width:900px; margin:14px auto 0; padding:0 20px; }
-.gallery-viewport{ overflow:hidden; position:relative; width:100%; }
-.gallery-track{ display:flex; gap:var(--gap); will-change:transform; }
-.gallery-item{
-  flex:0 0 calc((100% - 2*var(--gap)) / 3);
-  border:1px solid var(--border);
-  border-radius:12px;
-  overflow:hidden;
-  box-shadow:var(--shadow);
-  background:var(--bg);
-  aspect-ratio: 16/9; 
-}
-.gallery-item img{
-  width:100%;
-  height:100%;
-  display:block;
-  object-fit:cover;    
-}
-
-/* Arrows */
-.gallery-arrow{
-  position:absolute; top:50%; transform:translateY(-50%);
-  width:38px; height:38px; border-radius:50%;
-  display:grid; place-items:center; font-size:20px;
-  color:#fff; border:1px solid color-mix(in oklab, var(--fg) 40%, transparent);
-  background: color-mix(in oklab, var(--fg) 22%, transparent);
-  cursor:pointer; user-select:none; opacity:.7;
-}
-.gallery-arrow:hover{ opacity:1; }
-.gallery-arrow.left{ left:6px; }
-.gallery-arrow.right{ right:6px; }
-
-/* Video embed */
-.video{
-  position:relative; width:100%; max-width:900px; margin:14px auto 0;
-  aspect-ratio:16/9; border-radius:12px; overflow:hidden; box-shadow:var(--shadow);
-  border:1px solid var(--border);
-}
-.video iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
-
-/* Two-column layout (optional) */
-.grid{ display:grid; gap:16px; grid-template-columns:repeat(12,1fr); padding:0 20px; }
-@media(min-width:860px){ .span-6{ grid-column:span 6; } }
-.block{ grid-column:span 12; }
-.block h3{ margin:.2rem 0 .4rem; font-size:1.05rem; color:var(--brand); }
-
-/* Code sample + copy */
-pre{ background:color-mix(in oklab, var(--bg) 92%, #000 8%); color:var(--fg);
-     border:1px solid var(--border); border-radius:12px; padding:14px; overflow:auto; margin:8px 20px 0; }
-.copy{
-  border:1px solid var(--border); background:transparent; color:var(--link);
-  border-radius:10px; padding:6px 10px; cursor:pointer;
-}
-.copy:hover{ background: rgba(250,186,19,.12); color: var(--brand); }
-
-/* Funding logos row */
-.funders{
-  display:flex; gap:18px; flex-wrap:wrap; justify-content:center; align-items:center;
-  padding: 6px 20px 0;
-}
-.funders img{
-  max-height:120px;      
-  height:auto;         
-  object-fit:contain;
-}
-:root[data-theme="dark"] .funders img{
-  filter: brightness(0.95) contrast(1.05);
-}
-
-/* Footer */
-.footer{
-  margin-top:56px; padding:22px 20px; border-top:1px solid var(--border);
-  color:var(--muted); text-align:center;
-}
-.footer a{ color:var(--link); text-decoration:none; }
-.footer a:hover{ color:var(--link-hover); text-decoration:underline; }
-
-/* Links */
-a{ color:var(--link); } a:hover{ color:var(--link-hover); }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D-LIO · 6DoF Direct LiDAR-Inertial Odometry</title>
+    <meta name="description"
+        content="D-LIO: A Direct LIDAR Inertial Odometry able to deal with raw 3D LIDAR data online, avoiding the need of LIDAR feature selection and tracking. Accepted at IEEE Robotics and Automation Letters (RA-L).">
+    <meta property="og:title" content="D-LIO: 6DoF Direct LiDAR-Inertial Odometry based on Simultaneous Truncated Distance Field Mapping" />
+    <meta property="og:description" content="A Direct LIDAR Inertial Odometry (D-LIO) able to deal with raw 3D LIDAR data online, avoiding the need of LIDAR feature selection and tracking." />
+    <meta property="og:type" content="website" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-
-<header class="site-header">
-  <nav class="nav">
-    <button class="brand toggle" id="theme-switch" type="button" title="Toggle theme">
-      <span class="logo" aria-hidden="true"></span>
-      <span class="title" id="theme-label">Dark mode</span>
-    </button>
-
-    <div class="internal-nav">
-      <a href="#overview-gallery">Overview</a>
-      <a href="#method">Method</a>
-      <a href="#fast-tdf">Fast-TDF</a>  
-      <a href="#results">Results</a>
-      <a href="#citation">Cite</a>
-    </div>
-    <div>
-      <a href="https://robotics.upo.es/" target="_blank" rel="noopener">Service Robotics Lab</a>
-      <a href="https://github.com/robotics-upo" target="_blank" rel="noopener">SRL GitHub</a>
-    </div>
-  </nav>
-</header>
-
-<main>
-  <!-- ===== Hero ===== -->
-  <section class="hero" id="overview">
-    <h1>D-LIO</h1>
-
-    <p class="subtitle">6DoF Direct LiDAR-Inertial Odometry based on Simultaneous Truncated Distance Field Mapping</p>
-
-    <!-- Authors under title -->
-    <div class="authors">
-      <a href="https://scholar.google.com/citations?user=4Ufn1_8AAAAJ&hl=en" target="_blank" rel="noopener">Lucia Coto-Elena</a>
-      <span>·</span>
-      <a href="https://scholar.google.com/citations?user=_csNaiYAAAAJ&hl=es" target="_blank" rel="noopener">Jose E. Maese</a>
-      <span>·</span>
-      <a href="https://scholar.google.es/citations?user=BNdMkI8AAAAJ&hl=es" target="_blank" rel="noopener">Luis Merino</a>
-      <span>·</span>
-      <a href="https://scholar.google.com/citations?user=nb2teTwAAAAJ&hl=es" target="_blank" rel="noopener">Fernando Caballero</a>
-    </div>
-
-    <p class="lead">
-      This paper presents a new approach for 6DoF Direct LiDAR-Inertial Odometry (D-LIO) based on the simultaneous mapping of L1 truncated distance fields on CPU. 
-      This continuous representation enables working with raw 3D LiDAR data online, avoiding the need of LiDAR feature selection and tracking, simplifying the odometry pipeline and easily generalizing to many scenarios.
-    </p>
-
-    <!-- External quick links -->
-    <div class="quick-links">
-      <a class="btn" href="https://arxiv.org/abs/2505.16726" target="_blank" rel="noopener">
-        <span class="dot"></span>Paper
-      </a>
-      <a class="btn" href="https://www.youtube.com/watch?v=HmrA9YOCZ9w" target="_blank" rel="noopener">
-        <span class="dot"></span>Video
-      </a>
-      <a class="btn" href="https://github.com/robotics-upo/D-LIO?tab=readme-ov-file" target="_blank" rel="noopener">
-        <span class="dot"></span>Code
-      </a>
-    </div>
-  </section>
-
-  <div class="announcement-box">
-    <span class="icon">🎉</span>
-    <p><strong>D-LIO</strong> has been accepted to <strong>IEEE Robotics and Automation Letters (RA-L)</strong>!</p>
-  </div>
-    
-  <!-- ===== Overview / Example Gallery ===== -->
-  <section class="section" id="overview-gallery">
-    <header><h2>Overview</h2></header>
-    <div class="content">
-      <p>
-        The method is based on the proposed <strong>Fast Truncated Distance Field (Fast-TDF)</strong> as a convenient tool to represent the environment. 
-        This representation enables solving the LiDAR point-cloud registration as a nonlinear optimization process, simultaneously producing an accurate <strong>TDF map</strong> of the environment, 
-        and updating such map at <strong>constant time independently of its size</strong>. 
-        The approach is benchmarked against other state-of-the-art odometry approaches, demonstrating the <strong>same or better level of accuracy</strong>.   
-      </p>
-
-      <div class="gallery">
-        <div class="gallery-viewport" id="g-viewport">
-          <div class="gallery-track" id="g-track">
-            <!-- 3 visible -->
-            <div class="gallery-item"><img src="media/map_college.png" alt="Reconstruction College"></div>
-            <div class="gallery-item"><img src="media/map_eee02.png" alt="Reconstruction eee_02"></div>
-            <div class="gallery-item"><img src="media/map_nya03.png" alt="Reconstruction nya_03"></div>
-            <!-- 3 initially hidden -->
-            <div class="gallery-item"><img src="media/map_sbs02.png" alt="Reconstruction sbs_02"></div>
-          </div>
-
-          <!-- arrows -->
-          <button class="gallery-arrow left"  id="g-prev" aria-label="Previous">‹</button>
-          <button class="gallery-arrow right" id="g-next" aria-label="Next">›</button>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-logo">D-LIO</a>
+            <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="nav-links" id="navLinks">
+                <a href="#abstract">Overview</a>
+                <a href="#method">Method</a>
+                <a href="#fast-tdf">Fast-TDF</a>
+                <a href="#results">Results</a>
+                <a href="#citation">Citation</a>
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                    <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
-      </div>
-    </div>
-  </section>
+    </nav>
 
-  <!-- ===== Method Sketch ===== -->
-  <section class="section" id="method">
-    <header><h2>Method</h2></header>
-    <div class="content">
-    <p>
-      The D-LIO algorithm incrementally estimates the system pose using an <strong>Extended Kalman Filter (EKF)</strong>. 
-      It integrates inertial measurements for pose prediction and uses point cloud-to-map registration for pose updates. 
-      The environment is mapped based on the <strong>Truncated Distance Field (TDF)</strong>. 
-      This alignment is used to <strong>constrain the EKF's pose and velocity</strong>. 
-      Whenever the estimated pose variation exceeds a threshold, the <strong>TDF map is updated</strong> by incorporating new information.</p>
-    
-    <p style="text-align:center;margin-top:8px;">
-        <img src="media/diagram.png" alt="DB-TSDF pipeline" style="max-width:100%;border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);" />
-      </p>
-    </div>
-  </section>
+    <!-- Hero Section -->
+    <header class="hero hero-animated">
+        <div class="hero-content">
+            <a href="https://ieeexplore.ieee.org/document/11248856" target="_blank" class="hero-badge" style="display:inline-flex;
+                align-items:center; padding:6px 16px; border-radius:999px; font-size:0.8rem; font-weight:600;
+                letter-spacing:0.04em; text-transform:uppercase; background:var(--accent-soft); color:var(--accent);
+                border:1px solid var(--border); text-decoration:none; margin-bottom:20px;">
+                Published in IEEE Robotics and Automation Letters (RA-L)
+            </a>
+            <h1 class="hero-title">D-LIO</h1>
+            <p class="hero-subtitle">6DoF Direct LiDAR-Inertial Odometry based on Simultaneous<br>Truncated Distance Field Mapping</p>
 
-  <!-- ===== Fast TDF ===== -->
-  <section class="section" id="fast-tdf">
-    <header><h2>Fast-TDF</h2></header>
-    <div class="content">
+            <div class="hero-meta">
+                <div class="hero-authors">
+                    <a href="https://scholar.google.com/citations?user=4Ufn1_8AAAAJ&hl=en" target="_blank">Lucia Coto-Elena</a>
+                    <a href="https://scholar.google.com/citations?user=_csNaiYAAAAJ&hl=es" target="_blank">Jose E. Maese</a>
+                    <a href="https://scholar.google.es/citations?user=BNdMkI8AAAAJ&hl=es" target="_blank">Luis Merino</a>
+                    <a href="https://scholar.google.com/citations?user=nb2teTwAAAAJ&hl=es" target="_blank">Fernando Caballero</a>
+                </div>
+                <div class="hero-affiliation">
+                    <a href="https://robotics.upo.es/" target="_blank">Service Robotics Laboratory</a> · Universidad
+                    Pablo de Olavide
+                </div>
+            </div>
 
-      <div class="grid-2-col">
-
-        <div class="grid-text">
-          <p>
-            The core of D-LIO is the <strong>Fast Truncated Distance Field (Fast-TDF)</strong>. This method represents the environment as a 3D grid, but instead of just storing "occupied" or "free", it efficiently encodes the <strong>L1 distance</strong> to the nearest obstacle.
-          </p>
-          <p>
-            To achieve constant-time map updates, it uses a pre-calculated <strong>binary kernel</strong>. The distance in this kernel is represented as a bit-set mask, where each set bit accounts for the distance.
-          </p>
-          <p>
-            This encoding has a key advantage: the shortest distance from multiple overlapping kernels can be found with a single, highly efficient <strong>bitwise-AND operation</strong>. This avoids complex comparisons and makes the process parallelizable on the CPU.
-          </p>
+            <div class="hero-buttons">
+                <a href="https://arxiv.org/abs/2505.16726" class="btn btn-primary" target="_blank">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    Paper
+                </a>
+                <a href="https://www.youtube.com/watch?v=HmrA9YOCZ9w" class="btn btn-secondary" target="_blank">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                    </svg>
+                    Video
+                </a>
+                <a href="https://github.com/robotics-upo/D-LIO" class="btn btn-secondary" target="_blank">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                        fill="currentColor">
+                        <path
+                            d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                    </svg>
+                    Code
+                </a>
+            </div>
         </div>
+    </header>
 
-        <div class="grid-visuals">
-          
-          <div class="kernel-table-wrapper" style="margin-top:0;"> <table class="kernel-table" style="width:100%;">
-              <thead>
-                <tr>
-                  <th>Binary Mask (4-bit)</th>
-                  <th>L1 Distance</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>0000</td>
-                  <td>0 (Center)</td>
-                </tr>
-                <tr>
-                  <td>0001</td>
-                  <td>1</td>
-                </tr>
-                <tr>
-                  <td>0011</td>
-                  <td>2</td>
-                </tr>
-                <tr>
-                  <td>0111</td>
-                  <td>3</td>
-                </tr>
-                <tr>
-                  <td>1111</td>
-                  <td>4 (Max / Truncation)</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <p style="text-align:center; font-size:0.9rem; color:var(--muted); margin-top:-10px;">
-            Table 1: Correspondence between bit-set masks and L1 distance.
-          </p>
+    <!-- Abstract Section with Image Carousel -->
+    <section id="abstract" class="section" data-reveal>
+        <div class="container abstract-layout">
+            <!-- Image Carousel -->
+            <div class="abstract-carousel">
+                <div class="carousel-viewport">
+                    <div class="carousel-track" id="carouselTrack">
+                        <div class="carousel-slide active" data-caption="Newer College Dataset — Reconstruction overview">
+                            <img src="media/map_college.png" alt="Newer College Dataset — Reconstruction overview">
+                        </div>
+                        <div class="carousel-slide" data-caption="EEE Sequence — Reconstruction detail">
+                            <img src="media/map_eee02.png" alt="EEE Sequence — Reconstruction detail">
+                        </div>
+                        <div class="carousel-slide" data-caption="NYA Sequence — Reconstruction detail">
+                            <img src="media/map_nya03.png" alt="NYA Sequence — Reconstruction detail">
+                        </div>
+                        <div class="carousel-slide" data-caption="SBS Sequence — Reconstruction detail">
+                            <img src="media/map_sbs02.png" alt="SBS Sequence — Reconstruction detail">
+                        </div>
+                    </div>
+                    <button class="carousel-arrow carousel-prev" id="carouselPrev" aria-label="Previous image">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
+                    <button class="carousel-arrow carousel-next" id="carouselNext" aria-label="Next image">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 6 15 12 9 18"></polyline>
+                        </svg>
+                    </button>
+                    <div class="carousel-dots" id="carouselDots">
+                        <span class="carousel-dot active" data-index="0"></span>
+                        <span class="carousel-dot" data-index="1"></span>
+                        <span class="carousel-dot" data-index="2"></span>
+                        <span class="carousel-dot" data-index="3"></span>
+                    </div>
+                </div>
+                <span class="carousel-caption" id="carouselCaption">Newer College Dataset — Reconstruction overview</span>
+            </div>
 
-        </div> </div>
-      
-      <p style="text-align:center;margin-top:24px;">
-        <img src="media/fast_tdf_kernel_merge.png" alt="Fast-TDF bitwise-AND operation" style="max-width:550px; width:100%; border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);" />
-        <br><span style="font-size:0.9rem; color:var(--muted);">
-          Figure 1: The final distance map (center) is computed by applying the bitwise-AND operation to overlapping kernels (top/bottom).
-        </span>
-      </p>
+            <!-- Abstract Text -->
+            <div class="abstract-content">
+                <h2 class="section-title">Overview</h2>
+                <p class="abstract-text">
+                    <strong>D-LIO</strong> is a <strong>6DoF Direct LiDAR-Inertial Odometry</strong> approach that
+                    simultaneously maps <strong>L1 truncated distance fields (Fast-TDF)</strong> on CPU. This
+                    continuous representation lets it work directly with raw 3D LiDAR data online — without LiDAR
+                    feature selection or tracking — casting point-cloud registration as a nonlinear optimization
+                    while updating the map at <strong>constant time, independently of its size</strong>. Benchmarked
+                    against state-of-the-art odometry methods, D-LIO matches or exceeds their accuracy.
+                </p>
+            </div>
+        </div>
+    </section>
 
+    <!-- Method Section -->
+    <section id="method" class="section section-alt" data-reveal>
+        <div class="container">
+            <h2 class="section-title">Method</h2>
+
+            <div class="formula-section">
+                <div class="formula-visual">
+                    <div class="formula-diagram">
+                        <img src="media/diagram.png" alt="D-LIO pipeline diagram">
+                    </div>
+                    <div class="formula-explanation">
+                        <h3>EKF-based Pose Estimation &amp; TDF Mapping</h3>
+                        <p>The D-LIO algorithm incrementally estimates the system pose using an
+                            <strong>Extended Kalman Filter (EKF)</strong>. It integrates inertial measurements for
+                            pose prediction and uses point cloud-to-map registration for pose updates.</p>
+                        <p>The environment is mapped based on the <strong>Truncated Distance Field (TDF)</strong>.
+                            This alignment is used to <strong>constrain the EKF's pose and velocity</strong>.
+                            Whenever the estimated pose variation exceeds a threshold, the <strong>TDF map is
+                            updated</strong> by incorporating new information.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Fast-TDF Section -->
+    <section id="fast-tdf" class="section" data-reveal>
+        <div class="container">
+            <h2 class="section-title">Fast-TDF</h2>
+
+            <div class="formula-visual">
+                <div class="formula-explanation">
+                    <p>The core of D-LIO is the <strong>Fast Truncated Distance Field (Fast-TDF)</strong>. This
+                        method represents the environment as a 3D grid, but instead of just storing "occupied" or
+                        "free", it efficiently encodes the <strong>L1 distance</strong> to the nearest obstacle.</p>
+                    <p>To achieve constant-time map updates, it uses a pre-calculated <strong>binary kernel</strong>.
+                        The distance in this kernel is represented as a bit-set mask, where each set bit accounts
+                        for the distance.</p>
+                    <p>This encoding has a key advantage: the shortest distance from multiple overlapping kernels can
+                        be found with a single, highly efficient <strong>bitwise-AND operation</strong>. This avoids
+                        complex comparisons and makes the process parallelizable on the CPU.</p>
+                </div>
+
+                <div style="max-width:360px; margin:0 auto;">
+                    <div class="table-wrapper">
+                        <table class="results-table">
+                            <thead>
+                                <tr>
+                                    <th>Binary Mask (4-bit)</th>
+                                    <th>L1 Distance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>0000</td><td>0 (Center)</td></tr>
+                                <tr><td>0001</td><td>1</td></tr>
+                                <tr><td>0011</td><td>2</td></tr>
+                                <tr><td>0111</td><td>3</td></tr>
+                                <tr><td>1111</td><td>4 (Max / Truncation)</td></tr>
+                            </tbody>
+                            <caption>Table 1 — Correspondence between bit-set masks and L1 distance.</caption>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <figure style="text-align:center; margin-top:2rem;">
+                <img src="media/fast_tdf_kernel_merge.png" alt="Fast-TDF bitwise-AND operation"
+                    style="max-width:550px; width:100%; border:1px solid var(--border); border-radius:10px;">
+                <figcaption style="font-size:0.85rem; color:var(--text-muted); margin-top:0.6rem;">
+                    Figure 1 — The final distance map (center) is computed by applying the bitwise-AND operation to
+                    overlapping kernels (top/bottom).
+                </figcaption>
+            </figure>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section id="results" class="section section-alt" data-reveal>
+        <div class="container">
+            <h2 class="section-title">Results</h2>
+
+            <p class="results-intro">
+                We benchmarked D-LIO on three challenging public datasets: <strong>VIRAL</strong>,
+                <strong>Newer College</strong>, and <strong>VBR</strong>. These tests evaluate performance in diverse
+                scenarios, including aerial (UAV) and ground platforms, against several state-of-the-art (SOTA) methods.
+            </p>
+
+            <h3 style="text-align:center; margin-bottom:1rem;">Trajectory Accuracy (ATE)</h3>
+            <p style="max-width:850px; margin:0 auto 1.5rem; color:var(--text-secondary); text-align:center;">
+                The <strong>Absolute Translation Error (ATE)</strong> [m] was measured on the VIRAL and Newer College
+                datasets. As shown in the table, D-LIO achieves consistently high accuracy, ranking <strong>first or
+                second</strong> in most sequences. It remains highly competitive even when compared to methods that
+                utilize back-end optimization (like LIO-SAM or PIN-SLAM), which D-LIO does not.
+            </p>
+            <div class="table-wrapper" style="margin-bottom:2.5rem;">
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Sequence</th>
+                            <th>D-LIO</th>
+                            <th>A-LOAM</th>
+                            <th>M-LOAM</th>
+                            <th>KISS-ICP</th>
+                            <th>FAST-LIO2</th>
+                            <th>LIO-SAM</th>
+                            <th>PIN-SLAM</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>eee<sub>01</sub></td><td><strong>0.074</strong></td><td>0.212</td><td>0.249</td><td>2.383</td><td><u>0.166</u></td><td>0.075</td><td>-</td></tr>
+                        <tr><td>eee<sub>02</sub></td><td><strong>0.073</strong></td><td>0.199</td><td>0.168</td><td>1.586</td><td><u>0.100</u></td><td>0.069</td><td>2.056</td></tr>
+                        <tr><td>eee<sub>03</sub></td><td><strong>0.121</strong></td><td>0.148</td><td>0.233</td><td>1.055</td><td><u>0.142</u></td><td>0.101</td><td>0.615</td></tr>
+                        <tr><td>nya<sub>01</sub></td><td><u>0.080</u></td><td><strong>0.077</strong></td><td>0.123</td><td>0.359</td><td>0.127</td><td>0.076</td><td>0.086</td></tr>
+                        <tr><td>nya<sub>02</sub></td><td><u>0.104</u></td><td><strong>0.091</strong></td><td>0.191</td><td>-</td><td>0.151</td><td>0.070</td><td>0.092</td></tr>
+                        <tr><td>nya<sub>03</sub></td><td><strong>0.065</strong></td><td><u>0.108</u></td><td>0.226</td><td>1.389</td><td>0.130</td><td>0.137</td><td>0.455</td></tr>
+                        <tr><td>sbs<sub>01</sub></td><td><strong>0.085</strong></td><td><u>0.103</u></td><td>0.173</td><td>1.353</td><td>0.130</td><td>0.089</td><td>0.205</td></tr>
+                        <tr><td>sbs<sub>02</sub></td><td><strong>0.067</strong></td><td><u>0.091</u></td><td>0.147</td><td>1.435</td><td>0.144</td><td>0.083</td><td>0.528</td></tr>
+                        <tr><td>sbs<sub>03</sub></td><td><strong>0.098</strong></td><td>0.367</td><td>0.153</td><td>1.037</td><td><u>0.126</u></td><td>0.140</td><td>0.708</td></tr>
+                        <tr><td>q-easy</td><td><u>0.093</u></td><td><strong>0.085</strong></td><td>0.141</td><td>0.100</td><td>0.100</td><td>0.074</td><td>0.090</td></tr>
+                    </tbody>
+                    <caption>Table 2 — ATE (m) on VIRAL and Newer College. Best (<strong>bold</strong>) and second-best
+                        (<u>underline</u>) odometry methods.</caption>
+                </table>
+            </div>
+
+            <h3 style="text-align:center; margin-bottom:1rem;">Scalability on Large Datasets</h3>
+            <p style="max-width:850px; margin:0 auto 1.5rem; color:var(--text-secondary); text-align:center;">
+                To evaluate performance in large-scale environments, we used the <strong>VBR dataset</strong>,
+                featuring long trajectories (up to 2.5&nbsp;km) in complex indoor/outdoor settings. D-LIO demonstrates
+                robust scalability, maintaining low ATE (m) and Relative Pose Error (RPE) (%).
+            </p>
+            <div class="table-wrapper" style="margin-bottom:2.5rem; max-width:560px; margin-left:auto; margin-right:auto;">
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Sequence</th>
+                            <th>D-LIO</th>
+                            <th>KISS-ICP</th>
+                            <th>PIN-SLAM</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>diag</td><td><u>0.560</u> <span class="note">(0.72%)</span></td><td>1.397 <span class="note">(1.79%)</span></td><td><strong>0.362</strong> <span class="note">(0.47%)</span></td></tr>
+                        <tr><td>pincio</td><td>7.390 <span class="note">(3.45%)</span></td><td><u>0.784</u> <span class="note">(0.49%)</span></td><td><strong>0.647</strong> <span class="note">(0.45%)</span></td></tr>
+                    </tbody>
+                    <caption>Table 3 — ATE (m) and RPE (%) on the VBR dataset.</caption>
+                </table>
+            </div>
+
+            <h3 style="text-align:center; margin-bottom:1rem;">Mapping Quality</h3>
+            <p style="max-width:850px; margin:0 auto 1.5rem; color:var(--text-secondary); text-align:center;">
+                We also evaluated the 3D reconstruction quality on the <strong>Newer College (Quad-Easy)</strong>
+                sequence using standard metrics: Accuracy, Completeness, Chamfer-L1 (C-L1), and F-Score. D-LIO
+                produces highly competitive maps, achieving the <strong>best completeness</strong> and ranking second
+                for C-L1 and F-Score among all tested odometry-driven methods.
+            </p>
+            <div class="table-wrapper" style="margin-bottom:2.5rem;">
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Pose</th>
+                            <th>Acc. (cm)</th>
+                            <th>Comp. (cm)</th>
+                            <th>C-L1 (cm)</th>
+                            <th>F-Score (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>VDB-Fusion</td><td>KissICP</td><td>14.03</td><td>25.46</td><td>19.75</td><td>69.50</td></tr>
+                        <tr><td>SHINE</td><td>KissICP</td><td>14.87</td><td>20.02</td><td>17.45</td><td>68.85</td></tr>
+                        <tr><td>NKSR</td><td>KissICP</td><td>15.67</td><td>36.87</td><td>26.67</td><td>58.57</td></tr>
+                        <tr><td>PUMA</td><td>Odometry</td><td>15.30</td><td>71.91</td><td>43.60</td><td>57.27</td></tr>
+                        <tr><td>SLAMesh</td><td>Odometry</td><td>19.21</td><td>48.83</td><td>34.02</td><td>45.24</td></tr>
+                        <tr><td>NeRF-LOAM</td><td>Odometry</td><td>12.89</td><td>22.21</td><td>17.55</td><td>74.37</td></tr>
+                        <tr><td>S²KAN-SLAM</td><td>Odometry</td><td>13.32</td><td>18.80</td><td>16.06</td><td>72.03</td></tr>
+                        <tr><td>ImMesh</td><td>Odometry</td><td>15.05</td><td>19.80</td><td>17.42</td><td>66.87</td></tr>
+                        <tr><td>PIN-SLAM</td><td>Odometry</td><td><u>11.55</u></td><td>15.25</td><td>13.40</td><td>82.08</td></tr>
+                        <tr><td>KN-LIO</td><td>Odometry</td><td><strong>8.18</strong></td><td><u>11.65</u></td><td><strong>9.92</strong></td><td><strong>91.01</strong></td></tr>
+                        <tr><td>D-LIO</td><td>Odometry</td><td>12.14</td><td><strong>10.63</strong></td><td><u>11.39</u></td><td><u>83.83</u></td></tr>
+                    </tbody>
+                    <caption>Table 4 — Mapping metrics on Newer College. Best (<strong>bold</strong>) and second-best
+                        (<u>underline</u>) scores.</caption>
+                </table>
+            </div>
+
+            <h3 style="text-align:center; margin-bottom:1rem;">Runtime Analysis</h3>
+            <p style="max-width:850px; margin:0 auto 1.5rem; color:var(--text-secondary); text-align:center;">
+                The system's performance was analyzed on an <strong>Intel Core i7-13700H CPU without GPU
+                acceleration</strong>. The map update step is the most computationally expensive, as its time
+                strongly depends on point cloud density. However, optimization runs at the sensor rate (10&nbsp;Hz)
+                while updates are triggered less frequently, balancing the load.
+            </p>
+            <div class="table-wrapper" style="margin-bottom:2.5rem;">
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Dataset</th>
+                            <th>Points (avg.)</th>
+                            <th>Total (s)</th>
+                            <th>Optimize (s)</th>
+                            <th>Update (s)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>eee</td><td>~20k</td><td>0.048 <span class="note">± 0.055</span></td><td>0.046 <span class="note">± 0.013</span></td><td>0.155 <span class="note">± 0.009</span></td></tr>
+                        <tr><td>nya</td><td>~20k</td><td>0.049 <span class="note">± 0.034</span></td><td>0.042 <span class="note">± 0.014</span></td><td>0.146 <span class="note">± 0.016</span></td></tr>
+                        <tr><td>sbs</td><td>~20k</td><td>0.051 <span class="note">± 0.048</span></td><td>0.044 <span class="note">± 0.016</span></td><td>0.142 <span class="note">± 0.034</span></td></tr>
+                        <tr><td>q-easy</td><td>~100k</td><td>0.479 <span class="note">± 0.196</span></td><td>0.442 <span class="note">± 0.158</span></td><td>0.470 <span class="note">± 0.095</span></td></tr>
+                        <tr><td>diag</td><td>~190k</td><td>0.603 <span class="note">± 0.240</span></td><td>0.565 <span class="note">± 0.194</span></td><td>0.315 <span class="note">± 0.085</span></td></tr>
+                        <tr><td>pincio</td><td>~140k</td><td>0.576 <span class="note">± 0.256</span></td><td>0.505 <span class="note">± 0.182</span></td><td>0.563 <span class="note">± 0.146</span></td></tr>
+                    </tbody>
+                    <caption>Table 5 — Runtime analysis (mean ± std. dev) with no downsampling.</caption>
+                </table>
+            </div>
+
+            <h3 style="text-align:center; margin-bottom:1rem;">Project Video</h3>
+            <p style="text-align:center; color:var(--text-secondary); margin-bottom:1.5rem;">
+                Qualitative results, 3D reconstructions, and estimated trajectories from the datasets.
+            </p>
+            <div data-reveal style="position:relative; width:100%; max-width:900px;
+                margin: 0 auto; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; border: 1px solid var(--border);">
+                <iframe src="https://www.youtube.com/embed/HmrA9YOCZ9w" title="D-LIO Results"
+                    style="position:absolute; inset:0; width:100%; height:100%; border:0;"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowfullscreen></iframe>
+            </div>
+        </div>
+    </section>
+
+    <!-- Citation Section -->
+    <section id="citation" class="section" data-reveal>
+        <div class="container">
+            <h2 class="section-title">Citation</h2>
+
+            <p class="code-intro" style="text-align: left;">
+                If you use D-LIO in your research, please cite our paper:
+            </p>
+
+            <div class="code-block citation-block" style="text-align: left;">
+                <div class="code-header">
+                    <span>BibTeX</span>
+                    <button class="copy-btn" title="Copy to clipboard">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        <span class="copy-text">Copy</span>
+                    </button>
+                </div>
+                <pre><code class="cite-content">@ARTICLE{11248856,
+  author={Coto-Elena, L. and Maese, J.E. and Merino, L. and Caballero, F.},
+  journal={IEEE Robotics and Automation Letters},
+  title={D-LIO: 6DoF Direct LiDAR-Inertial Odometry Based on Simultaneous Truncated Distance Field Mapping},
+  year={2026},
+  volume={11},
+  number={1},
+  pages={169-176},
+  keywords={Odometry;Laser radar;Point cloud compression;Accuracy;Feature extraction;Location awareness;Kernel;Simultaneous localization and mapping;Real-time systems;Three-dimensional displays;Mapping;odometry;simultaneous localization and mapping},
+  doi={10.1109/LRA.2025.3632615}}</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <strong>D-LIO</strong>
+                </div>
+                <div class="footer-links">
+                    <a href="https://github.com/robotics-upo/D-LIO" target="_blank">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                            fill="currentColor">
+                            <path
+                                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                        </svg>
+                        GitHub
+                    </a>
+                    <a href="https://arxiv.org/abs/2505.16726" target="_blank">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                        </svg>
+                        Paper
+                    </a>
+                    <a href="https://www.youtube.com/watch?v=HmrA9YOCZ9w" target="_blank">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                        </svg>
+                        Video
+                    </a>
+                </div>
+            </div>
+
+            <div class="footer-funding">
+                <span class="footer-funding-label">Funding</span>
+                <ul class="funding-list">
+                    <li><strong>INSERTION</strong> (PID2021-127648OB-C31), funded by the "Agencia Estatal de
+                        Investigación – Ministerio de Ciencia, Innovación y Universidades" and the "European Union
+                        NextGenerationEU/PRTR".</li>
+                    <li><strong>NORDIC</strong> (TED2021-132476B-I00), funded by the "Agencia Estatal de
+                        Investigación – Ministerio de Ciencia, Innovación y Universidades" and the "European Union
+                        NextGenerationEU/PRTR".</li>
+                </ul>
+                <img src="media/logo_ministerio.png" alt="Funding logos">
+            </div>
+
+            <div class="footer-bottom">
+                © <span id="year"></span> Service Robotics Laboratory, Universidad Pablo de Olavide
+            </div>
+        </div>
+    </footer>
+
+    <!-- Lightbox overlay -->
+    <div class="lightbox-overlay" id="lightboxOverlay">
+        <button class="lightbox-close" id="lightboxClose" aria-label="Close">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+        <img id="lightboxImg" src="" alt="Enlarged view">
     </div>
-  </section>
-  <!-- ===== Results  ===== -->
-  <section class="section" id="results">
-    <header><h2>Results</h2></header>
-    <div class="content">
-      
-      <p>We benchmarked D-LIO on three challenging public datasets: <strong>VIRAL</strong>, <strong>Newer College</strong>, and <strong>VBR</strong>. These tests evaluate performance in diverse scenarios, including aerial (UAV) and ground platforms, against several state-of-the-art (SOTA) methods.</p>
 
-      <h3 style="text-align:center; margin-top:28px;">Trajectory Accuracy (ATE)</h3>
-      <p>The <strong>Absolute Translation Error (ATE)</strong> [m] was measured on the VIRAL and Newer College datasets. As shown in the table, D-LIO achieves consistently high accuracy, ranking <strong>first or second</strong> in most sequences. It remains highly competitive even when compared to methods that utilize back-end optimization (like LIO-SAM or PIN-SLAM), which D-LIO does not.</p>
-      
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Sequence</th>
-              <th>D-LIO</th>
-              <th>A-LOAM</th>
-              <th>M-LOAM</th>
-              <th>KISS-ICP</th>
-              <th>FAST-LIO2</th>
-              <th>LIO-SAM</th>
-              <th>PIN-SLAM</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>eee<sub>01</sub></td>
-              <td><strong>0.074</strong></td>
-              <td>0.212</td>
-              <td>0.249</td>
-              <td>2.383</td>
-              <td><u>0.166</u></td>
-              <td>0.075</td>
-              <td class="fail">-</td>
-            </tr>
-            <tr>
-              <td>eee<sub>02</sub></td>
-              <td><strong>0.073</strong></td>
-              <td>0.199</td>
-              <td>0.168</td>
-              <td>1.586</td>
-              <td><u>0.100</u></td>
-              <td>0.069</td>
-              <td>2.056</td>
-            </tr>
-            <tr>
-              <td>eee<sub>03</sub></td>
-              <td><strong>0.121</strong></td>
-              <td>0.148</td>
-              <td>0.233</td>
-              <td>1.055</td>
-              <td><u>0.142</u></td>
-              <td>0.101</td>
-              <td>0.615</td>
-            </tr>
-            <tr>
-              <td>nya<sub>01</sub></td>
-              <td><u>0.080</u></td>
-              <td><strong>0.077</strong></td>
-              <td>0.123</td>
-              <td>0.359</td>
-              <td>0.127</td>
-              <td>0.076</td>
-              <td>0.086</td>
-            </tr>
-            <tr>
-              <td>nya<sub>02</sub></td>
-              <td><u>0.104</u></td>
-              <td><strong>0.091</strong></td>
-              <td>0.191</td>
-              <td class="fail">-</td>
-              <td>0.151</td>
-              <td>0.070</td>
-              <td>0.092</td>
-            </tr>
-            <tr>
-              <td>nya<sub>03</sub></td>
-              <td><strong>0.065</strong></td>
-              <td><u>0.108</u></td>
-              <td>0.226</td>
-              <td>1.389</td>
-              <td>0.130</td>
-              <td>0.137</td>
-              <td>0.455</td>
-            </tr>
-            <tr>
-              <td>sbs<sub>01</sub></td>
-              <td><strong>0.085</strong></td>
-              <td><u>0.103</u></td>
-              <td>0.173</td>
-              <td>1.353</td>
-              <td>0.130</td>
-              <td>0.089</td>
-              <td>0.205</td>
-            </tr>
-            <tr>
-              <td>sbs<sub>02</sub></td>
-              <td><strong>0.067</strong></td>
-              <td><u>0.091</u></td>
-              <td>0.147</td>
-              <td>1.435</td>
-              <td>0.144</td>
-              <td>0.083</td>
-              <td>0.528</td>
-            </tr>
-            <tr>
-              <td>sbs<sub>03</sub></td>
-              <td><strong>0.098</strong></td>
-              <td>0.367</td>
-              <td>0.153</td>
-              <td>1.037</td>
-              <td><u>0.126</u></td>
-              <td>0.140</td>
-              <td>0.708</td>
-            </tr>
-            <tr>
-              <td>q-easy</td>
-              <td><u>0.093</u></td>
-              <td><strong>0.085</strong></td>
-              <td>0.141</td>
-              <td>0.100</td>
-              <td>0.100</td>
-              <td>0.074</td>
-              <td>0.090</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p style="text-align:center; font-size:0.9rem; color:var(--muted);">
-        Table 2: ATE (m) on VIRAL and Newer College. Best (<strong>bold</strong>) and second-best (<u>underline</u>) odometry methods.
-      </p>
-
-      <h3 style="text-align:center; margin-top:28px;">Scalability on Large Datasets</h3>
-      <p>To evaluate performance in large-scale environments, we used the <strong>VBR dataset</strong>, featuring long trajectories (up to 2.5 km) in complex indoor/outdoor settings. D-LIO demonstrates robust scalability, maintaining low ATE (m) and Relative Pose Error (RPE) (%).</p>
-
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Sequence</th>
-              <th>D-LIO</th>
-              <th>KISS-ICP</th>
-              <th>PIN-SLAM</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>diag</td>
-              <td><u>0.560</u> <span class="note">(0.72%)</span></td>
-              <td>1.397 <span class="note">(1.79%)</span></td>
-              <td><strong>0.362</strong> <span class="note">(0.47%)</span></td>
-            </tr>
-            <tr>
-              <td>pincio</td>
-              <td>7.390 <span class="note">(3.45%)</span></td>
-              <td><u>0.784</u> <span class="note">(0.49%)</span></td>
-              <td><strong>0.647</strong> <span class="note">(0.45%)</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p style="text-align:center; font-size:0.9rem; color:var(--muted);">
-        Table 3: ATE (m) and RPE (%) on the VBR dataset.
-      </p>
-
-      <hr style="border:0; border-top:1px solid var(--border); margin: 40px auto 20px;">
-
-      <h3 style="text-align:center; margin-top:28px;">Mapping Quality</h3>
-      <p>We also evaluated the 3D reconstruction quality on the <strong>Newer College (Quad-Easy)</strong> sequence using standard metrics: Accuracy, Completeness, Chamfer-L1 (C-L1), and F-Score. D-LIO produces highly competitive maps, achieving the <strong>best completeness</strong> and ranking second for C-L1 and F-Score among all tested odometry-driven methods.</p>
-
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Method</th>
-              <th>Pose</th>
-              <th>Acc. (cm)</th>
-              <th>Comp. (cm)</th>
-              <th>C-L1 (cm)</th>
-              <th>F-Score (%)</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>VDB-Fusion</td>
-              <td>KissICP</td>
-              <td>14.03</td>
-              <td>25.46</td>
-              <td>19.75</td>
-              <td>69.50</td>
-            </tr>
-            <tr>
-              <td>SHINE</td>
-              <td>KissICP</td>
-              <td>14.87</td>
-              <td>20.02</td>
-              <td>17.45</td>
-              <td>68.85</td>
-            </tr>
-            <tr>
-              <td>NKSR</td>
-              <td>KissICP</td>
-              <td>15.67</td>
-              <td>36.87</td>
-              <td>26.67</td>
-              <td>58.57</td>
-            </tr>
-            <tr>
-              <td>PUMA</td>
-              <td>Odometry</td>
-              <td>15.30</td>
-              <td>71.91</td>
-              <td>43.60</td>
-              <td>57.27</td>
-            </tr>
-            <tr>
-              <td>SLAMesh</td>
-              <td>Odometry</td>
-              <td>19.21</td>
-              <td>48.83</td>
-              <td>34.02</td>
-              <td>45.24</td>
-            </tr>
-            <tr>
-              <td>NeRF-LOAM</td>
-              <td>Odometry</td>
-              <td>12.89</td>
-              <td>22.21</td>
-              <td>17.55</td>
-              <td>74.37</td>
-            </tr>
-            <tr>
-              <td>S²KAN-SLAM</td>
-              <td>Odometry</td>
-              <td>13.32</td>
-              <td>18.80</td>
-              <td>16.06</td>
-              <td>72.03</td>
-            </tr>
-            <tr>
-              <td>ImMesh</td>
-              <td>Odometry</td>
-              <td>15.05</td>
-              <td>19.80</td>
-              <td>17.42</td>
-              <td>66.87</td>
-            </tr>
-            <tr>
-              <td>PIN-SLAM</td>
-              <td>Odometry</td>
-              <td><u>11.55</u></td>
-              <td>15.25</td>
-              <td>13.40</td>
-              <td>82.08</td>
-            </tr>
-            <tr>
-              <td>KN-LIO</td>
-              <td>Odometry</td>
-              <td><strong>8.18</strong></td>
-              <td><u>11.65</u></td>
-              <td><strong>9.92</strong></td>
-              <td><strong>91.01</strong></td>
-            </tr>
-            <tr>
-              <td>D-LIO</td>
-              <td>Odometry</td>
-              <td>12.14</td>
-              <td><strong>10.63</strong></td>
-              <td><u>11.39</u></td>
-              <td><u>83.83</u></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p style="text-align:center; font-size:0.9rem; color:var(--muted);">
-        Table 4: Mapping metrics on Newer College. Best (<strong>bold</strong>) and second-best (<u>underline</u>) scores.
-      </p>
-
-
-      <h3 style="text-align:center; margin-top:28px;">Runtime Analysis</h3>
-      <p>The system's performance was analyzed on an Intel Core i7-13700H CPU <strong>without GPU acceleration</strong>. The map update step is the most computationally expensive, as its time strongly depends on point cloud density. However, optimization runs at the sensor rate (10 Hz) while updates are triggered less frequently, balancing the load.</p>
-
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Dataset</th>
-              <th>Points (avg.)</th>
-              <th>Total (s)</th>
-              <th>Optimize (s)</th>
-              <th>Update (s)</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>eee</td>
-              <td>~20k</td>
-              <td>0.048 <span class="note">± 0.055</span></td>
-              <td>0.046 <span class="note">± 0.013</span></td>
-              <td>0.155 <span class="note">± 0.009</span></td>
-            </tr>
-            <tr>
-              <td>nya</td>
-              <td>~20k</td>
-              <td>0.049 <span class="note">± 0.034</span></td>
-              <td>0.042 <span class="note">± 0.014</span></td>
-              <td>0.146 <span class="note">± 0.016</span></td>
-            </tr>
-            <tr>
-              <td>sbs</td>
-              <td>~20k</td>
-              <td>0.051 <span class="note">± 0.048</span></td>
-              <td>0.044 <span class="note">± 0.016</span></td>
-              <td>0.142 <span class="note">± 0.034</span></td>
-            </tr>
-            <tr>
-              <td>q-easy</td>
-              <td>~100k</td>
-              <td>0.479 <span class="note">± 0.196</span></td>
-              <td>0.442 <span class="note">± 0.158</span></td>
-              <td>0.470 <span class="note">± 0.095</span></td>
-            </tr>
-            <tr>
-              <td>diag</td>
-              <td>~190k</td>
-              <td>0.603 <span class="note">± 0.240</span></td>
-              <td>0.565 <span class="note">± 0.194</span></td>
-              <td>0.315 <span class="note">± 0.085</span></td>
-            </tr>
-            <tr>
-              <td>pincio</td>
-              <td>~140k</td>
-              <td>0.576 <span class="note">± 0.256</span></td>
-              <td>0.505 <span class="note">± 0.182</span></td>
-              <td>0.563 <span class="note">± 0.146</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p style="text-align:center; font-size:0.9rem; color:var(--muted);">
-        Table 5: Runtime analysis (mean ± std. dev) with no downsampling.
-      </p>
-
-
-      <h3 style="text-align:center; margin-top:28px;">Project Video</h3>
-      <p style="text-align:center;">
-        Qualitative results, 3D reconstructions, and estimated trajectories from the datasets.
-      </p>
-      <div class="video">
-        <iframe
-          src="https://www.youtube.com/embed/HmrA9YOCZ9w"
-          title="D-LIO Results"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowfullscreen></iframe>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== Citation with Copy ===== -->
-<section class="section" id="citation">
-    <header><h2>Citation</h2></header>
-    <div class="content">
-      <p>If you use D-LIO, please cite:</p>
-      <div class="block-head" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 20px 0;">
-        <div class="label" style="color:var(--muted);">BibTeX</div>
-        <button class="copy" id="copy-cite">Copy</button>
-      </div>
-<pre id="bibtex">
-@article{cotoelena2025dlio,
-  title   = {D-LIO: 6DoF Direct LiDAR-Inertial Odometry based on Simultaneous Truncated Distance Field Mapping}, 
-  author  = {Lucia Coto-Elena and J. E. Maese and L. Merino and F. Caballero},
-  journal = {IEEE Robotics and Automation Letters (RA-L)},
-  year    = {2025},
-  note    = {Accepted for publication. To appear.},
-  eprint  = {2505.16726},
-  archivePrefix = {arXiv},
-  url     = {https://arxiv.org/abs/2505.16726}
-}
-</pre>
-    </div>
-  </section>
-
-  <!-- ===== Funding (logos at the very end) ===== -->
-  <section class="section" id="funding">
-    <header><h2>Acknowledgments</h2></header>
-    <div class="content">
-      <p>
-        This work is partially supported by the grants INSERTION (PID2021- 127648OB-C31) and NORDIC (TED2021-132476B-I00), both funded by the “Agencia Estatal de Investigación – Ministerio de Ciencia, Innovación y Universidades” and the “European Union NextGenerationEU/PRTR.
-      </p>
-      <div class="funders" style="margin-top:10px;">
-        <img src="media/logo_ministerio.png" alt="Logos">
-      </div>
-    </div>
-  </section>
-</main>
-
-<footer class="footer">
-  © <span id="year"></span> · <a href="https://github.com/robotics-upo/D-LIO?tab=readme-ov-file" target="_blank" rel="noopener">Project Repository</a>
-</footer>
-
-<script>
-  // Year
-  document.getElementById('year').textContent = new Date().getFullYear();
-
-  // Apply saved theme on load and set initial label
-  (function(){
-    const root = document.documentElement;
-    const key  = 'mm-theme';
-    const saved = localStorage.getItem(key);
-    if (saved === 'light' || saved === 'dark') root.setAttribute('data-theme', saved);
-    const label = document.getElementById('theme-label');
-    const cur = root.getAttribute('data-theme');
-    label.textContent = (cur === 'dark') ? 'Light mode' : 'Dark mode';
-  })();
-
-  // Animate section ruler grow/shrink near both top and bottom edges
-  (function(){
-    const SEGURO_TOP = 0.15, SEGURO_BOTTOM = 0.85;
-    const secs = Array.from(document.querySelectorAll('.section'));
-    function update(){
-      const vh = window.innerHeight || 1;
-      secs.forEach(sec=>{
-        const h2 = sec.querySelector('h2');
-        if(!h2) return;
-        const r = h2.getBoundingClientRect();
-        const centro = r.top + r.height/2;
-        const frac = centro / vh;
-        const dentro = frac > SEGURO_TOP && frac < SEGURO_BOTTOM;
-        sec.classList.toggle('in-view', dentro);
-      });
-    }
-    update();
-    window.addEventListener('scroll', update, {passive:true});
-    window.addEventListener('resize', update);
-  })();
-
-  // Theme toggle
-  (function(){
-    const btn = document.getElementById('theme-switch');
-    const label = document.getElementById('theme-label');
-    const root = document.documentElement;
-    const key  = 'mm-theme';
-    btn?.addEventListener('click', (e)=>{
-      e.preventDefault();
-      const cur  = root.getAttribute('data-theme');
-      const next = (cur === 'dark') ? 'light' : 'dark';
-      root.setAttribute('data-theme', next);
-      localStorage.setItem(key, next);
-      label.textContent = (next === 'dark') ? 'Light mode' : 'Dark mode';
-    });
-  })();
-
-  // Auto-advancing gallery with manual arrows
-(function(){
-  const viewport = document.getElementById('g-viewport');
-  const track    = document.getElementById('g-track');
-  const prevBtn  = document.getElementById('g-prev');
-  const nextBtn  = document.getElementById('g-next');
-
-  let step = 0;
-
-  function getGapPx(){
-    const cs = getComputedStyle(track);
-    const g  = parseFloat(cs.gap || cs.columnGap || '0');
-    return isNaN(g) ? 0 : g;
-  }
-
-  function recalc(){
-    const first = track.querySelector('.gallery-item');
-    if(!first) return;
-    const itemWidth = first.getBoundingClientRect().width; // ancho real de UNA tarjeta
-    const gapPx     = getGapPx();                           // gap real de flex
-    step = itemWidth + gapPx;                               // un solo ítem por salto
-  }
-
-  function advance(dir = 1){ // dir>0 = izquierda, dir<0 = derecha
-    track.style.transition = 'transform 600ms ease';
-    track.style.transform  = `translateX(${dir > 0 ? -step : step}px)`;
-    const onEnd = ()=>{
-      track.removeEventListener('transitionend', onEnd);
-      if(dir > 0){
-        track.appendChild(track.firstElementChild); // mueve 1 al final
-      }else{
-        track.insertBefore(track.lastElementChild, track.firstElementChild); // mueve 1 al principio
-      }
-      track.style.transition = 'none';
-      track.style.transform  = 'translateX(0)';
-      void track.offsetWidth; // reflow
-    };
-    track.addEventListener('transitionend', onEnd);
-  }
-
-  // init + resize
-  recalc();
-  window.addEventListener('resize', recalc);
-
-  // auto: cada 5s hacia la izquierda, 1 item
-  let timer = setInterval(()=>advance(1), 5000);
-
-  // controles manuales (izq/dcha) y reinicio del auto
-  nextBtn.addEventListener('click', ()=>{ clearInterval(timer); advance(1);  timer = setInterval(()=>advance(1), 5000); });
-  prevBtn.addEventListener('click', ()=>{ clearInterval(timer); advance(-1); timer = setInterval(()=>advance(1), 5000); });
-
-  // pausa al pasar el ratón
-  viewport.addEventListener('mouseenter', ()=> clearInterval(timer));
-  viewport.addEventListener('mouseleave', ()=> { timer = setInterval(()=>advance(1), 5000); });
-})();
-
-  // Copy citation
-  (function(){
-    const btn = document.getElementById('copy-cite');
-    const pre = document.getElementById('bibtex');
-    btn?.addEventListener('click', async ()=>{
-      const text = pre.textContent;
-      try{
-        await navigator.clipboard.writeText(text);
-        const old = btn.textContent;
-        btn.textContent = 'Copied';
-        setTimeout(()=>btn.textContent=old, 1400);
-      }catch(e){
-        alert('Clipboard copy failed. Please copy manually.');
-      }
-    });
-  })();
-</script>
-
+    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+    <script src="script.js"></script>
 </body>
+
 </html>

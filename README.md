@@ -1,21 +1,10 @@
-<a id="readme-top"></a>
-<!-- PROJECT LOGO -->
-<br />
-
-> [!NOTE]  
-
-
-
 # D-LIO: 6DoF Direct LiDAR-Inertial Odometry based on Simultaneous Truncated Distance Field Mapping
 
 <p align="center">
-<strong> 🤖 <a href="https://robotics-upo.github.io/D-LIO/">Visit the project website</a> 🤖 </strong>
+  <a href="https://robotics-upo.github.io/D-LIO/"><img src="https://img.shields.io/badge/Project-Website-007acc?style=flat" alt="Project Website"></a>
+  <a href="https://youtu.be/HmrA9YOCZ9w"><img src="https://img.shields.io/badge/YouTube-Video-red?style=flat&logo=youtube" alt="YouTube Video"></a>
+  <a href="https://arxiv.org/abs/2505.16726"><img src="https://img.shields.io/badge/arXiv-Paper-b31b1b?style=flat&logo=arxiv" alt="arXiv Paper"></a>
 </p>
-
-<div align="center">
-  <a href="https://youtu.be/HmrA9YOCZ9w"><img src="https://img.shields.io/badge/YouTube-Video-red?logo=youtube" alt="YouTube Video"></a>
-  <a href="https://arxiv.org/abs/2505.16726"><img src="https://img.shields.io/badge/arXiv-Paper-b31b1b?logo=arxiv" alt="arXiv Paper"></a>
-</div>
 
 
 A Direct LIDAR Inertial Odometry (D-LIO) able to deal with raw 3D LIDAR data online, avoiding the need of LIDAR feature selection and tracking, simplifying the odometry pipeline and easily generalising to all types of scenarios. The method is based on the use of Fast Truncated Distance Field (Fast-TDF) as a convenient tool to represent the environment, enabling solving the LIDAR point-cloud registration as a nonlinear optimisation process without the need for selecting/tracking LIDAR features in the input data and updating the environment map at constant time independently of the size of the map itself.
@@ -254,6 +243,7 @@ If you use D-LIO in your research, please cite our paper:
   volume={11},
   number={1},
   pages={169-176},
+  keywords={Odometry;Laser radar;Point cloud compression;Accuracy;Feature extraction;Location awareness;Kernel;Simultaneous localization and mapping;Real-time systems;Three-dimensional displays;Mapping;odometry;simultaneous localization and mapping},
   doi={10.1109/LRA.2025.3632615}}
 ```
 
